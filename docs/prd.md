@@ -168,26 +168,28 @@ MACS Kulübü'nün resmi tanıtım ve içerik yönetim sistemi. Kulüp projeleri
 
 ### Events (İlk Geliştirme) 
 
-## �� Geliştirme Planı
+## 🎯 Geliştirme Planı
 
 ## 📋 Backend Geliştirme Planı
 
 ### ✅ YAPILDI
-*(Henüz başlamadık - buraya tamamlanan işler eklenecek)*
+- [x] FastAPI proje setup
+  - [x] requirements.txt oluşturma
+- [x] Database bağlantısı
+  - [x] PostgreSQL connection setup
+  - [x] Database connection helper (database.py)
+- [x] Environment configuration
+  - [x] .env dosyası
 
 ### 🚧 YAPILACAKLAR
 
 #### Faz 1: Proje Kurulumu & Temel Yapı
 - [ ] FastAPI proje setup
-  - [ ] requirements.txt oluşturma
   - [ ] main.py temel yapısı
   - [ ] klasör yapısı organizasyonu
 - [ ] Database bağlantısı
-  - [ ] PostgreSQL connection setup
   - [ ] SQLAlchemy configuration
-  - [ ] Database connection helper
 - [ ] Environment configuration
-  - [ ] .env dosyası
   - [ ] config.py settings
   - [ ] environment variables
 
