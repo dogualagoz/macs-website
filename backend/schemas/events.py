@@ -35,15 +35,15 @@ class Event(EventBase):
     model_config = ConfigDict(from_attributes=True)
 
 #! Kategori için base model
-class CategoryBase(BaseModel):
+class EventCategoryBase(BaseModel):
     name: str
 
 #! Kategori oluşturmak için gerekli veriler
-class CategoryCreate(CategoryBase):
+class EventCategoryCreate(EventCategoryBase):
     pass 
 
 #! Kategori için tüm alanları temsil eder (response modeli)
-class Category(CategoryBase):
+class EventCategory(EventCategoryBase):
     id: int
     created_at: datetime
     updated_at: Optional[datetime]

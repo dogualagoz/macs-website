@@ -23,7 +23,7 @@ class Event(Base):
 
     # İlişkiler
     category_id = Column(Integer, ForeignKey("event_categories.id"))
-    created_by = Column(Integer, ForeignKey("users.id"))
+    created_by = Column(String)
 
     # Durum
     is_active = Column(Boolean, default=True)
