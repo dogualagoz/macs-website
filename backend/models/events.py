@@ -19,10 +19,10 @@ class Event(Base):
 
     #Zamanlar
     start_time = Column(DateTime, nullable=False)
-    end_time = Column(DateTime, nullable=False)
+    end_time = Column(DateTime, nullable=True)
 
     # İlişkiler
-    category_id = Column(Integer, ForeignKey("categories.id"))
+    category_id = Column(Integer, ForeignKey("event_categories.id"))
     created_by = Column(Integer, ForeignKey("users.id"))
 
     # Durum
