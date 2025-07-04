@@ -2,6 +2,22 @@ from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 from typing import Optional
 
+#! Kategori için base model
+class EventCategoryBase(BaseModel):
+    name: str
+
+#! Kategori oluşturmak için gerekli veriler
+class EventCategoryCreate(EventCategoryBase):
+    pass 
+
+#! Kategori için tüm alanları temsil eder (response modeli)
+class EventCategory(EventCategoryBase):
+    id: int
+    created_at: datetime
+    updated_at: Optional[datetime]
+
+    model_config = ConfigDict(from_attributes=True)
+
 #! Frontend'e gidecek veriler
 class EventBase(BaseModel):
     title: str
@@ -27,25 +43,10 @@ class EventUpdate(EventBase):
 class Event(EventBase):
     id: int
     slug: str
-    created_by: Optional[int]
+    created_by: Optional[str]
     is_deleted: bool
     created_at: datetime
-    updated_at: Optional[datetime] 
-    
-    model_config = ConfigDict(from_attributes=True)
-
-#! Kategori için base model
-class EventCategoryBase(BaseModel):
-    name: str
-
-#! Kategori oluşturmak için gerekli veriler
-class EventCategoryCreate(EventCategoryBase):
-    pass 
-
-#! Kategori için tüm alanları temsil eder (response modeli)
-class EventCategory(EventCategoryBase):
-    id: int
-    created_at: datetime
     updated_at: Optional[datetime]
-
+    category: Optional[EventCategory] = None
+    
     model_config = ConfigDict(from_attributes=True)

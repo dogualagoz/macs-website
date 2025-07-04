@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, Boolean, String, Text, DateTime, ForeignKey
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from database import Base
 
@@ -23,6 +24,7 @@ class Event(Base):
 
     # İlişkiler
     category_id = Column(Integer, ForeignKey("event_categories.id"))
+    category = relationship("EventCategory", back_populates="events")
     created_by = Column(String)
 
     # Durum
@@ -38,6 +40,9 @@ class EventCategory(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, nullable=False)
+
+    # İlişkiler
+    events = relationship("Event", back_populates="category")
 
     #Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())

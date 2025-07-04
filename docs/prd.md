@@ -183,6 +183,9 @@ MACS Kulübü'nün resmi tanıtım ve içerik yönetim sistemi. Kulüp projeleri
 
 ### 🚧 YAPILACAKLAR
 
+Not:
+- [ ] slug eklenecek
+
 #### Faz 1: Proje Kurulumu & Temel Yapı
 - [ ] FastAPI proje setup
   - [ ] main.py temel yapısı
