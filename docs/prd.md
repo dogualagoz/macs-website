@@ -20,12 +20,12 @@ MACS Kulübü'nün resmi tanıtım ve içerik yönetim sistemi. Kulüp projeleri
 - **Durum Yönetimi**: TBD (Context API veya Redux)
 
 ### Backend
-- **Framework**: FastAPI
-- **Database**: PostgreSQL
-- **ORM**: SQLAlchemy
-- **Validation**: Pydantic
+- **Framework**: FastAPI ✅
+- **Database**: PostgreSQL ✅
+- **ORM**: SQLAlchemy ✅
+- **Validation**: Pydantic ✅
 - **Authentication**: JWT
-- **API Documentation**: OpenAPI/Swagger
+- **API Documentation**: OpenAPI/Swagger ✅
 
 ---
 
@@ -87,7 +87,7 @@ MACS Kulübü'nün resmi tanıtım ve içerik yönetim sistemi. Kulüp projeleri
 - project_id: ForeignKey
 - tag_id: ForeignKey
 
-6. Event
+6. Event ✅
 - id: Integer, primary key
 - title: String
 - slug: String, unique
@@ -104,10 +104,10 @@ MACS Kulübü'nün resmi tanıtım ve içerik yönetim sistemi. Kulüp projeleri
 - created_at: DateTime
 - updated_at: DateTime
 
-7. EventCategory
+7. EventCategory ✅
 - id: Integer
 - name: String, unique
-
+- created_at: DateTime
 
 ---
 
@@ -146,9 +146,9 @@ MACS Kulübü'nün resmi tanıtım ve içerik yönetim sistemi. Kulüp projeleri
 - PUT /projects/{id} → Güncelle
 - DELETE /projects/{id} → Sil
 
-📅 Events
+📅 Events ✅
 - POST /events/ → Yeni etkinlik ekle
-- GET /events/ → Listele
+- GET /events/ → Listele (filtreleme ve pagination desteği ile)
 - GET /events/{slug} → Detay getir
 - PUT /events/{id} → Güncelle
 - DELETE /events/{id} → Sil
@@ -158,13 +158,12 @@ MACS Kulübü'nün resmi tanıtım ve içerik yönetim sistemi. Kulüp projeleri
 - POST /tags/ → Yeni tag
 - GET /project-categories/
 - POST /project-categories/
-- GET /event-categories/
-- POST /event-categories/
+- GET /event-categories/ ✅
+- POST /event-categories/ ✅
 
-🔎 Filtreleme (public)
+🔎 Filtreleme (public) ✅
 - GET /projects/?category=&tag=
-- GET /events/?status=upcoming|ongoing|past
-
+- GET /events/?status=upcoming|ongoing|past&category=&search=
 
 ### Events (İlk Geliştirme) 
 
@@ -175,38 +174,26 @@ MACS Kulübü'nün resmi tanıtım ve içerik yönetim sistemi. Kulüp projeleri
 ### ✅ YAPILDI
 - [x] FastAPI proje setup
   - [x] requirements.txt oluşturma
+  - [x] main.py temel yapısı
+  - [x] klasör yapısı organizasyonu
 - [x] Database bağlantısı
   - [x] PostgreSQL connection setup
   - [x] Database connection helper (database.py)
+  - [x] SQLAlchemy configuration
 - [x] Environment configuration
   - [x] .env dosyası
+- [x] Events API
+  - [x] Events CRUD endpoints
+  - [x] Events filtering & pagination
+  - [x] Events business logic
+  - [x] Slug implementation
+- [x] Alembic migration setup
+  - [x] Initial migration
+  - [x] Database schema creation
 
 ### 🚧 YAPILACAKLAR
 
-#### Faz 1: Proje Kurulumu & Temel Yapı
-- [ ] FastAPI proje setup
-  - [ ] main.py temel yapısı
-  - [ ] klasör yapısı organizasyonu
-- [ ] Database bağlantısı
-  - [ ] SQLAlchemy configuration
-- [ ] Environment configuration
-  - [ ] config.py settings
-  - [ ] environment variables
-
-#### Faz 2: Veri Modelleri & Alembic
-- [ ] SQLAlchemy model tanımları
-  - [ ] User model
-  - [ ] Event model  
-  - [ ] Category/Tag models
-  - [ ] Model relationships
-- [ ] Alembic migration setup
-  - [ ] Initial migration
-  - [ ] Database schema creation
-- [ ] Model validasyonları
-  - [ ] Pydantic schemas
-  - [ ] Input/Output models
-
-#### Faz 3: Authentication System
+#### Faz 1: Authentication System
 - [ ] JWT implementation
   - [ ] JWT utilities (create, verify, decode)
   - [ ] Password hashing (bcrypt)
@@ -219,55 +206,36 @@ MACS Kulübü'nün resmi tanıtım ve içerik yönetim sistemi. Kulüp projeleri
   - [ ] Admin/moderator decorators
   - [ ] Permission middleware
 
-#### Faz 4: Events API (İlk Priority)
-- [ ] Events CRUD endpoints
-  - [ ] GET /api/events (with filters)
-  - [ ] GET /api/events/{id}
-  - [ ] POST /api/events (protected)
-  - [ ] PUT /api/events/{id} (protected)
-  - [ ] DELETE /api/events/{id} (protected)
-- [ ] Events filtering & pagination
-  - [ ] Status filter (upcoming/ongoing/past)
-  - [ ] Date range filtering
-  - [ ] Category/tag filtering
-  - [ ] Pagination implementation
-- [ ] Events business logic
-  - [ ] Status auto-calculation
-  - [ ] Date validation
-  - [ ] Permission checks
-
-#### Faz 5: API Documentation & Testing
-- [ ] OpenAPI/Swagger setup
-  - [ ] Endpoint documentation
-  - [ ] Schema documentation
-  - [ ] API examples
-- [ ] Test yazımı
-  - [ ] Unit tests
-  - [ ] Integration tests
-  - [ ] Authentication tests
-- [ ] Error handling
-  - [ ] Custom exception handlers
-  - [ ] Validation error responses
-  - [ ] HTTP status codes
-
-#### Faz 6: Projects API (İkinci Priority)
+#### Faz 2: Projects API
+- [ ] SQLAlchemy model tanımları
+  - [ ] Project model
+  - [ ] ProjectCategory model
+  - [ ] Tag models
+  - [ ] Model relationships
 - [ ] Projects CRUD endpoints
-  - [ ] GET /api/projects
+  - [ ] GET /api/projects (with filters)
   - [ ] GET /api/projects/{id}
   - [ ] POST /api/projects (protected)
   - [ ] PUT /api/projects/{id} (protected)
   - [ ] DELETE /api/projects/{id} (protected)
-- [ ] Projects filtering & pagination
-- [ ] Projects business logic
 
-#### Faz 7: Performance & Production
-- [ ] Database optimizations
-  - [ ] Query optimization
-  - [ ] Indexing
-  - [ ] Connection pooling
-- [ ] Caching (Redis - opsiyonel)
-- [ ] Logging setup
-- [ ] Production deployment setup
+#### Faz 3: Test & Optimizasyon
+- [ ] Test yazımı
+  - [ ] Unit tests
+  - [ ] Integration tests
+- [ ] Performance optimizasyonları
+  - [ ] Caching (Redis)
+  - [ ] Database indexing
+  - [ ] Query optimizasyonu
+
+#### Faz 4: Deployment & CI/CD
+- [ ] Docker setup
+  - [ ] Dockerfile
+  - [ ] docker-compose.yml
+- [ ] CI/CD pipeline
+  - [ ] GitHub Actions
+  - [ ] Automated testing
+  - [ ] Automated deployment
 
 ---
 
