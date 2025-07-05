@@ -34,10 +34,17 @@ class EventBase(BaseModel):
 class EventCreate(EventBase): 
     pass
 
-#! Update için gerekli veriler (inherit ettik ve hepsini opsiyonel yaptık)
-class EventUpdate(EventBase):
+#! Update için gerekli veriler (hepsi opsiyonel)
+class EventUpdate(BaseModel):
     title: Optional[str] = None
+    description: Optional[str] = None
+    content: Optional[str] = None
+    image_url: Optional[str] = None
+    location: Optional[str] = None
     start_time: Optional[datetime] = None
+    end_time: Optional[datetime] = None
+    category_id: Optional[int] = None
+    is_active: Optional[bool] = None
 
 #! tüm alanları temsil eder (response modeli)
 class Event(EventBase):
