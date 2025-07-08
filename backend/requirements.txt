@@ -10,6 +10,7 @@ alembic>=1.13.1          # Database migrations
 # Auth & Security
 python-jose[cryptography]>=3.3.0
 passlib[bcrypt]>=1.7.4
+python-multipart>=0.0.7    # Form ve dosya yüklemeleri için
 
 # Environment
 python-dotenv>=1.0.1

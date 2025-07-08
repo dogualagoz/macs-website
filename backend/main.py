@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from database import engine, Base
 from fastapi.middleware.cors import CORSMiddleware
-from routers import events
+
+from routers import events, auth, users
 
 app = FastAPI(
     title = "MACS API",
@@ -23,6 +24,8 @@ Base.metadata.create_all(bind=engine)
 
 # Routerları ekle
 app.include_router(events.router)
+app.include_router(auth.router)
+app.include_router(users.router)
 
 @app.get("/")
 def root():

@@ -1,4 +1,6 @@
 from database import Base
 from .events import Event, EventCategory
+from .users import User
 
-__all__ = ['Base', 'Event', 'EventCategory']
+# Modelleri dışarı açıyoruz
+__all__ = ["Base", "Event", "EventCategory", "User"]

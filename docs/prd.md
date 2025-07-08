@@ -119,6 +119,12 @@ MACS Kulübü'nün resmi tanıtım ve içerik yönetim sistemi. Kulüp projeleri
 - **Token Validation**: Her protected endpoint'te middleware
 - **Role Check**: Admin/moderator kontrolü
 
+### Gelecek Özellikler
+- **Email Doğrulama**: Kayıt sonrası email doğrulama sistemi eklenecek
+  - Doğrulama maili gönderimi
+  - Doğrulama token kontrolü
+  - Email doğrulanmadan giriş yapamama
+
 ### Protected Endpoints
 - `/admin/*` - Sadece admin/moderator
 - `POST/PUT/DELETE /api/projects` - Sadece admin/moderator
@@ -187,6 +193,10 @@ MACS Kulübü'nün resmi tanıtım ve içerik yönetim sistemi. Kulüp projeleri
   - [x] Events filtering & pagination
   - [x] Events business logic
   - [x] Slug implementation
+  - [x] Category management
+  - [x] Hard delete endpoint
+  - [x] Get event by slug endpoint
+  - [x] Category update endpoint
 - [x] Alembic migration setup
   - [x] Initial migration
   - [x] Database schema creation
