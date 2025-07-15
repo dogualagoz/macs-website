@@ -1,30 +1,40 @@
 # Core
-fastapi>=0.110.0          # En son kararlı sürüm (Python 3.13 uyumlu)
-uvicorn[standard]>=0.27.1  # FastAPI ile uyumlu son sürüm
-email-validator>=2.1.0    # Email doğrulama için gerekli
+fastapi==0.110.0          # En son kararlı sürüm (Python 3.13 uyumlu)
+uvicorn[standard]==0.27.1  # FastAPI ile uyumlu son sürüm
+pydantic==2.11.7         # Veri doğrulama için
+pydantic[email]==2.11.7  # Email validasyonu dahil
+email-validator==2.2.0   # Email doğrulama için açıkça belirt
 
 # Database
-sqlalchemy>=2.0.27        # SQLAlchemy son kararlı
-psycopg2-binary>=2.9.9    # PostgreSQL driver
-alembic>=1.13.1          # Database migrations
+sqlalchemy==2.0.41       # SQLAlchemy son kararlı
+psycopg2-binary==2.9.10  # PostgreSQL driver
+alembic==1.16.2         # Database migrations
 
 # Auth & Security
-python-jose[cryptography]>=3.3.0
-passlib[bcrypt]>=1.7.4
-slowapi>=0.1.8  #Rate limit
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+bcrypt==4.3.0           # Şifre hash'leme için
+slowapi==0.1.9          # Rate limit
+cryptography==45.0.5    # Şifreleme işlemleri için
 
 # Environment
-python-dotenv>=1.0.1
-pydantic-settings==2.1.0     # PostgreSQL config için pratik
+python-dotenv==1.1.1
+pydantic-settings==2.1.0  # PostgreSQL config için pratik
 
 # Development Essentials
-httpx==0.25.2               # API testing için
-unidecode>=1.3.8           # Slug oluşturma için
-python-multipart>=0.0.7    # Form ve dosya yüklemeleri için
+httpx==0.25.2           # API testing için
+unidecode==1.4.0        # Slug oluşturma için
+python-multipart==0.0.20 # Form ve dosya yüklemeleri için
 
 # Development & Testing
 pytest==7.4.3
 pytest-asyncio==0.21.1
+
+# Dependencies for uvicorn[standard]
+httptools==0.6.4
+watchfiles==1.1.0
+websockets==15.0.1
+uvloop==0.21.0
 
 # Optional - Future features
 # pillow==10.1.0  # Image processing
