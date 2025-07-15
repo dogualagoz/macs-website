@@ -16,8 +16,10 @@ from schemas.events import (
     EventCategory, EventCategoryCreate
     )
 
-# Bütün endpointler events ile başlayacak. tags ise endpointlerin gruplandırılmasını sağlar.
-router = APIRouter(prefix="/events", tags=["events"])
+router = APIRouter(
+    prefix="/events",
+    tags=["Etkinlik İşlemleri"]
+)
 
 # Event durumu için enum
 class EventStatus(str, Enum):
@@ -33,7 +35,11 @@ def get_categories(
     skip: int= 0,
     limit: int = 10
 ):
-    """Tüm event kategorileri listele"""
+    """
+    Etkinlik kategorilerini listeler.
+    
+    - Sayfalama: skip, limit
+    """
     return db.query(EventCategoryModel).offset(skip).limit(limit).all()
 
 @router.post("/categories", response_model=EventCategory, status_code=status.HTTP_201_CREATED)
@@ -41,7 +47,7 @@ def create_category(
     category: EventCategoryCreate,
     db: Session = Depends(get_db)
 ):
-    """Yeni bir event kategorisi oluştur"""
+    """Yeni etkinlik kategorisi oluşturur."""
     db_category = EventCategoryModel(**category.model_dump())
     db.add(db_category)
     db.commit()
@@ -50,7 +56,7 @@ def create_category(
 
 @router.get("/categories/{category_id}", response_model=EventCategory)
 def get_category(category_id: int, db: Session = Depends(get_db)):
-    """ID'ye göre kategori getir"""
+    """Belirli bir kategoriyi getirir."""
     db_category = db.query(EventCategoryModel).filter(EventCategoryModel.id == category_id).first()
     if not db_category:
         raise HTTPException(status_code=404, detail="Kategori bulunamadı")
@@ -62,7 +68,7 @@ def update_category(
     category: EventCategoryCreate,
     db: Session = Depends(get_db)
 ):
-    """Kategori güncelle"""
+    """Kategori bilgilerini günceller."""
     db_category = db.query(EventCategoryModel).filter(
         EventCategoryModel.id == category_id
     ).first()
@@ -77,8 +83,11 @@ def update_category(
 
 @router.delete("/categories/{category_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_category(category_id: int, db: Session = Depends(get_db)):
-    """Kategori sil ve ilgili eventlerin kategori id'sini null yap"""
-
+    """
+    Kategoriyi siler.
+    
+    - İlgili etkinliklerin kategori ID'si null yapılır
+    """
     #Kategori bul
     db_category = db.query(EventCategoryModel).filter(EventCategoryModel.id == category_id).first()
     if not db_category:
@@ -106,12 +115,12 @@ def get_events(
     sort_desc: bool = False                 # Sıralama yönü (True: azalan, False: artan)
 ):
     """
-    Eventleri listele ve filtrele
-    - search: Event başlığında arama yapar
-    - category_id: Belirli bir kategoriye ait eventleri filtreler
-    - status: Event durumuna göre filtreler (Tümü, Yaklaşan, Geçmiş)
-    - sort_by: Sıralama kriteri (start_time, title, created_at)
-    - sort_desc: Sıralama yönü (True: azalan, False: artan)
+    Etkinlikleri listeler ve filtreler.
+    
+    - Arama: Başlığa göre
+    - Filtreler: Kategori, durum (tümü/yaklaşan/geçmiş)
+    - Sıralama: start_time, title, created_at
+    - Sayfalama: skip, limit
     """
     # Base query
     query = db.query(EventModel).filter(EventModel.is_deleted == False)
@@ -144,7 +153,7 @@ def get_events(
     return query.offset(skip).limit(limit).all()
 
 def create_slug(title: str) -> str:
-    """Başlıktan basit bir slug oluşturur"""
+    """Başlıktan URL-uyumlu slug oluşturur"""
     # Başlığı küçük harfe çevir ve boşlukları tire ile değiştir
     slug = unidecode(title).lower()
     slug = re.sub(r'[^a-z0-9]+', '-', slug)
@@ -156,7 +165,12 @@ def create_event(
     event: EventCreate,
     db: Session = Depends(get_db)
 ):
-    """Yeni bir event oluştur"""
+    """
+    Yeni etkinlik oluşturur.
+    
+    - Otomatik slug oluşturma
+    - Kategori kontrolü
+    """
     if event.category_id:
         category = db.query(EventCategoryModel).filter(EventCategoryModel.id == event.category_id).first()
         if not category:
@@ -184,7 +198,7 @@ def create_event(
 
 @router.get("/{event_id}", response_model=Event)
 def get_event(event_id: int, db: Session = Depends(get_db)):
-    """ID'ye göre event getir"""
+    """ID'ye göre etkinlik getirir."""
     db_event = db.query(EventModel).filter(
         EventModel.id == event_id,
         EventModel.is_deleted == False
@@ -196,7 +210,7 @@ def get_event(event_id: int, db: Session = Depends(get_db)):
 
 @router.get("/by-slug/{slug}", response_model=Event)
 def get_event_by_slug(slug: str, db: Session = Depends(get_db)):
-    """Slug'a göre event getir"""
+    """Slug'a göre etkinlik getirir."""
     db_event = db.query(EventModel).filter(
         EventModel.slug == slug,
         EventModel.is_deleted == False
@@ -212,7 +226,12 @@ def update_event(
     event: EventUpdate,
     db: Session = Depends(get_db)
 ):
-    """Event güncelle"""
+    """
+    Etkinlik bilgilerini günceller.
+    
+    - Başlık değişirse yeni slug oluşturulur
+    - Kategori kontrolü yapılır
+    """
     db_event = db.query(EventModel).filter(
         EventModel.id == event_id,
         EventModel.is_deleted == False
@@ -248,9 +267,13 @@ def update_event(
     db.refresh(db_event)
     return db_event
 
-@router.delete("/{event_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{event_id}")
 def delete_event(event_id: int, db: Session = Depends(get_db)):
-    """Event sil (soft delete)"""
+    """
+    Etkinliği soft-delete yapar.
+    
+    - is_deleted = True olarak işaretlenir
+    """
     db_event = db.query(EventModel).filter(
         EventModel.id == event_id,
         EventModel.is_deleted == False
@@ -259,19 +282,23 @@ def delete_event(event_id: int, db: Session = Depends(get_db)):
     if not db_event:
         raise HTTPException(status_code=404, detail="Event bulunamadı")
     
+    # Soft delete
     db_event.is_deleted = True
     db.commit()
-    return None # 204 durumunda içerik dönmüyoruz
+    
+    return {"message": "Event başarıyla silindi"}
 
 @router.delete("/{event_id}/hard", status_code=status.HTTP_204_NO_CONTENT)
 def hard_delete_event(event_id: int, db: Session = Depends(get_db)):
-    """Event'i veritabanından kalıcı olarak sil"""
-    db_event = db.query(EventModel).filter(EventModel.id == event_id).first()
+    """
+    Etkinliği kalıcı olarak siler.
     
+    - Veritabanından tamamen silinir
+    """
+    db_event = db.query(EventModel).filter(EventModel.id == event_id).first()
     if not db_event:
         raise HTTPException(status_code=404, detail="Event bulunamadı")
     
-    # Veritabanından kalıcı olarak sil
     db.delete(db_event)
     db.commit()
     return None

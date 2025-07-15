@@ -283,3 +283,39 @@ npm start
 
 ## 🎯 Başlangıç Noktası
 **İlk adım**: Backend kurulumu ve Events API'lerinin geliştirilmesi. Frontend ekibi ile paralel çalışarak Events bölümünü tamamlayıp entegrasyon testleri yapılacak. 
+
+## 🔍 Loglama Sistemi
+
+### Sistem Logları
+- Uygulama başlatma/kapanma logları
+- Hata logları (5xx, 4xx)
+- Performans metrikleri
+
+### Güvenlik Logları
+- Başarısız giriş denemeleri
+- Hesap kilitlemeleri
+- Admin işlemleri
+
+### Log Formatı
+```
+timestamp | level | user_id | ip | action | details
+```
+
+### Log Saklama
+- Dosya sisteminde günlük rotasyon
+- 30 gün saklama süresi
+- Hassas veri maskeleme
+
+## 📧 Email Doğrulama Sistemi
+
+### Doğrulama Süreci
+1. Admin/moderatör kaydı yapılır
+2. Otomatik doğrulama maili gönderilir
+3. 24 saat geçerli doğrulama linki
+4. Link tıklanınca hesap aktifleşir
+
+### Email Template
+- Kurumsal tasarım
+- Türkçe içerik
+- Doğrulama butonu/linki
+- İletişim bilgileri 
