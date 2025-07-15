@@ -4,8 +4,7 @@
 
 ### Base URL
 ```
-Development: http://localhost:8000/api/v1
-Production: https://api.macs.com/v1 (örnek)
+Development: http://localhost:8000/api
 ```
 
 ### 🔐 Kimlik Doğrulama
