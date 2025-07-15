@@ -1,6 +1,7 @@
 # Core
 fastapi>=0.110.0          # En son kararlı sürüm (Python 3.13 uyumlu)
 uvicorn[standard]>=0.27.1  # FastAPI ile uyumlu son sürüm
+email-validator>=2.1.0    # Email doğrulama için gerekli
 
 # Database
 sqlalchemy>=2.0.27        # SQLAlchemy son kararlı
