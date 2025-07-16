@@ -1,10 +1,12 @@
 from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 from typing import Optional
+from .users import UserResponse
 
 #! Kategori için base model
 class EventCategoryBase(BaseModel):
     name: str
+    description: Optional[str] = None
 
 #! Kategori oluşturmak için gerekli veriler
 class EventCategoryCreate(EventCategoryBase):
@@ -50,7 +52,8 @@ class EventUpdate(BaseModel):
 class Event(EventBase):
     id: int
     slug: str
-    created_by: Optional[str]
+    created_by: int
+    creator: Optional[UserResponse] = None
     is_deleted: bool
     created_at: datetime
     updated_at: Optional[datetime]

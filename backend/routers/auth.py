@@ -9,10 +9,10 @@ from slowapi.util import get_remote_address
 
 from database import get_db
 from models.users import User
-from schemas.users import UserCreate, UserResponse, Token, AdminUserCreate
-from security import verify_password, create_access_token, get_password_hash
+from schemas import UserCreate, UserResponse, Token, AdminUserCreate
+from security import verify_password, create_access_token, get_password_hash, verify_token
 
-# Rate limiting setup
+# Rate limiting ayarları
 limiter = Limiter(key_func=get_remote_address)
 
 router = APIRouter(
@@ -20,6 +20,7 @@ router = APIRouter(
     tags=["Kimlik Doğrulama"]
 )
 
+# OAuth2 şeması tanımı
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 # Admin secret key'i environment variables'dan al
@@ -70,16 +71,22 @@ async def register(
         
         return db_user
         
+    except HTTPException as he:
+        # HTTP exception'ları olduğu gibi yükselt
+        raise he
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
     except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"Hata detayları: {error_details}")
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Kullanıcı kaydı sırasında bir hata oluştu"
+            detail=f"Kullanıcı kaydı sırasında bir hata oluştu: {str(e)}"
         )
 
 @router.post("/register/admin", response_model=UserResponse)
@@ -216,4 +223,43 @@ async def login(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Giriş sırasında bir hata oluştu"
+        ) 
+
+async def get_current_user(
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db)
+) -> User:
+    """
+    Token'dan kullanıcıyı bulur ve döndürür.
+    Kullanıcı bulunamazsa veya token geçersizse hata döndürür.
+    """
+    try:
+        # Token'ı doğrula
+        payload = verify_token(token)
+        email = payload.get("sub")
+        
+        # Kullanıcıyı bul
+        user = db.query(User).filter(User.email == email).first()
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Kullanıcı bulunamadı",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+            
+        # Kullanıcı aktif mi?
+        if not user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Hesap aktif değil",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+            
+        return user
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(e),
+            headers={"WWW-Authenticate": "Bearer"},
         ) 

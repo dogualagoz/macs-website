@@ -1,31 +1,32 @@
-# gerekli importlar
-
+# Gerekli kütüphaneler
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from datetime import datetime
 from enum import Enum
-import re
 from unidecode import unidecode
+from datetime import datetime
+import re
 
-# kendi importlarımız
+# Yerel modüller
 from database import get_db 
 from models.events import Event as EventModel, EventCategory as EventCategoryModel
-from schemas.events import (
+from models.users import User
+from schemas import (
     Event, EventCreate, EventUpdate,
     EventCategory, EventCategoryCreate
-    )
+)
+from routers.auth import get_current_user
 
 router = APIRouter(
     prefix="/events",
     tags=["Etkinlik İşlemleri"]
 )
 
-# Event durumu için enum
+# Etkinlik durumu için enum sınıfı
 class EventStatus(str, Enum):
-    ALL = "all"          # Tümü
-    UPCOMING = "upcoming"  # Yaklaşan
-    PAST = "past"         # Geçmiş
+    ALL = "all"          # Tüm etkinlikler
+    UPCOMING = "upcoming"  # Gelecek etkinlikler
+    PAST = "past"         # Geçmiş etkinlikler
 
 #!-----------------Kategori Endpointleri--------------------------------
 
@@ -45,7 +46,8 @@ def get_categories(
 @router.post("/categories", response_model=EventCategory, status_code=status.HTTP_201_CREATED)
 def create_category(
     category: EventCategoryCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     """Yeni etkinlik kategorisi oluşturur."""
     db_category = EventCategoryModel(**category.model_dump())
@@ -66,7 +68,8 @@ def get_category(category_id: int, db: Session = Depends(get_db)):
 def update_category(
     category_id: int,
     category: EventCategoryCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     """Kategori bilgilerini günceller."""
     db_category = db.query(EventCategoryModel).filter(
@@ -82,7 +85,11 @@ def update_category(
     return db_category
 
 @router.delete("/categories/{category_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_category(category_id: int, db: Session = Depends(get_db)):
+def delete_category(
+    category_id: int, 
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     """
     Kategoriyi siler.
     
@@ -163,7 +170,8 @@ def create_slug(title: str) -> str:
 @router.post("", response_model=Event, status_code=status.HTTP_201_CREATED)
 def create_event(
     event: EventCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     """
     Yeni etkinlik oluşturur.
@@ -188,6 +196,7 @@ def create_event(
         base_slug = f"{base_slug}-{timestamp}"
     
     event_data["slug"] = base_slug
+    event_data["created_by"] = current_user.id
     
     # Event'i oluştur
     db_event = EventModel(**event_data)
@@ -224,7 +233,8 @@ def get_event_by_slug(slug: str, db: Session = Depends(get_db)):
 def update_event(
     event_id: int,
     event: EventUpdate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     """
     Etkinlik bilgilerini günceller.
@@ -268,7 +278,11 @@ def update_event(
     return db_event
 
 @router.delete("/{event_id}")
-def delete_event(event_id: int, db: Session = Depends(get_db)):
+def delete_event(
+    event_id: int, 
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     """
     Etkinliği soft-delete yapar.
     
@@ -289,7 +303,11 @@ def delete_event(event_id: int, db: Session = Depends(get_db)):
     return {"message": "Event başarıyla silindi"}
 
 @router.delete("/{event_id}/hard", status_code=status.HTTP_204_NO_CONTENT)
-def hard_delete_event(event_id: int, db: Session = Depends(get_db)):
+def hard_delete_event(
+    event_id: int, 
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     """
     Etkinliği kalıcı olarak siler.
     

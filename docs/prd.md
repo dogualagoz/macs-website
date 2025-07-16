@@ -9,6 +9,7 @@ MACS Kulübü'nün resmi tanıtım ve içerik yönetim sistemi. Kulüp projeleri
 - **Ana Hedef**: Kulübün projelerini ve etkinliklerini kamuya sergilemek
 - **Yönetim Hedefi**: Admin/moderator rolündeki kişilerin içerik yönetimi yapabilmesi
 - **Teknik Hedef**: Sürdürülebilir, genişletilebilir ve production-ready bir sistem
+- **Güvenlik Hedefi**: Modern güvenlik standartlarına uygun, saldırılara dirençli sistem
 
 ---
 
@@ -24,9 +25,11 @@ MACS Kulübü'nün resmi tanıtım ve içerik yönetim sistemi. Kulüp projeleri
 - **Database**: PostgreSQL ✅
 - **ORM**: SQLAlchemy ✅
 - **Validation**: Pydantic ✅
-- **Authentication**: JWT ✅
+- **Authentication**: JWT (HS256) ✅
+- **Password Hashing**: Bcrypt ✅
 - **API Documentation**: OpenAPI/Swagger ✅
 - **Rate Limiting**: slowapi ✅
+- **Environment**: python-dotenv ✅
 
 ---
 
@@ -44,18 +47,24 @@ MACS Kulübü'nün resmi tanıtım ve içerik yönetim sistemi. Kulüp projeleri
 - Etkinlik CRUD işlemleri
 - İçerik yönetimi
 - **Giriş**: JWT token ile
+- **Yetki**: Role-based access control
 
 ---
 
 ### 3. Veritabanı Modelleri
 
-1. User
+1. User ✅
 - id: Integer, primary key
 - full_name: String
 - email: String, unique
 - hashed_password: String
+- status: String
 - role: String (admin, moderator)
 - is_active: Boolean
+- last_login: DateTime
+- failed_login_attempts: Integer
+- last_failed_login: DateTime
+- password_changed_at: DateTime
 - created_at: DateTime
 - updated_at: DateTime
 
@@ -125,9 +134,12 @@ MACS Kulübü'nün resmi tanıtım ve içerik yönetim sistemi. Kulüp projeleri
 ### Güvenlik Özellikleri ✅
 - **Şifre Politikası**: Minimum 6 karakter
 - **Email Doğrulama**: Email formatı kontrolü
-- **Oturum Yönetimi**: JWT token ile
+- **Şifre Hash**: Bcrypt algoritması
+- **Oturum Yönetimi**: JWT (HS256) ile
 - **Rate Limiting**: DDoS koruması
 - **Rol Bazlı Yetkilendirme**: Admin/moderator ayrımı
+- **Güvenli Şifre Değişimi**: Eski şifre kontrolü
+- **Soft Delete**: Veri bütünlüğü için yumuşak silme
 
 ### Protected Endpoints ✅
 - `/auth/*` - Rate limit korumalı
@@ -162,19 +174,22 @@ MACS Kulübü'nün resmi tanıtım ve içerik yönetim sistemi. Kulüp projeleri
 📅 Events ✅
 - POST /events/ → Yeni etkinlik ekle
 - GET /events/ → Listele (filtreleme ve pagination desteği ile)
-- GET /events/{slug} → Detay getir
+- GET /events/{id} → ID ile detay getir
+- GET /events/by-slug/{slug} → Slug ile detay getir
 - PUT /events/{id} → Güncelle
-- DELETE /events/{id} → Sil
+- DELETE /events/{id} → Soft delete
+- DELETE /events/{id}/hard → Hard delete
 
 🏷️ Categories ✅
-- GET /event-categories/ → Kategorileri listele
-- POST /event-categories/ → Yeni kategori ekle
-- PUT /event-categories/{id} → Kategori güncelle
-- DELETE /event-categories/{id} → Kategori sil
+- GET /events/categories → Kategorileri listele
+- POST /events/categories → Yeni kategori ekle
+- PUT /events/categories/{id} → Kategori güncelle
+- DELETE /events/categories/{id} → Kategori sil
 
 🔎 Filtreleme ✅
-- GET /events/?status=upcoming|ongoing|past&category=&search=
-- GET /events/?page=1&limit=10 → Pagination
+- GET /events/?status=upcoming|past&category_id=&search=
+- GET /events/?skip=0&limit=10 → Pagination
+- GET /events/?sort_by=start_time&sort_desc=false → Sıralama
 
 ## 📈 Sprint Durumu
 
@@ -207,7 +222,7 @@ MACS Kulübü'nün resmi tanıtım ve içerik yönetim sistemi. Kulüp projeleri
 
 ### ✅ Sprint 2 (Tamamlandı)
 - [x] Authentication Altyapısı
-  - [x] JWT token oluşturma/doğrulama
+  - [x] JWT token oluşturma/doğrulama (HS256)
   - [x] Password hashing (bcrypt)
   - [x] Token middleware
   - [x] Role-based yetkilendirme
@@ -222,10 +237,11 @@ MACS Kulübü'nün resmi tanıtım ve içerik yönetim sistemi. Kulüp projeleri
 
 - [x] Güvenlik Önlemleri
   - [x] Rate limiting (tüm auth endpointleri)
-  - [x] Hesap kilitleme sistemi
+  - [x] Hesap kilitleme sistemi (5 deneme/15dk)
   - [x] Başarısız giriş sayacı
   - [x] Email format validasyonu
-  - [x] Şifre politikası kontrolleri
+  - [x] Şifre politikası kontrolleri (min 8 karakter)
+  - [x] Güvenli şifre değişimi kontrolleri
 
 - [x] Users Modülü
   - [x] User model ve migrations
@@ -236,12 +252,12 @@ MACS Kulübü'nün resmi tanıtım ve içerik yönetim sistemi. Kulüp projeleri
 
 - [x] Events Modülü - Gelişmiş
   - [x] Filtreleme sistemi
-    - [x] Tarih bazlı filtreleme
+    - [x] Tarih bazlı filtreleme (upcoming/past)
     - [x] Kategori filtreleme
     - [x] Status filtreleme
     - [x] Arama (title/description)
   - [x] Pagination
-    - [x] Limit/offset mantığı
+    - [x] Skip/limit mantığı
     - [x] Toplam sayfa hesaplama
   - [x] Slug sistemi
     - [x] Otomatik slug oluşturma
@@ -249,59 +265,17 @@ MACS Kulübü'nün resmi tanıtım ve içerik yönetim sistemi. Kulüp projeleri
   - [x] Silme işlemleri
     - [x] Soft delete
     - [x] Hard delete (admin)
-  - [x] Kategori yönetimi
-    - [x] CRUD endpoints
-    - [x] İlişki yönetimi
+  - [x] Sıralama
+    - [x] Çoklu alan desteği
+    - [x] Artan/azalan sıralama
 
-### 🚧 Sprint 3 (Devam Ediyor)
+### 🔄 Sprint 3 (Devam Ediyor)
 - [ ] Projects Modülü
-  - [ ] Veritabanı Modelleri
-    - [ ] Project model
-    - [ ] ProjectCategory model
-    - [ ] Tag model
-    - [ ] Model ilişkileri
-    - [ ] Migrations
-  
-  - [ ] CRUD Endpoints
-    - [ ] Create project
-    - [ ] Read (list/detail)
-    - [ ] Update project
-    - [ ] Delete (soft/hard)
-    
-  - [ ] Kategoriler ve Etiketler
-    - [ ] Kategori CRUD
-    - [ ] Tag CRUD
-    - [ ] İlişki yönetimi
-    
-  - [ ] Filtreleme ve Arama
-    - [ ] Kategori filtresi
-    - [ ] Tag filtresi
-    - [ ] Arama fonksiyonu
-    - [ ] Pagination
-    
-  - [ ] Dosya Yükleme
-    - [ ] Dosya upload sistemi
-    - [ ] Resim optimizasyonu
-    - [ ] Dosya validasyonu
-    - [ ] Depolama yönetimi
-
-- [ ] Frontend Entegrasyonu
-  - [ ] API client setup
-  - [ ] Auth entegrasyonu
-  - [ ] Form validasyonları
-  - [ ] Error handling
-
-- [ ] Test Coverage
-  - [ ] Unit testler
-  - [ ] Integration testler
-  - [ ] Auth testleri
-  - [ ] API testleri
-
-- [ ] Deployment
-  - [ ] Production optimizasyonları
-  - [ ] Error logging
-  - [ ] Performance monitoring
-  - [ ] Backup stratejisi
+  - [ ] Model ve migrations
+  - [ ] CRUD endpoints
+  - [ ] Filtreleme ve arama
+  - [ ] Kategorilendirme
+  - [ ] Tag sistemi
 
 ---
 
@@ -329,7 +303,7 @@ npm start
 
 - **Öncelik Sırası**: Setup → Models → Auth → Events API → Testing
 - **Production Ready**: Her adımda clean code ve best practices
-- **Frontend Hazırlık**: Events API tamamlandığında frontend entegrasyona hazır
+- **Frontend Hazırlık**: Events API tamamlandığında frontend entegrasyonu hazır
 - **Documentation**: Her endpoint için detaylı OpenAPI docs
 
 ---

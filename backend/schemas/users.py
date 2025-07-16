@@ -2,6 +2,7 @@ from pydantic import BaseModel, EmailStr, validator
 from typing import Optional, List
 from datetime import datetime
 
+
 class UserBase(BaseModel):
     email: EmailStr
     full_name: str
@@ -14,6 +15,15 @@ class UserCreate(UserBase):
         if len(v) < 6:
             raise ValueError('Şifre en az 6 karakter olmalıdır')
         return v
+
+class UserUpdate(BaseModel):
+    email: Optional[EmailStr] = None
+    full_name: Optional[str] = None
+    status: Optional[str] = None
+    is_active: Optional[bool] = None
+
+    class Config:
+        from_attributes = True
 
 class AdminUserCreate(UserCreate):
     admin_secret: str  # Admin oluştururken güvenlik anahtarı gerekir

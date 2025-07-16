@@ -4,13 +4,30 @@ from sqlalchemy.sql import func
 from database import Base
 
 class Event(Base):
-
+    """
+    Etkinlik modeli.
+    
+    Attributes:
+        id: Etkinlik ID'si
+        title: Etkinlik başlığı
+        slug: URL-dostu başlık
+        description: Kısa açıklama
+        content: Detaylı içerik
+        image_url: Etkinlik görseli URL'i
+        location: Etkinlik konumu
+        start_time: Başlangıç zamanı
+        end_time: Bitiş zamanı
+        category_id: Kategori ID'si
+        category: Kategori ilişkisi
+        created_by: Oluşturan kullanıcı ID'si
+        creator: Kullanıcı ilişkisi
+        is_active: Etkinlik aktif mi?
+        is_deleted: Etkinlik silindi mi?
+    """
     __tablename__ = "events"
 
-    #Primary key
+    # Temel bilgiler
     id = Column(Integer, primary_key=True, index=True)
-
-    #Bilgiler 
     title = Column(String, nullable=False)
     slug = Column(String, unique=True, nullable=False)
     description = Column(String)
@@ -18,33 +35,45 @@ class Event(Base):
     image_url = Column(String)
     location = Column(String)
 
-    #Zamanlar
+    # Zaman bilgileri
     start_time = Column(DateTime, nullable=False)
     end_time = Column(DateTime, nullable=True)
 
     # İlişkiler
     category_id = Column(Integer, ForeignKey("event_categories.id"))
     category = relationship("EventCategory", back_populates="events")
-    created_by = Column(String)
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    creator = relationship("User", back_populates="events")
 
-    # Durum
+    # Durum bilgileri
     is_active = Column(Boolean, default=True)
     is_deleted = Column(Boolean, default=False)
     
-    # Timestamps
+    # Zaman damgaları
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
 class EventCategory(Base):
+    """
+    Etkinlik kategorisi modeli.
+    
+    Attributes:
+        id: Kategori ID'si
+        name: Kategori adı
+        description: Kategori açıklaması
+        events: Bu kategorideki etkinlikler
+    """
     __tablename__ = "event_categories"
 
+    # Temel bilgiler
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, nullable=False)
+    name = Column(String, nullable=False)
+    description = Column(String)
 
     # İlişkiler
     events = relationship("Event", back_populates="category")
 
-    #Timestamps
+    # Zaman damgaları
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
