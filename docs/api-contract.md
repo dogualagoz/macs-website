@@ -4,15 +4,15 @@
 
 ### Base URL
 ```
-Development: http://localhost:8000/api/v1
-Production: https://api.macs.com/v1 (örnek)
+Development: http://localhost:8000
 ```
 
 ### 🔐 Kimlik Doğrulama
 - Tüm istekler için (login ve register hariç) JWT token gereklidir
 - Token formatı: `Bearer <token>`
-- Token'lar 30 dakika geçerlidir
+- Token'lar varsayılan olarak 30 dakika geçerlidir (ACCESS_TOKEN_EXPIRE_MINUTES ile ayarlanabilir)
 - Token süresi dolduğunda yeniden login gerekir
+- 5 başarısız giriş denemesinden sonra hesap 15 dakika kilitlenir
 
 ### 📝 İstek Formatı
 - Content-Type: `application/json`
@@ -28,6 +28,13 @@ Production: https://api.macs.com/v1 (örnek)
 | 404 | Not Found | Kaynak bulunamadı |
 | 429 | Too Many Requests | Rate limit aşıldı |
 | 500 | Internal Server Error | Sunucu hatası |
+
+### 🔒 Güvenlik Özellikleri
+- Şifre minimum 8 karakter olmalıdır
+- Şifreler bcrypt ile hash'lenir
+- Her endpoint için rate limiting uygulanır
+- JWT token'lar HS256 algoritması ile imzalanır
+- Tüm hassas veriler için input validasyonu yapılır
 
 ## 🔑 Kimlik Doğrulama (Authentication)
 
@@ -53,14 +60,17 @@ POST /auth/register
     "full_name": "string",
     "status": "string",
     "role": "string",
-    "is_active": "boolean"
+    "is_active": "boolean",
+    "last_login": "datetime | null",
+    "failed_login_attempts": "integer",
+    "password_changed_at": "datetime | null"
 }
 ```
 
 **Hata Durumları:**
 | Kod | Neden | Çözüm |
 |-----|-------|-------|
-| 400 | Şifre çok kısa | Min. 6 karakter kullan |
+| 400 | Şifre çok kısa | Min. 8 karakter kullan |
 | 400 | Email formatı geçersiz | Geçerli email adresi gir |
 | 409 | Email zaten kayıtlı | Farklı email kullan |
 
@@ -149,7 +159,10 @@ PUT /users/me
 **İstek:**
 ```json
 {
-    "full_name": "string"
+    "full_name": "string",
+    "email": "string (optional)",
+    "status": "string (optional)",
+    "is_active": "boolean (optional)"
 }
 ```
 
@@ -164,7 +177,7 @@ POST /users/me/change-password
 ```json
 {
     "current_password": "string",
-    "new_password": "string",
+    "new_password": "string (min. 8 karakter)",
     "confirm_password": "string"
 }
 ```
@@ -173,8 +186,16 @@ POST /users/me/change-password
 | Kod | Neden |
 |-----|--------|
 | 400 | Mevcut şifre yanlış |
-| 400 | Yeni şifre gereksinimleri karşılamıyor |
+| 400 | Yeni şifre çok kısa |
 | 400 | Şifreler eşleşmiyor |
+| 400 | Yeni şifre eski şifre ile aynı |
+
+**Rate Limit:** 3 istek/dakika
+
+### Hesap Sil
+```http
+DELETE /users/me
+```
 
 **Rate Limit:** 3 istek/dakika
 
@@ -201,7 +222,10 @@ GET /users?skip=0&limit=10
             "full_name": "string",
             "status": "string",
             "role": "string",
-            "is_active": "boolean"
+            "is_active": "boolean",
+            "last_login": "datetime",
+            "failed_login_attempts": "integer",
+            "password_changed_at": "datetime"
         }
     ],
     "total": "integer"
@@ -209,6 +233,20 @@ GET /users?skip=0&limit=10
 ```
 
 **Rate Limit:** 30 istek/dakika
+
+### Kullanıcı Detayı
+```http
+GET /users/{user_id}
+```
+
+**Rate Limit:** 30 istek/dakika
+
+### Kullanıcı Sil (Admin)
+```http
+DELETE /users/{user_id}
+```
+
+**Rate Limit:** 10 istek/dakika
 
 ## 📅 Etkinlik İşlemleri (Events)
 
@@ -222,69 +260,51 @@ GET /events
 |-----------|-----|-----------|--------|
 | skip | integer | Sayfalama için offset | 0 |
 | limit | integer | Sayfa başı kayıt sayısı | 10 |
-| category | string | Kategori filtresi | "workshop" |
-| status | string | Durum filtresi | "upcoming" |
-| search | string | Arama terimi | "python" |
+| search | string | Başlık/açıklama araması | "workshop" |
+| category_id | integer | Kategori filtresi | 1 |
+| status | string | Durum filtresi (all/upcoming/past) | "upcoming" |
+| sort_by | string | Sıralama kriteri | "start_time" |
+| sort_desc | boolean | Azalan sıralama | false |
 
 **Başarılı Yanıt (200 OK):**
 ```json
-{
-    "events": [
-        {
+[
+    {
+        "id": "integer",
+        "title": "string",
+        "slug": "string",
+        "description": "string",
+        "content": "string",
+        "image_url": "string",
+        "location": "string",
+        "start_time": "datetime",
+        "end_time": "datetime",
+        "category": {
             "id": "integer",
-            "title": "string",
-            "slug": "string",
-            "description": "string",
-            "content": "string",
-            "image_url": "string",
-            "location": "string",
-            "start_time": "datetime",
-            "end_time": "datetime",
-            "category": {
-                "id": "integer",
-                "name": "string"
-            },
-            "created_by": {
-                "id": "integer",
-                "full_name": "string"
-            },
-            "is_active": "boolean"
-        }
-    ],
-    "total": "integer"
-}
+            "name": "string"
+        },
+        "created_by": {
+            "id": "integer",
+            "full_name": "string"
+        },
+        "is_active": "boolean",
+        "created_at": "datetime",
+        "updated_at": "datetime"
+    }
+]
 ```
 
 ### Etkinlik Detayı
 ```http
-GET /events/{slug}
+GET /events/{event_id}
 ```
 
-**Başarılı Yanıt (200 OK):**
-```json
-{
-    "id": "integer",
-    "title": "string",
-    "slug": "string",
-    "description": "string",
-    "content": "string",
-    "image_url": "string",
-    "location": "string",
-    "start_time": "datetime",
-    "end_time": "datetime",
-    "category": {
-        "id": "integer",
-        "name": "string"
-    },
-    "created_by": {
-        "id": "integer",
-        "full_name": "string"
-    },
-    "is_active": "boolean"
-}
+### Etkinlik Detayı (Slug ile)
+```http
+GET /events/by-slug/{slug}
 ```
 
-### Etkinlik Oluştur (Admin/Moderatör)
+### Yeni Etkinlik
 ```http
 POST /events
 ```
@@ -303,64 +323,31 @@ POST /events
 }
 ```
 
-**Rate Limit:** 10 istek/dakika
-
-### Etkinlik Güncelle (Admin/Moderatör)
+### Etkinlik Güncelle
 ```http
-PUT /events/{id}
+PUT /events/{event_id}
 ```
 
-**İstek:**
-```json
-{
-    "title": "string",
-    "description": "string",
-    "content": "string",
-    "image_url": "string",
-    "location": "string",
-    "start_time": "datetime",
-    "end_time": "datetime",
-    "category_id": "integer",
-    "is_active": "boolean"
-}
-```
-
-**Rate Limit:** 10 istek/dakika
-
-### Etkinlik Sil (Admin/Moderatör)
+### Etkinlik Sil (Soft Delete)
 ```http
-DELETE /events/{id}
+DELETE /events/{event_id}
 ```
 
-**Başarılı Yanıt (200 OK):**
-```json
-{
-    "message": "Etkinlik başarıyla silindi"
-}
+### Etkinlik Kalıcı Sil
+```http
+DELETE /events/{event_id}/hard
 ```
-
-**Rate Limit:** 5 istek/dakika
 
 ## 🏷️ Kategori İşlemleri
 
-### Kategorileri Listele
+### Kategori Listesi
 ```http
-GET /event-categories
+GET /events/categories
 ```
 
-**Başarılı Yanıt (200 OK):**
-```json
-[
-    {
-        "id": "integer",
-        "name": "string"
-    }
-]
-```
-
-### Kategori Ekle (Admin/Moderatör)
+### Yeni Kategori
 ```http
-POST /event-categories
+POST /events/categories
 ```
 
 **İstek:**
@@ -370,21 +357,12 @@ POST /event-categories
 }
 ```
 
-**Rate Limit:** 5 istek/dakika
+### Kategori Güncelle
+```http
+PUT /events/categories/{category_id}
+```
 
-## ⚙️ Genel Notlar
-
-1. **Rate Limiting**
-   - Her endpoint için ayrı limit tanımlı
-   - Limit aşımında 429 hatası döner
-   - Headers'da kalan istek sayısı belirtilir
-
-2. **Güvenlik**
-   - Tüm admin/moderatör işlemleri JWT doğrulaması gerektirir
-   - 5 başarısız login denemesi hesabı kilitler
-   - Token süresi 30 dakikadır
-
-3. **Pagination**
-   - Liste endpoint'leri sayfalama destekler
-   - Default limit: 10 kayıt
-   - `total` değeri toplam kayıt sayısını gösterir 
+### Kategori Sil
+```http
+DELETE /events/categories/{category_id}
+``` 

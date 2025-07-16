@@ -9,6 +9,7 @@ MACS Kulübü'nün resmi tanıtım ve içerik yönetim sistemi. Kulüp projeleri
 - **Ana Hedef**: Kulübün projelerini ve etkinliklerini kamuya sergilemek
 - **Yönetim Hedefi**: Admin/moderator rolündeki kişilerin içerik yönetimi yapabilmesi
 - **Teknik Hedef**: Sürdürülebilir, genişletilebilir ve production-ready bir sistem
+- **Güvenlik Hedefi**: Modern güvenlik standartlarına uygun, saldırılara dirençli sistem
 
 ---
 
@@ -24,8 +25,11 @@ MACS Kulübü'nün resmi tanıtım ve içerik yönetim sistemi. Kulüp projeleri
 - **Database**: PostgreSQL ✅
 - **ORM**: SQLAlchemy ✅
 - **Validation**: Pydantic ✅
-- **Authentication**: JWT
+- **Authentication**: JWT (HS256) ✅
+- **Password Hashing**: Bcrypt ✅
 - **API Documentation**: OpenAPI/Swagger ✅
+- **Rate Limiting**: slowapi ✅
+- **Environment**: python-dotenv ✅
 
 ---
 
@@ -43,18 +47,24 @@ MACS Kulübü'nün resmi tanıtım ve içerik yönetim sistemi. Kulüp projeleri
 - Etkinlik CRUD işlemleri
 - İçerik yönetimi
 - **Giriş**: JWT token ile
+- **Yetki**: Role-based access control
 
 ---
 
 ### 3. Veritabanı Modelleri
 
-1. User
+1. User ✅
 - id: Integer, primary key
 - full_name: String
 - email: String, unique
 - hashed_password: String
+- status: String
 - role: String (admin, moderator)
 - is_active: Boolean
+- last_login: DateTime
+- failed_login_attempts: Integer
+- last_failed_login: DateTime
+- password_changed_at: DateTime
 - created_at: DateTime
 - updated_at: DateTime
 
@@ -113,39 +123,48 @@ MACS Kulübü'nün resmi tanıtım ve içerik yönetim sistemi. Kulüp projeleri
 
 ## 🛡️ Authentication & Authorization
 
-### JWT Implementation
-- **Login**: Email/username + password → JWT token
+### JWT Implementation ✅
+- **Login**: Email + password → JWT token
 - **Token Storage**: Frontend'de secure storage
 - **Token Validation**: Her protected endpoint'te middleware
 - **Role Check**: Admin/moderator kontrolü
+- **Rate Limiting**: Tüm auth endpointlerinde rate limit
+- **Hesap Kilitleme**: 5 başarısız denemeden sonra 15dk kilit
 
-### Gelecek Özellikler
-- **Email Doğrulama**: Kayıt sonrası email doğrulama sistemi eklenecek
-  - Doğrulama maili gönderimi
-  - Doğrulama token kontrolü
-  - Email doğrulanmadan giriş yapamama
+### Güvenlik Özellikleri ✅
+- **Şifre Politikası**: Minimum 6 karakter
+- **Email Doğrulama**: Email formatı kontrolü
+- **Şifre Hash**: Bcrypt algoritması
+- **Oturum Yönetimi**: JWT (HS256) ile
+- **Rate Limiting**: DDoS koruması
+- **Rol Bazlı Yetkilendirme**: Admin/moderator ayrımı
+- **Güvenli Şifre Değişimi**: Eski şifre kontrolü
+- **Soft Delete**: Veri bütünlüğü için yumuşak silme
 
-### Protected Endpoints
-- `/admin/*` - Sadece admin/moderator
-- `POST/PUT/DELETE /api/projects` - Sadece admin/moderator
+### Protected Endpoints ✅
+- `/auth/*` - Rate limit korumalı
+- `/users/*` - Sadece admin/moderator
 - `POST/PUT/DELETE /api/events` - Sadece admin/moderator
 
 ---
 
 ## 🚀 API Endpoints
 
-🔐 Auth
+🔐 Auth ✅
+- POST /auth/register → Yeni kullanıcı kaydı
+- POST /auth/register/admin → Admin kullanıcı kaydı (secret key ile)
 - POST /auth/login → Giriş (JWT alır)
-- GET /auth/me → Mevcut kullanıcı bilgisi
 
-👤 Users (admin only)
-- POST /users/ → Yeni kullanıcı ekle
-- GET /users/ → Tüm kullanıcıları listele
-- GET /users/{id} → Kullanıcıyı getir
-- PUT /users/{id} → Güncelle
-- DELETE /users/{id} → Soft delete
+👤 Users ✅
+- GET /users/me → Profil bilgisi
+- PUT /users/me → Profil güncelleme
+- POST /users/me/change-password → Şifre değiştirme
+- DELETE /users/me → Hesap silme
+- GET /users/ → Tüm kullanıcıları listele (admin)
+- GET /users/{id} → Kullanıcı detay (admin)
+- DELETE /users/{id} → Kullanıcı silme (admin)
 
-📁 Projects
+📁 Projects (Sprint 3)
 - POST /projects/ → Yeni proje ekle
 - GET /projects/ → Tüm projeleri getir
 - GET /projects/{slug} → Slug ile getir
@@ -155,97 +174,108 @@ MACS Kulübü'nün resmi tanıtım ve içerik yönetim sistemi. Kulüp projeleri
 📅 Events ✅
 - POST /events/ → Yeni etkinlik ekle
 - GET /events/ → Listele (filtreleme ve pagination desteği ile)
-- GET /events/{slug} → Detay getir
+- GET /events/{id} → ID ile detay getir
+- GET /events/by-slug/{slug} → Slug ile detay getir
 - PUT /events/{id} → Güncelle
-- DELETE /events/{id} → Sil
+- DELETE /events/{id} → Soft delete
+- DELETE /events/{id}/hard → Hard delete
 
-🏷️ Tags & Categories
-- GET /tags/ → Tüm tagleri getir
-- POST /tags/ → Yeni tag
-- GET /project-categories/
-- POST /project-categories/
-- GET /event-categories/ ✅
-- POST /event-categories/ ✅
+🏷️ Categories ✅
+- GET /events/categories → Kategorileri listele
+- POST /events/categories → Yeni kategori ekle
+- PUT /events/categories/{id} → Kategori güncelle
+- DELETE /events/categories/{id} → Kategori sil
 
-🔎 Filtreleme (public) ✅
-- GET /projects/?category=&tag=
-- GET /events/?status=upcoming|ongoing|past&category=&search=
+🔎 Filtreleme ✅
+- GET /events/?status=upcoming|past&category_id=&search=
+- GET /events/?skip=0&limit=10 → Pagination
+- GET /events/?sort_by=start_time&sort_desc=false → Sıralama
 
-### Events (İlk Geliştirme) 
+## 📈 Sprint Durumu
 
-## 🎯 Geliştirme Planı
-
-## 📋 Backend Geliştirme Planı
-
-### ✅ YAPILDI
-- [x] FastAPI proje setup
+### ✅ Sprint 1 (Tamamlandı)
+- [x] FastAPI Proje Setup
   - [x] requirements.txt oluşturma
   - [x] main.py temel yapısı
   - [x] klasör yapısı organizasyonu
-- [x] Database bağlantısı
-  - [x] PostgreSQL connection setup
+  - [x] CORS ayarları
+  - [x] Environment variables yapısı
+
+- [x] Database Setup
+  - [x] PostgreSQL bağlantı ayarları
+  - [x] SQLAlchemy ORM entegrasyonu
   - [x] Database connection helper (database.py)
-  - [x] SQLAlchemy configuration
-- [x] Environment configuration
-  - [x] .env dosyası
-- [x] Events API
-  - [x] Events CRUD endpoints
-  - [x] Events filtering & pagination
-  - [x] Events business logic
-  - [x] Slug implementation
-  - [x] Category management
-  - [x] Hard delete endpoint
-  - [x] Get event by slug endpoint
-  - [x] Category update endpoint
-- [x] Alembic migration setup
-  - [x] Initial migration
-  - [x] Database schema creation
+  - [x] Connection pooling ayarları
 
-### 🚧 YAPILACAKLAR
+- [x] Alembic Migrations
+  - [x] Alembic konfigürasyonu
+  - [x] İlk migration dosyası
+  - [x] Events ve Categories tabloları
+  - [x] Migration test ve doğrulama
 
-#### Faz 1: Authentication System
-- [ ] JWT implementation
-  - [ ] JWT utilities (create, verify, decode)
-  - [ ] Password hashing (bcrypt)
-  - [ ] Token middleware
-- [ ] Auth endpoints
-  - [ ] POST /api/auth/login
-  - [ ] POST /api/auth/refresh  
-  - [ ] POST /api/auth/logout
-- [ ] Role-based access control
-  - [ ] Admin/moderator decorators
-  - [ ] Permission middleware
+- [x] Events Modülü - Temel
+  - [x] Event model tanımı
+  - [x] EventCategory model tanımı
+  - [x] Model ilişkileri ve foreign key'ler
+  - [x] Temel CRUD endpoints
+  - [x] Response modelleri (Pydantic)
 
-#### Faz 2: Projects API
-- [ ] SQLAlchemy model tanımları
-  - [ ] Project model
-  - [ ] ProjectCategory model
-  - [ ] Tag models
-  - [ ] Model relationships
-- [ ] Projects CRUD endpoints
-  - [ ] GET /api/projects (with filters)
-  - [ ] GET /api/projects/{id}
-  - [ ] POST /api/projects (protected)
-  - [ ] PUT /api/projects/{id} (protected)
-  - [ ] DELETE /api/projects/{id} (protected)
+### ✅ Sprint 2 (Tamamlandı)
+- [x] Authentication Altyapısı
+  - [x] JWT token oluşturma/doğrulama (HS256)
+  - [x] Password hashing (bcrypt)
+  - [x] Token middleware
+  - [x] Role-based yetkilendirme
+  - [x] Auth decorator'lar
 
-#### Faz 3: Test & Optimizasyon
-- [ ] Test yazımı
-  - [ ] Unit tests
-  - [ ] Integration tests
-- [ ] Performance optimizasyonları
-  - [ ] Caching (Redis)
-  - [ ] Database indexing
-  - [ ] Query optimizasyonu
+- [x] Auth Endpoints
+  - [x] POST /auth/register
+  - [x] POST /auth/register/admin
+  - [x] POST /auth/login
+  - [x] Token response şemaları
+  - [x] Error handling
 
-#### Faz 4: Deployment & CI/CD
-- [ ] Docker setup
-  - [ ] Dockerfile
-  - [ ] docker-compose.yml
-- [ ] CI/CD pipeline
-  - [ ] GitHub Actions
-  - [ ] Automated testing
-  - [ ] Automated deployment
+- [x] Güvenlik Önlemleri
+  - [x] Rate limiting (tüm auth endpointleri)
+  - [x] Hesap kilitleme sistemi (5 deneme/15dk)
+  - [x] Başarısız giriş sayacı
+  - [x] Email format validasyonu
+  - [x] Şifre politikası kontrolleri (min 8 karakter)
+  - [x] Güvenli şifre değişimi kontrolleri
+
+- [x] Users Modülü
+  - [x] User model ve migrations
+  - [x] Profil endpoints (/me)
+  - [x] Admin endpoints
+  - [x] Şifre değiştirme
+  - [x] Kullanıcı silme/deaktive
+
+- [x] Events Modülü - Gelişmiş
+  - [x] Filtreleme sistemi
+    - [x] Tarih bazlı filtreleme (upcoming/past)
+    - [x] Kategori filtreleme
+    - [x] Status filtreleme
+    - [x] Arama (title/description)
+  - [x] Pagination
+    - [x] Skip/limit mantığı
+    - [x] Toplam sayfa hesaplama
+  - [x] Slug sistemi
+    - [x] Otomatik slug oluşturma
+    - [x] Slug ile event getirme
+  - [x] Silme işlemleri
+    - [x] Soft delete
+    - [x] Hard delete (admin)
+  - [x] Sıralama
+    - [x] Çoklu alan desteği
+    - [x] Artan/azalan sıralama
+
+### 🔄 Sprint 3 (Devam Ediyor)
+- [ ] Projects Modülü
+  - [ ] Model ve migrations
+  - [ ] CRUD endpoints
+  - [ ] Filtreleme ve arama
+  - [ ] Kategorilendirme
+  - [ ] Tag sistemi
 
 ---
 
@@ -273,7 +303,7 @@ npm start
 
 - **Öncelik Sırası**: Setup → Models → Auth → Events API → Testing
 - **Production Ready**: Her adımda clean code ve best practices
-- **Frontend Hazırlık**: Events API tamamlandığında frontend entegrasyona hazır
+- **Frontend Hazırlık**: Events API tamamlandığında frontend entegrasyonu hazır
 - **Documentation**: Her endpoint için detaylı OpenAPI docs
 
 ---

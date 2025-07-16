@@ -8,38 +8,15 @@ from slowapi.util import get_remote_address
 
 from database import get_db
 from models.users import User
-from schemas.users import UserResponse, UserListResponse, PasswordChange
+from schemas import UserResponse, UserListResponse, PasswordChange
 from security import verify_token, get_password_hash, verify_password
+from routers.auth import get_current_user
 
 limiter = Limiter(key_func=get_remote_address)
 router = APIRouter(
     prefix="/users",
     tags=["Kullanıcı İşlemleri"]
 )
-
-async def get_current_user(token: str, db: Session = Depends(get_db)):
-    """Token'dan mevcut kullanıcıyı bulur"""
-    try:
-        # Token'dan tırnak işaretlerini temizle
-        token = token.strip('"')
-        payload = verify_token(token)
-        user = db.query(User).filter(User.email == payload.get("sub")).first()
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Kullanıcı bulunamadı"
-            )
-        if not user.is_active:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Hesap aktif değil"
-            )
-        return user
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=str(e)
-        )
 
 async def get_current_admin(current_user: User = Depends(get_current_user)):
     """Admin yetki kontrolü"""

@@ -1,0 +1,159 @@
+.projects-section {
+  padding: 4rem 2rem;
+  background-color: #FFFFFF;
+}
+
+.projects-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.section-title {
+  text-align: center;
+  font-size: 2rem;
+  color: #212529;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+
+.section-description {
+  text-align: center;
+  color: #6C757D;
+  font-size: 1rem;
+  margin-bottom: 2.5rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.project-card {
+  background-color: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease;
+}
+
+.project-card:hover {
+  transform: translateY(-5px);
+}
+
+.project-image {
+  height: 160px;
+  background-color: #E9ECEF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.project-image img {
+  width: 60%;
+  height: auto;
+  object-fit: contain;
+}
+
+.project-content {
+  padding: 1.25rem;
+}
+
+.project-title {
+  font-size: 1.1rem;
+  color: #212529;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.project-description {
+  color: #495057;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
+
+.project-technologies {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.tech-tag {
+  background-color: #E9ECEF;
+  color: #495057;
+  padding: 0.3rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.project-links {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.github-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: #212529;
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: color 0.2s ease;
+}
+
+.github-link img {
+  width: 18px;
+  height: 18px;
+}
+
+.github-link:hover {
+  color: #007bff;
+}
+
+.projects-cta {
+  text-align: center;
+}
+
+.all-projects-button {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.75rem 2rem;
+  background-color: #007BFF;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.all-projects-button:hover {
+  background-color: #0056b3;
+  transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+  .section-title {
+    font-size: 2rem;
+  }
+
+  .section-description {
+    font-size: 1rem;
+  }
+
+  .projects-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .project-card {
+    max-width: 100%;
+  }
+}

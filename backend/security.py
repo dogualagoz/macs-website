@@ -1,24 +1,24 @@
+# Gerekli kütüphaneler
 from datetime import datetime, timedelta
-from typing import Optional
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from fastapi import HTTPException, status
 from os import getenv
 from dotenv import load_dotenv
 
-# Load environment variables
+# Çevre değişkenlerini yükle
 load_dotenv()
 
-# JWT settings from environment variables
+# JWT ayarları
 SECRET_KEY = getenv("JWT_SECRET_KEY")
 if not SECRET_KEY:
     raise ValueError("JWT_SECRET_KEY must be set in environment variables")
 
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = int(getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
-MIN_PASSWORD_LENGTH = int(getenv("MIN_PASSWORD_LENGTH", "8"))
+ACCESS_TOKEN_EXPIRE_MINUTES = int(getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
+MIN_PASSWORD_LENGTH = int(getenv("MIN_PASSWORD_LENGTH", "6"))
 
-# Password hashing configuration
+# Şifre hash'leme ayarları
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -28,38 +28,34 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
 def get_password_hash(password: str) -> str:
-    """Yeni bir kullanıcı oluştururken şifreyi hash'ler"""
-    if not password or len(password) < MIN_PASSWORD_LENGTH:
-        raise ValueError(f"Şifre en az {MIN_PASSWORD_LENGTH} karakter uzunluğunda olmalıdır")
+    """Şifreyi güvenli bir şekilde hash'ler"""
+    if not password:
+        raise ValueError("Şifre boş olamaz")
+    if len(password) < MIN_PASSWORD_LENGTH:
+        raise ValueError(f"Şifre en az {MIN_PASSWORD_LENGTH} karakter olmalıdır")
     return pwd_context.hash(password)
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
     """Login olunca kullanıcıya verilecek JWT token'ı oluşturur"""
     if not data:
         raise ValueError("Token verisi boş olamaz")
     
     to_encode = data.copy()
     
-    # Token'ın geçerlilik süresini ayarla
-    expire = datetime.utcnow() + (
-        expires_delta if expires_delta
-        else timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    )
+    # Süre belirtilmemişse varsayılan süreyi kullan
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     
-    # Token içeriğini hazırla
-    to_encode.update({
-        "exp": expire,
-        "iat": datetime.utcnow(),  # Token oluşturulma zamanı
-    })
+    to_encode.update({"exp": expire})
     
+    # Token'ı oluştur
     try:
         encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
         return encoded_jwt
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Token oluşturulurken bir hata oluştu"
-        )
+        raise ValueError(f"Token oluşturma hatası: {str(e)}")
 
 def verify_token(token: str) -> dict:
     """Gelen JWT token'ın geçerli olup olmadığını kontrol eder"""

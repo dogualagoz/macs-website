@@ -1,8 +1,10 @@
+# Gerekli kütüphaneler
 from fastapi import FastAPI
 from database import engine, Base
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers import events, auth, users
+# Router'ları import et
+from routers import auth_router, events_router, users_router
 
 app = FastAPI(
     title = "MACS API",
@@ -23,13 +25,13 @@ app.add_middleware(
 Base.metadata.create_all(bind=engine)
 
 # Routerları ekle
-app.include_router(events.router)
-app.include_router(auth.router)
-app.include_router(users.router)
+app.include_router(events_router)
+app.include_router(auth_router)
+app.include_router(users_router)
 
 @app.get("/")
 def root():
-    return {"message": "MACS Kulübü Web Sitesine hoşgeldiniz!"}
+    return {"message": "MACS Kulubu Web Sitesine hosgeldiniz!"}
 
 @app.get("/health")
 def health_check():
