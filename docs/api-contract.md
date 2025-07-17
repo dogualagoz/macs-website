@@ -70,7 +70,7 @@ POST /auth/register
 **Hata Durumları:**
 | Kod | Neden | Çözüm |
 |-----|-------|-------|
-| 400 | Şifre çok kısa | Min. 8 karakter kullan |
+| 400 | Şifre çok kısa | Min. 6 karakter kullan |
 | 400 | Email formatı geçersiz | Geçerli email adresi gir |
 | 409 | Email zaten kayıtlı | Farklı email kullan |
 
