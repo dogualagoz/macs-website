@@ -70,9 +70,13 @@ def verify_token(token: str) -> dict:
         # Bearer prefix'ini kaldır
         if token.startswith('Bearer '):
             token = token.replace('Bearer ', '')
+            
+        print(f"Decoding token: {token}")  # Debug için token'ı logla
         
         # Token'ı çöz
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        
+        print(f"Decoded payload: {payload}")  # Debug için payload'ı logla
         
         # Email kontrolü
         if not payload.get("sub"):
@@ -84,15 +88,17 @@ def verify_token(token: str) -> dict:
             
         return payload
         
-    except JWTError:
+    except JWTError as e:
+        print(f"JWT Error: {str(e)}")  # Debug için hatayı logla
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token geçersiz veya süresi dolmuş",
+            detail=f"Token geçersiz veya süresi dolmuş: {str(e)}",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    except Exception:
+    except Exception as e:
+        print(f"Unexpected error: {str(e)}")  # Debug için hatayı logla
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token doğrulama hatası",
+            detail=f"Token doğrulama hatası: {str(e)}",
             headers={"WWW-Authenticate": "Bearer"},
         )
