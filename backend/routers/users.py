@@ -29,7 +29,7 @@ async def get_current_admin(current_user: User = Depends(get_current_user)):
 
 @router.get("/me", response_model=UserResponse)
 @limiter.limit("10/minute")
-async def read_users_me(request: Request, token: str, current_user: User = Depends(get_current_user)):
+async def read_users_me(request: Request, current_user: User = Depends(get_current_user)):
     """
     Kullanıcı profilini görüntüler.
     
@@ -41,7 +41,6 @@ async def read_users_me(request: Request, token: str, current_user: User = Depen
 @limiter.limit("5/minute")
 async def update_user_me(
     request: Request,
-    token: str,
     full_name: Optional[str] = None,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -62,7 +61,6 @@ async def update_user_me(
 @limiter.limit("3/minute")
 async def change_password(
     request: Request,
-    token: str,
     password_data: PasswordChange,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -99,7 +97,6 @@ async def change_password(
 @limiter.limit("3/minute")
 async def delete_user_me(
     request: Request,
-    token: str,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -116,7 +113,6 @@ async def delete_user_me(
 @limiter.limit("30/minute")
 async def list_users(
     request: Request,
-    token: str,
     skip: int = 0,
     limit: int = 10,
     current_admin: User = Depends(get_current_admin),
@@ -137,7 +133,6 @@ async def list_users(
 async def get_user(
     request: Request,
     user_id: int,
-    token: str,
     current_admin: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
@@ -159,7 +154,6 @@ async def get_user(
 async def delete_user(
     request: Request,
     user_id: int,
-    token: str,
     current_admin: User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
