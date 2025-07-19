@@ -17,7 +17,7 @@ const HeroSection = () => {
         {/* Main logo */}
         <div className="hero-logo">
           <img 
-            src="/assets/images/img_esogulogo_1.png" 
+            src="/assets/images/img_exclude.png" 
             alt="MACS Logo" 
             className="main-logo" 
           />
