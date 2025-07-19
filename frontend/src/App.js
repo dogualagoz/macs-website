@@ -7,7 +7,7 @@ import Header from './components/layout/Header';
 import HeroSection from './components/sections/HeroSection';
 import EventsSection from './components/sections/EventsSection';
 import ProjectsSection from './components/sections/ProjectsSection';
-import './App.css';
+import './styles/App.css';
 
 function App() {
   // State to track whether the page has been scrolled

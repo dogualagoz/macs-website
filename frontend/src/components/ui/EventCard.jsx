@@ -10,13 +10,37 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-const EventCard = ({ title, date, location, description, image, category }) => {
+const EventCard = ({ title, date, location, description, image }) => {
+  // Tarihi formatla
+  const formatDate = (date) => {
+    return new Intl.DateTimeFormat('tr-TR', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric'
+    }).format(date);
+  };
+
+  // Resim URL'ini kontrol et
+  const getImageUrl = (imageUrl) => {
+    if (!imageUrl) return '/assets/images/img_innovation.png';
+    if (imageUrl.startsWith('http')) return imageUrl;
+    return process.env.PUBLIC_URL + imageUrl;
+  };
+
   return (
     <div className="event-card">
-      {/* Event image and category badge */}
+      {/* Event image */}
       <div className="event-image">
-        <img src={image} alt={title} />
-        <span className="event-category">{category}</span>
+        <img 
+          src={getImageUrl(image)} 
+          alt={title}
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = '/assets/images/img_innovation.png';
+          }}
+        />
       </div>
 
       {/* Event content section */}
@@ -27,7 +51,7 @@ const EventCard = ({ title, date, location, description, image, category }) => {
         <div className="event-details">
           <div className="event-detail">
             <img src="/assets/images/img_calender.png" alt="Tarih" className="detail-icon" />
-            <span>{date}</span>
+            <span>{formatDate(date)}</span>
           </div>
           <div className="event-detail">
             <img src="/assets/images/img_location.png" alt="Konum" className="detail-icon" />
@@ -44,11 +68,10 @@ const EventCard = ({ title, date, location, description, image, category }) => {
 
 EventCard.propTypes = {
   title: PropTypes.string.isRequired,
-  date: PropTypes.string.isRequired,
+  date: PropTypes.instanceOf(Date).isRequired,
   location: PropTypes.string.isRequired,
   description: PropTypes.string.isRequired,
-  image: PropTypes.string.isRequired,
-  category: PropTypes.string.isRequired
+  image: PropTypes.string
 };
 
 export default EventCard; 

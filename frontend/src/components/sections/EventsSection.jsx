@@ -5,54 +5,50 @@
  * - Section title and description
  * - Category filter buttons
  * - Event cards grid
- * - Load more button
  */
-import React, { useState } from 'react';
-import EventCard from '../EventCard';
+import React, { useState, useEffect } from 'react';
+import EventCard from '../ui/EventCard';
+import { fetchEvents, fetchCategories } from '../../services/api';
 import '../../styles/components/events.css';
 
-// Available event categories
-const CATEGORIES = ['Tümü', 'Workshop', 'Seminer', 'Hackathon', 'Söyleşi'];
-
-// Sample event data (TODO: Replace with API call)
-const EVENTS_DATA = [
-  {
-    id: 1,
-    title: "Yapay Zeka Workshop",
-    date: "15 Mayıs 2024",
-    location: "MM1 Amfi",
-    description: "Yapay zeka ve makine öğrenmesi üzerine uygulamalı workshop etkinliği.",
-    image: "/assets/images/img_innovation.png",
-    category: "Workshop"
-  },
-  {
-    id: 2,
-    title: "Yazılım Kariyer Günü",
-    date: "20 Mayıs 2024",
-    location: "Kongre Merkezi",
-    description: "Sektör profesyonelleri ile kariyer ve yazılım üzerine sohbet.",
-    image: "/assets/images/img_handshake.png",
-    category: "Seminer"
-  },
-  {
-    id: 3,
-    title: "Web Geliştirme Atölyesi",
-    date: "25 Mayıs 2024",
-    location: "Online",
-    description: "Modern web teknolojileri ve uygulama geliştirme pratikleri.",
-    image: "/assets/images/img_source_code.png",
-    category: "Workshop"
-  }
-];
-
 const EventsSection = () => {
-  // State for active category filter
-  const [activeFilter, setActiveFilter] = useState('Tümü');
+  // State for events data and loading
+  const [events, setEvents] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [activeFilter, setActiveFilter] = useState(null);
+
+  // Fetch events and categories when component mounts
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [eventsData, categoriesData] = await Promise.all([
+          fetchEvents(),
+          fetchCategories()
+        ]);
+        setEvents(eventsData);
+        setCategories(categoriesData);
+        setError(null);
+      } catch (err) {
+        setError('Veriler yüklenirken bir hata oluştu');
+        console.error('Error fetching data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   // Filter events based on selected category
-  const filteredEvents = activeFilter === 'Tümü'
-    ? EVENTS_DATA
-    : EVENTS_DATA.filter(event => event.category === activeFilter);
+  const filteredEvents = activeFilter
+    ? events.filter(event => event.category_id === activeFilter)
+    : events;
+
+  if (loading) return <div className="events-section loading">Yükleniyor...</div>;
+  if (error) return <div className="events-section error">{error}</div>;
 
   return (
     <section className="events-section" id="events">
@@ -65,13 +61,19 @@ const EventsSection = () => {
 
         {/* Category filters */}
         <div className="events-filters">
-          {CATEGORIES.map(category => (
+          <button
+            className={`filter-button ${!activeFilter ? 'active' : ''}`}
+            onClick={() => setActiveFilter(null)}
+          >
+            Tümü
+          </button>
+          {categories.map(category => (
             <button
-              key={category}
-              className={`filter-button ${activeFilter === category ? 'active' : ''}`}
-              onClick={() => setActiveFilter(category)}
+              key={category.id}
+              className={`filter-button ${activeFilter === category.id ? 'active' : ''}`}
+              onClick={() => setActiveFilter(category.id)}
             >
-              {category}
+              {category.name}
             </button>
           ))}
         </div>
@@ -79,14 +81,21 @@ const EventsSection = () => {
         {/* Events grid */}
         <div className="events-grid">
           {filteredEvents.map(event => (
-            <EventCard key={event.id} {...event} />
+            <EventCard 
+              key={event.id}
+              title={event.title}
+              description={event.description}
+              date={new Date(event.start_time)}
+              location={event.location}
+              image={event.image_url}
+            />
           ))}
         </div>
 
-        {/* Load more button */}
-        <div className="events-cta">
-          <button className="load-more-button">Daha Fazla Göster</button>
-        </div>
+        {/* Show message if no events */}
+        {filteredEvents.length === 0 && (
+          <p className="no-events">Bu kategoride etkinlik bulunamadı.</p>
+        )}
       </div>
     </section>
   );
