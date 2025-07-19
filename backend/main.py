@@ -13,9 +13,16 @@ app = FastAPI(
 )
 
 # CORS ayarları
+origins = [
+    "http://localhost:3000",  # Geliştirme ortamı
+    "https://macs-website-ejpz-2c1oycxy2-dogualagozs-projects.vercel.app",  # Vercel URL
+    "https://macs-website.vercel.app",  # Vercel production URL
+    "https://macs-website-dogualagoz.vercel.app"  # Vercel preview URL
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Geliştirme için tüm originlere izin ver
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
