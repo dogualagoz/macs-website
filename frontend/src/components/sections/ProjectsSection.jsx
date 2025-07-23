@@ -30,7 +30,7 @@ const PROJECTS_DATA = [
   },
   {
     id: 3,
-    title: "MACS Mobile App",
+    title: "MACsdS Mobile App",
     description: "Topluluğumuzun mobil uygulaması. Flutter ile geliştirildi.",
     image: "/assets/images/img_innovation.png",
     technologies: ["Flutter", "Dart", "Firebase"],

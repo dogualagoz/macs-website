@@ -42,6 +42,7 @@ class User(Base):
     
     # İlişkiler
     events = relationship("Event", back_populates="creator")
+    projects = relationship("Project", back_populates="creator")
     
     # Zaman damgaları
     created_at = Column(DateTime(timezone=True), server_default=func.now())

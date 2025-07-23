@@ -11,6 +11,11 @@ from .events import (
     EventBase, EventCreate, EventUpdate, Event,
     EventCategoryBase, EventCategoryCreate, EventCategory
 )
+from .projects import (
+    ProjectBase, ProjectCreate, ProjectUpdate, ProjectResponse, ProjectListResponse,
+    ProjectCategoryBase, ProjectCategoryCreate, ProjectCategoryUpdate, ProjectCategoryResponse,
+    ProjectStatus
+)
 
 # Dışa açılan şemalar
 __all__ = [
@@ -20,5 +25,10 @@ __all__ = [
     
     # Event şemaları
     "EventBase", "EventCreate", "EventUpdate", "Event",
-    "EventCategoryBase", "EventCategoryCreate", "EventCategory"
+    "EventCategoryBase", "EventCategoryCreate", "EventCategory",
+    
+    # Project şemaları
+    "ProjectBase", "ProjectCreate", "ProjectUpdate", "ProjectResponse", "ProjectListResponse",
+    "ProjectCategoryBase", "ProjectCategoryCreate", "ProjectCategoryUpdate", "ProjectCategoryResponse",
+    "ProjectStatus"
 ]

@@ -31,7 +31,7 @@ class EventStatus(str, Enum):
 #!-----------------Kategori Endpointleri--------------------------------
 
 @router.get("/categories", response_model=List[EventCategory])
-def get_categories(
+def get_event_categories(
     db: Session = Depends(get_db),
     skip: int= 0,
     limit: int = 10
@@ -44,7 +44,7 @@ def get_categories(
     return db.query(EventCategoryModel).offset(skip).limit(limit).all()
 
 @router.post("/categories", response_model=EventCategory, status_code=status.HTTP_201_CREATED)
-def create_category(
+def create_event_category(
     category: EventCategoryCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -57,7 +57,7 @@ def create_category(
     return db_category
 
 @router.get("/categories/{category_id}", response_model=EventCategory)
-def get_category(category_id: int, db: Session = Depends(get_db)):
+def get_event_category(category_id: int, db: Session = Depends(get_db)):
     """Belirli bir kategoriyi getirir."""
     db_category = db.query(EventCategoryModel).filter(EventCategoryModel.id == category_id).first()
     if not db_category:
@@ -65,7 +65,7 @@ def get_category(category_id: int, db: Session = Depends(get_db)):
     return db_category
 
 @router.put("/categories/{category_id}", response_model=EventCategory)
-def update_category(
+def update_event_category(
     category_id: int,
     category: EventCategoryCreate,
     db: Session = Depends(get_db),
@@ -85,7 +85,7 @@ def update_category(
     return db_category
 
 @router.delete("/categories/{category_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_category(
+def delete_event_category(
     category_id: int, 
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
