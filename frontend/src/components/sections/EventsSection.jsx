@@ -30,6 +30,7 @@ const EventsSection = () => {
         ]);
         setEvents(eventsData);
         setCategories(categoriesData);
+        console.log({eventsData},":events",{categoriesData},": katagoriler")
         setError(null);
       } catch (err) {
         setError('Veriler yüklenirken bir hata oluştu');
@@ -56,11 +57,12 @@ const EventsSection = () => {
         {/* Section header */}
         <h2 className="section-title">Etkinlikler</h2>
         <p className="section-description">
-          Topluluğumuz ile bilgisayar ve matematik dünyasını keşfetmeye hazır mısın?
-        </p>
+Matematik ve bilgisayar bilimleri alanında düzenlediğimiz etkinlikler,
+workshoplar ve seminerler        </p>
 
         {/* Category filters */}
         <div className="events-filters">
+          <div className="buttons">
           <button
             className={`filter-button ${!activeFilter ? 'active' : ''}`}
             onClick={() => setActiveFilter(null)}
@@ -76,9 +78,41 @@ const EventsSection = () => {
               {category.name}
             </button>
           ))}
+          </div>
         </div>
 
-        {/* Events grid */}
+        {/* Sonradan Eklendi Backende bağlı değil */}
+        <div className='First'>
+          <img className='first-img' src="assets/images/bootcamp.jpg" alt="Resim" />
+          <div className="First-div">Öne Çıkan</div>
+          <div className="date">
+            <img src="assets/images/img_calender.png" alt="tarih" />
+           <span className='date-span'>15 Eylül 2025</span>
+          </div>
+          <div className="First-tittle">
+            <span className='First-tittle-span'>Yapay Zeka ve Makine Öğrenmesi Workshop’u</span>
+            </div>
+          <div className="First-subtittle">
+            <span className='First-subtittle-span'>Python kullanarak yapay zeka ve makine öğrenmesi temellerini öğrenin. Uygulamalı projelerle desteklenen 2 günlük yoğun workshop programı.</span>
+            </div>
+            <div className="First-hour">
+              <img  className='First-hour-img' src="assets/images/img_clock.png" alt="saat" />
+              <span className="First-hour-span">14:00-18:00</span>
+            </div>
+          <div className="First-location">
+              <img src="assets/images/img_location.png" alt="konum" />
+              <span className="First-location-span">Bilgisayar Lab 1</span>
+            </div>
+            <div className="First-persons">
+              <img className='First-persons-img' src="assets/images/img_people.png" alt="Katılımcı" />
+              <span className="First-persons-span">25 Katılımcı</span>
+              </div>
+              <div className="First-button">
+                <button className="First-button-sign">Kayıt Ol</button>
+                </div>
+          </div>
+        <br />
+        {/* Sonradan Eklendı */}
         <div className="events-grid">
           {filteredEvents.map(event => (
             <EventCard 
@@ -90,8 +124,11 @@ const EventsSection = () => {
               image={event.image_url}
             />
           ))}
+          
         </div>
-
+          <div className="More">
+            <button className='load-more-button'>Daha Fazla Etkinlik Yükle!</button>
+          </div>
         {/* Show message if no events */}
         {filteredEvents.length === 0 && (
           <p className="no-events">Bu kategoride etkinlik bulunamadı.</p>
