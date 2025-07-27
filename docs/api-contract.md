@@ -279,28 +279,28 @@ GET /events
 **Başarılı Yanıt (200 OK):**
 ```json
 [
-    {
-        "id": "integer",
-        "title": "string",
-        "slug": "string",
-        "description": "string",
-        "content": "string",
-        "image_url": "string",
-        "location": "string",
-        "start_time": "datetime",
-        "end_time": "datetime",
-        "category": {
+        {
             "id": "integer",
-            "name": "string"
-        },
-        "created_by": {
-            "id": "integer",
-            "full_name": "string"
-        },
+            "title": "string",
+            "slug": "string",
+            "description": "string",
+            "content": "string",
+            "image_url": "string",
+            "location": "string",
+            "start_time": "datetime",
+            "end_time": "datetime",
+            "category": {
+                "id": "integer",
+                "name": "string"
+            },
+            "created_by": {
+                "id": "integer",
+                "full_name": "string"
+            },
         "is_active": "boolean",
         "created_at": "datetime",
         "updated_at": "datetime"
-    }
+        }
 ]
 ```
 

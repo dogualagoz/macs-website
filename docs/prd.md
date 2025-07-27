@@ -141,7 +141,7 @@ MACS Kulübü'nün resmi tanıtım ve içerik yönetim sistemi. Kulüp projeleri
 - [x] Users Modülü
 
 ### ✅ Sprint 3 (Tamamlandı)
-- [x] Next.js Frontend Setup
+- [x] FastAPI Frontend Setup
 - [x] Vercel Deployment
 - [x] Railway Backend Deployment
 - [x] Production Environment Ayarları
