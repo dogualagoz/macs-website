@@ -7,18 +7,30 @@
   background-color: #FFFFFF;
   z-index: 1000;
   border-bottom: 1px solid #E9ECEF;
+  cursor: default;
 }
 
 .header-container {
-  max-width: 1200px;
+  /* max-width: 1200px; */
+  width: 90%;
   margin: 0 auto;
   display: flex;
-  justify-content: space-between;
+  justify-content: space-evenly;
   align-items: center;
 }
 
+.nav-menu{
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  
+}
+
 .logo {
-  height: 40px;
+  justify-content: flex-end;
+  height: 70px;
 }
 
 .logo img {
@@ -31,19 +43,74 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  gap: 2rem;
+  gap: 5rem;
 }
 
 .nav-menu a {
   text-decoration: none;
-  color: #495057;
+  color: #000000 ;
   font-weight: 500;
   font-size: 0.95rem;
   transition: color 0.2s ease;
+  border-radius: 5px;
+  padding: 4px;
+}
+
+.nav-menu.active{
+  color:#495057;
+  background-color:  #F5F5F5 ;
 }
 
 .nav-menu a:hover {
-  color: #007BFF;
+  color:#1E1E1E;
+  background-color: #E9ECEF;
+}
+
+.JoinUs{
+  position: relative;
+  justify-content: flex-end;
+  width: 110px;
+  height: 35px;
+  background-color: #FFFFFF;
+  border: 2px solid black;
+  border-radius: 20px;
+  transition: ease 0.5s;
+  color: #000000 ;
+  font-weight: 500;
+  font-size: 0.95rem;
+  overflow: hidden;
+  z-index: 0;
+}
+
+/* .JoinUs::before{
+  border-radius: 20px;
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0;
+  right: 100%; /* başta tamamen sağda gizli 
+  width: 0;
+  background: black;
+  transition: width 0.4s ease, right 0.4s ease;
+  z-index: 0;
+} */
+
+/* .Button.JoinUs span{
+  position: relative;
+  z-index: 2;
+}
+
+.JoinUs:hover::before {
+  color: #FFFFFF;
+  width: 100%;
+  right: 0;
+} */
+
+
+
+.JoinUs:hover{
+  background-color: #000000;
+  color: #FFFFFF;
+  transition: ease 0.5s;
 }
 
 @media (max-width: 768px) {

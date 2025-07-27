@@ -21,7 +21,6 @@ const EventCard = ({ title, date, location, description, image }) => {
       minute: 'numeric'
     }).format(date);
   };
-
   // Resim URL'ini kontrol et
   const getImageUrl = (imageUrl) => {
     if (!imageUrl) return '/assets/images/img_innovation.png';
@@ -30,6 +29,7 @@ const EventCard = ({ title, date, location, description, image }) => {
   };
 
   return (
+    
     <div className="event-card">
       {/* Event image */}
       <div className="event-image">
@@ -46,13 +46,16 @@ const EventCard = ({ title, date, location, description, image }) => {
       {/* Event content section */}
       <div className="event-content">
         <h3 className="event-title">{title}</h3>
+        <div className="come">Yaklaşan</div>
         
         {/* Event details (date and location) */}
-        <div className="event-details">
-          <div className="event-detail">
+        <div className="event-details-1">
+          <div className="event-date">
             <img src="/assets/images/img_calender.png" alt="Tarih" className="detail-icon" />
             <span>{formatDate(date)}</span>
           </div>
+          </div>
+          <div className="event-details-2">
           <div className="event-detail">
             <img src="/assets/images/img_location.png" alt="Konum" className="detail-icon" />
             <span>{location}</span>
@@ -60,7 +63,11 @@ const EventCard = ({ title, date, location, description, image }) => {
         </div>
 
         <p className="event-description">{description}</p>
-        <button className="event-button">Detaylar</button>
+        <div className="clock">
+              <img src="/assets/images/img_clock.png" alt="saat" />
+              <span>14:00-18:00</span>
+            </div>
+        {/* <button className="event-button">Detaylar</button> */}
       </div>
     </div>
   );
