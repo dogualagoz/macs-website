@@ -8,13 +8,15 @@
  */
 import React, { useState, useEffect } from 'react';
 import EventCard from '../ui/EventCard';
-import { fetchEvents, fetchCategories } from '../../services/api';
+import FeaturedEventCard from '../ui/FeaturedEventCard';
+import { fetchEvents, fetchCategories, fetchFeaturedEvent } from '../../services/api';
 import '../../styles/components/events.css';
 
 const EventsSection = () => {
   // State for events data and loading
   const [events, setEvents] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [featuredEvent, setFeaturedEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeFilter, setActiveFilter] = useState(null);
@@ -24,13 +26,14 @@ const EventsSection = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [eventsData, categoriesData] = await Promise.all([
+        const [eventsData, categoriesData, featuredEventData] = await Promise.all([
           fetchEvents(),
-          fetchCategories()
+          fetchCategories(),
+          fetchFeaturedEvent()
         ]);
         setEvents(eventsData);
         setCategories(categoriesData);
-        console.log({eventsData},":events",{categoriesData},": katagoriler")
+        setFeaturedEvent(featuredEventData);
         setError(null);
       } catch (err) {
         setError('Veriler yüklenirken bir hata oluştu');
@@ -81,40 +84,25 @@ workshoplar ve seminerler        </p>
           </div>
         </div>
 
-        {/* Sonradan Eklendi Backende bağlı değil */}
-        <div className='First'>
-          <img className='first-img' src="assets/images/bootcamp.jpg" alt="Resim" />
-          <div className="First-div">Öne Çıkan</div>
-          <div className="date">
-            <img src="assets/images/img_calender.png" alt="tarih" />
-           <span className='date-span'>15 Eylül 2025</span>
-          </div>
-          <div className="First-tittle">
-            <span className='First-tittle-span'>Yapay Zeka ve Makine Öğrenmesi Workshop’u</span>
-            </div>
-          <div className="First-subtittle">
-            <span className='First-subtittle-span'>Python kullanarak yapay zeka ve makine öğrenmesi temellerini öğrenin. Uygulamalı projelerle desteklenen 2 günlük yoğun workshop programı.</span>
-            </div>
-            <div className="First-hour">
-              <img  className='First-hour-img' src="assets/images/img_clock.png" alt="saat" />
-              <span className="First-hour-span">14:00-18:00</span>
-            </div>
-          <div className="First-location">
-              <img src="assets/images/img_location.png" alt="konum" />
-              <span className="First-location-span">Bilgisayar Lab 1</span>
-            </div>
-            <div className="First-persons">
-              <img className='First-persons-img' src="assets/images/img_people.png" alt="Katılımcı" />
-              <span className="First-persons-span">25 Katılımcı</span>
-              </div>
-              <div className="First-button">
-                <button className="First-button-sign">Kayıt Ol</button>
-                </div>
-          </div>
+        {/* Öne Çıkan Etkinlik - FeaturedEventCard bileşeni */}
+        {(featuredEvent || events[0]) && (
+          <FeaturedEventCard
+            title={(featuredEvent || events[0]).title}
+            date={new Date((featuredEvent || events[0]).start_time)}
+            location={(featuredEvent || events[0]).location}
+            description={(featuredEvent || events[0]).description}
+            image={(featuredEvent || events[0]).image_url}
+            startTime={(featuredEvent || events[0]).start_time}
+            endTime={(featuredEvent || events[0]).end_time}
+            maxParticipants={(featuredEvent || events[0]).max_participants}
+          />
+        )}
         <br />
-        {/* Sonradan Eklendı */}
+        {/* Diğer Etkinlikler - Featured event hariç */}
         <div className="events-grid">
-          {filteredEvents.map(event => (
+          {filteredEvents
+            .filter(event => event.id !== (featuredEvent || events[0])?.id) // Featured event'i çıkar
+            .map(event => (
             <EventCard 
               key={event.id}
               title={event.title}

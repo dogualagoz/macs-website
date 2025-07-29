@@ -159,6 +159,41 @@ def get_events(
     # Pagination
     return query.offset(skip).limit(limit).all()
 
+# Spesifik route'lar - genel route'lardan önce
+@router.get("/featured", response_model=Event)
+def get_featured_event(db: Session = Depends(get_db)):
+    """
+    Öne çıkan etkinliği getirir.
+    En yakın tarihli gelecek etkinlik öne çıkan olarak seçilir.
+    """
+    now = datetime.now()
+    
+    # En yakın tarihli gelecek etkinliği bul
+    featured_event = db.query(EventModel).filter(
+        EventModel.start_time >= now,
+        EventModel.is_deleted == False
+    ).order_by(EventModel.start_time.asc()).first()
+    
+    if not featured_event:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Öne çıkan etkinlik bulunamadı"
+        )
+    
+    return featured_event
+
+@router.get("/by-slug/{slug}", response_model=Event)
+def get_event_by_slug(slug: str, db: Session = Depends(get_db)):
+    """Slug'a göre etkinlik getirir."""
+    db_event = db.query(EventModel).filter(
+        EventModel.slug == slug,
+        EventModel.is_deleted == False
+    ).first()
+    
+    if not db_event:
+        raise HTTPException(status_code=404, detail="Event bulunamadı")
+    return db_event
+
 def create_slug(title: str) -> str:
     """Başlıktan URL-uyumlu slug oluşturur"""
     # Başlığı küçük harfe çevir ve boşlukları tire ile değiştir
@@ -205,6 +240,7 @@ def create_event(
     db.refresh(db_event)
     return db_event
 
+# Genel route'lar - spesifik route'lardan sonra
 @router.get("/{event_id}", response_model=Event)
 def get_event(event_id: int, db: Session = Depends(get_db)):
     """ID'ye göre etkinlik getirir."""
@@ -213,18 +249,6 @@ def get_event(event_id: int, db: Session = Depends(get_db)):
         EventModel.is_deleted == False
     ).first()
 
-    if not db_event:
-        raise HTTPException(status_code=404, detail="Event bulunamadı")
-    return db_event
-
-@router.get("/by-slug/{slug}", response_model=Event)
-def get_event_by_slug(slug: str, db: Session = Depends(get_db)):
-    """Slug'a göre etkinlik getirir."""
-    db_event = db.query(EventModel).filter(
-        EventModel.slug == slug,
-        EventModel.is_deleted == False
-    ).first()
-    
     if not db_event:
         raise HTTPException(status_code=404, detail="Event bulunamadı")
     return db_event

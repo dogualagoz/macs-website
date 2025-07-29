@@ -40,6 +40,7 @@ class ProjectBase(BaseModel):
     description: Optional[str] = None
     content: Optional[str] = None
     image_url: Optional[str] = None
+    technologies: Optional[str] = None  # JSON string olarak teknolojiler
     github_url: Optional[str] = None
     live_url: Optional[str] = None
     status: ProjectStatus = ProjectStatus.PLANNING
@@ -58,6 +59,7 @@ class ProjectUpdate(BaseModel):
     description: Optional[str] = None
     content: Optional[str] = None
     image_url: Optional[str] = None
+    technologies: Optional[str] = None  # JSON string olarak teknolojiler
     github_url: Optional[str] = None
     live_url: Optional[str] = None
     status: Optional[ProjectStatus] = None

@@ -50,16 +50,11 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
     
     to_encode.update({"exp": expire})
     
-    print(f"Creating token with payload: {to_encode}")  # Debug için payload'ı logla
-    print(f"Using SECRET_KEY length: {len(SECRET_KEY)}")  # Debug için secret key uzunluğunu logla
-    
     # Token'ı oluştur
     try:
         encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-        print(f"Created token: {encoded_jwt}")  # Debug için oluşturulan token'ı logla
         return encoded_jwt
     except Exception as e:
-        print(f"Token creation error: {str(e)}")  # Debug için hata mesajını logla
         raise ValueError(f"Token oluşturma hatası: {str(e)}")
 
 def verify_token(token: str) -> dict:
@@ -75,14 +70,9 @@ def verify_token(token: str) -> dict:
         # Bearer prefix'ini kaldır
         if token.startswith('Bearer '):
             token = token.replace('Bearer ', '')
-            
-        print(f"Verifying token: {token}")  # Debug için token'ı logla
-        print(f"Using SECRET_KEY length: {len(SECRET_KEY)}")  # Debug için secret key uzunluğunu logla
         
         # Token'ı çöz
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        
-        print(f"Decoded payload: {payload}")  # Debug için payload'ı logla
         
         # Email kontrolü
         if not payload.get("sub"):
@@ -95,14 +85,12 @@ def verify_token(token: str) -> dict:
         return payload
         
     except JWTError as e:
-        print(f"JWT Error: {str(e)}")  # Debug için hatayı logla
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Token geçersiz veya süresi dolmuş: {str(e)}",
             headers={"WWW-Authenticate": "Bearer"},
         )
     except Exception as e:
-        print(f"Unexpected error: {str(e)}")  # Debug için hatayı logla
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Token doğrulama hatası: {str(e)}",

@@ -44,6 +44,9 @@ class Project(Base):
     content = Column(Text)
     image_url = Column(String)
     
+    # Proje teknolojileri
+    technologies = Column(String)  # JSON string olarak teknolojiler (Python, React, Node.js vb.)
+    
     # Proje linkleri
     github_url = Column(String)
     live_url = Column(String)
