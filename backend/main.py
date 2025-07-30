@@ -18,7 +18,9 @@ origins = [
     "https://macs-website-ejpz-2c1oycxy2-dogualagozs-projects.vercel.app",  # Vercel preview URL
     "https://macs-website-ejpz.vercel.app",  # Vercel production URL
     "https://macs-website.vercel.app",  # Vercel production URL (alternative)
-    "https://macs-website-dogualagoz.vercel.app"  # Vercel preview URL
+    "https://macs-website-dogualagoz.vercel.app",
+    "https://macsclub.com.tr",
+    "https://www.macsclub.com.tr",  # Vercel preview URL
 ]
 
 app.add_middleware(
