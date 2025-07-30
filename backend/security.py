@@ -84,15 +84,15 @@ def verify_token(token: str) -> dict:
             
         return payload
         
-    except JWTError:
+    except JWTError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token geçersiz veya süresi dolmuş",
+            detail=f"Token geçersiz veya süresi dolmuş: {str(e)}",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    except Exception:
+    except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token doğrulama hatası",
+            detail=f"Token doğrulama hatası: {str(e)}",
             headers={"WWW-Authenticate": "Bearer"},
         )

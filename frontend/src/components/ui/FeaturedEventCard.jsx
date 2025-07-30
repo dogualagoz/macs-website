@@ -1,0 +1,92 @@
+/**
+ * FeaturedEventCard Component
+ * 
+ * Displays a featured event card with larger size and prominent styling.
+ * Similar to EventCard but with different CSS classes for featured appearance.
+ */
+import React from 'react';
+import PropTypes from 'prop-types';
+
+const FeaturedEventCard = ({ title, date, location, description, image, startTime, endTime, maxParticipants }) => {
+  // Tarihi formatla
+  const formatDate = (date) => {
+    return new Intl.DateTimeFormat('tr-TR', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    }).format(date);
+  };
+
+  // Saatleri formatla
+  const formatTime = (time) => {
+    return new Date(time).toLocaleTimeString('tr-TR', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  // Resim URL'ini kontrol et
+  const getImageUrl = (imageUrl) => {
+    if (!imageUrl) return '/assets/images/img_innovation.png';
+    if (imageUrl.startsWith('http')) return imageUrl;
+    return process.env.PUBLIC_URL + imageUrl;
+  };
+
+  return (
+    <div className='First'>
+      <img 
+        className='first-img' 
+        src={getImageUrl(image)} 
+        alt={title}
+        onError={(e) => {
+          e.target.onerror = null;
+          e.target.src = '/assets/images/img_innovation.png';
+        }}
+      />
+      <div className="First-div">Öne Çıkan</div>
+      <div className="date">
+        <img src="assets/images/img_calender.png" alt="tarih" />
+        <span className='date-span'>{formatDate(date)}</span>
+      </div>
+      <div className="First-tittle">
+        <span className='First-tittle-span'>{title}</span>
+      </div>
+      <div className="First-subtittle">
+        <span className='First-subtittle-span'>{description}</span>
+      </div>
+      <div className="First-hour">
+        <img className='First-hour-img' src="assets/images/img_clock.png" alt="saat" />
+        <span className="First-hour-span">
+          {startTime && endTime 
+            ? `${formatTime(startTime)}-${formatTime(endTime)}`
+            : "14:00-18:00"
+          }
+        </span>
+      </div>
+      <div className="First-location">
+        <img src="assets/images/img_location.png" alt="konum" />
+        <span className="First-location-span">{location}</span>
+      </div>
+      <div className="First-persons">
+        <img className='First-persons-img' src="assets/images/img_people.png" alt="Katılımcı" />
+        <span className="First-persons-span">{maxParticipants || 25} Katılımcı</span>
+      </div>
+      <div className="First-button">
+        <button className="First-button-sign">Kayıt Ol</button>
+      </div>
+    </div>
+  );
+};
+
+FeaturedEventCard.propTypes = {
+  title: PropTypes.string.isRequired,
+  date: PropTypes.instanceOf(Date).isRequired,
+  location: PropTypes.string.isRequired,
+  description: PropTypes.string.isRequired,
+  image: PropTypes.string,
+  startTime: PropTypes.string,
+  endTime: PropTypes.string,
+  maxParticipants: PropTypes.number
+};
+
+export default FeaturedEventCard; 

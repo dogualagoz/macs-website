@@ -4,13 +4,23 @@
 
 ### Base URL
 ```
+Production: https://macs-website-production.up.railway.app
 Development: http://localhost:8000
 ```
+
+### 🔐 CORS Ayarları
+- Frontend origin'ler:
+  - Production: https://macs-website.vercel.app
+  - Development: http://localhost:3000
+- Allowed methods: GET, POST, PUT, DELETE, OPTIONS
+- Allowed headers: Content-Type, Authorization
+- Credentials: true
+- Max age: 600
 
 ### 🔐 Kimlik Doğrulama
 - Tüm istekler için (login ve register hariç) JWT token gereklidir
 - Token formatı: `Bearer <token>`
-- Token'lar varsayılan olarak 30 dakika geçerlidir (ACCESS_TOKEN_EXPIRE_MINUTES ile ayarlanabilir)
+- Token'lar varsayılan olarak 60 dakika geçerlidir (ACCESS_TOKEN_EXPIRE_MINUTES ile ayarlanabilir)
 - Token süresi dolduğunda yeniden login gerekir
 - 5 başarısız giriş denemesinden sonra hesap 15 dakika kilitlenir
 
@@ -30,7 +40,7 @@ Development: http://localhost:8000
 | 500 | Internal Server Error | Sunucu hatası |
 
 ### 🔒 Güvenlik Özellikleri
-- Şifre minimum 8 karakter olmalıdır
+- Şifre minimum 6 karakter olmalıdır
 - Şifreler bcrypt ile hash'lenir
 - Her endpoint için rate limiting uygulanır
 - JWT token'lar HS256 algoritması ile imzalanır
@@ -177,7 +187,7 @@ POST /users/me/change-password
 ```json
 {
     "current_password": "string",
-    "new_password": "string (min. 8 karakter)",
+    "new_password": "string (min. 6 karakter)",
     "confirm_password": "string"
 }
 ```
@@ -269,28 +279,28 @@ GET /events
 **Başarılı Yanıt (200 OK):**
 ```json
 [
-    {
-        "id": "integer",
-        "title": "string",
-        "slug": "string",
-        "description": "string",
-        "content": "string",
-        "image_url": "string",
-        "location": "string",
-        "start_time": "datetime",
-        "end_time": "datetime",
-        "category": {
+        {
             "id": "integer",
-            "name": "string"
-        },
-        "created_by": {
-            "id": "integer",
-            "full_name": "string"
-        },
+            "title": "string",
+            "slug": "string",
+            "description": "string",
+            "content": "string",
+            "image_url": "string",
+            "location": "string",
+            "start_time": "datetime",
+            "end_time": "datetime",
+            "category": {
+                "id": "integer",
+                "name": "string"
+            },
+            "created_by": {
+                "id": "integer",
+                "full_name": "string"
+            },
         "is_active": "boolean",
         "created_at": "datetime",
         "updated_at": "datetime"
-    }
+        }
 ]
 ```
 

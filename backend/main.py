@@ -4,7 +4,7 @@ from database import engine, Base
 from fastapi.middleware.cors import CORSMiddleware
 
 # Router'ları import et
-from routers import auth_router, events_router, users_router
+from routers import auth_router, events_router, users_router, projects_router
 
 app = FastAPI(
     title = "MACS API",
@@ -13,9 +13,17 @@ app = FastAPI(
 )
 
 # CORS ayarları
+origins = [
+    "http://localhost:3000",  # Geliştirme ortamı
+    "https://macs-website-ejpz-2c1oycxy2-dogualagozs-projects.vercel.app",  # Vercel preview URL
+    "https://macs-website-ejpz.vercel.app",  # Vercel production URL
+    "https://macs-website.vercel.app",  # Vercel production URL (alternative)
+    "https://macs-website-dogualagoz.vercel.app"  # Vercel preview URL
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Geliştirme için tüm originlere izin ver
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -26,8 +34,10 @@ Base.metadata.create_all(bind=engine)
 
 # Routerları ekle
 app.include_router(events_router)
+app.include_router(projects_router)
 app.include_router(auth_router)
 app.include_router(users_router)
+
 
 @app.get("/")
 def root():

@@ -31,7 +31,7 @@ class EventStatus(str, Enum):
 #!-----------------Kategori Endpointleri--------------------------------
 
 @router.get("/categories", response_model=List[EventCategory])
-def get_categories(
+def get_event_categories(
     db: Session = Depends(get_db),
     skip: int= 0,
     limit: int = 10
@@ -44,7 +44,7 @@ def get_categories(
     return db.query(EventCategoryModel).offset(skip).limit(limit).all()
 
 @router.post("/categories", response_model=EventCategory, status_code=status.HTTP_201_CREATED)
-def create_category(
+def create_event_category(
     category: EventCategoryCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -57,7 +57,7 @@ def create_category(
     return db_category
 
 @router.get("/categories/{category_id}", response_model=EventCategory)
-def get_category(category_id: int, db: Session = Depends(get_db)):
+def get_event_category(category_id: int, db: Session = Depends(get_db)):
     """Belirli bir kategoriyi getirir."""
     db_category = db.query(EventCategoryModel).filter(EventCategoryModel.id == category_id).first()
     if not db_category:
@@ -65,7 +65,7 @@ def get_category(category_id: int, db: Session = Depends(get_db)):
     return db_category
 
 @router.put("/categories/{category_id}", response_model=EventCategory)
-def update_category(
+def update_event_category(
     category_id: int,
     category: EventCategoryCreate,
     db: Session = Depends(get_db),
@@ -85,7 +85,7 @@ def update_category(
     return db_category
 
 @router.delete("/categories/{category_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_category(
+def delete_event_category(
     category_id: int, 
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -159,6 +159,41 @@ def get_events(
     # Pagination
     return query.offset(skip).limit(limit).all()
 
+# Spesifik route'lar - genel route'lardan önce
+@router.get("/featured", response_model=Event)
+def get_featured_event(db: Session = Depends(get_db)):
+    """
+    Öne çıkan etkinliği getirir.
+    En yakın tarihli gelecek etkinlik öne çıkan olarak seçilir.
+    """
+    now = datetime.now()
+    
+    # En yakın tarihli gelecek etkinliği bul
+    featured_event = db.query(EventModel).filter(
+        EventModel.start_time >= now,
+        EventModel.is_deleted == False
+    ).order_by(EventModel.start_time.asc()).first()
+    
+    if not featured_event:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Öne çıkan etkinlik bulunamadı"
+        )
+    
+    return featured_event
+
+@router.get("/by-slug/{slug}", response_model=Event)
+def get_event_by_slug(slug: str, db: Session = Depends(get_db)):
+    """Slug'a göre etkinlik getirir."""
+    db_event = db.query(EventModel).filter(
+        EventModel.slug == slug,
+        EventModel.is_deleted == False
+    ).first()
+    
+    if not db_event:
+        raise HTTPException(status_code=404, detail="Event bulunamadı")
+    return db_event
+
 def create_slug(title: str) -> str:
     """Başlıktan URL-uyumlu slug oluşturur"""
     # Başlığı küçük harfe çevir ve boşlukları tire ile değiştir
@@ -205,6 +240,7 @@ def create_event(
     db.refresh(db_event)
     return db_event
 
+# Genel route'lar - spesifik route'lardan sonra
 @router.get("/{event_id}", response_model=Event)
 def get_event(event_id: int, db: Session = Depends(get_db)):
     """ID'ye göre etkinlik getirir."""
@@ -213,18 +249,6 @@ def get_event(event_id: int, db: Session = Depends(get_db)):
         EventModel.is_deleted == False
     ).first()
 
-    if not db_event:
-        raise HTTPException(status_code=404, detail="Event bulunamadı")
-    return db_event
-
-@router.get("/by-slug/{slug}", response_model=Event)
-def get_event_by_slug(slug: str, db: Session = Depends(get_db)):
-    """Slug'a göre etkinlik getirir."""
-    db_event = db.query(EventModel).filter(
-        EventModel.slug == slug,
-        EventModel.is_deleted == False
-    ).first()
-    
     if not db_event:
         raise HTTPException(status_code=404, detail="Event bulunamadı")
     return db_event

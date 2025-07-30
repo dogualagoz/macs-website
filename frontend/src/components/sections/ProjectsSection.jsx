@@ -7,82 +7,111 @@
  * - Technology tags
  * - GitHub links
  */
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import ProjectCard from '../ui/ProjectCard';
+import FeaturedProjectCard from '../ui/FeaturedProjectCard';
+import { fetchProjects, fetchFeaturedProject, fetchProjectCategories } from '../../services/api';
 import '../../styles/components/projects.css';
 
-// Sample project data (TODO: Replace with API call)
-const PROJECTS_DATA = [
-  {
-    id: 1,
-    title: "MACS Web Sitesi",
-    description: "Topluluğumuzun resmi web sitesi. React ve FastAPI kullanılarak geliştirildi.",
-    image: "/assets/images/img_source_code.png",
-    technologies: ["React", "FastAPI", "PostgreSQL"],
-    github: "https://github.com/macs/website"
-  },
-  {
-    id: 2,
-    title: "Etkinlik Yönetim Sistemi",
-    description: "Etkinlik kayıt ve katılım takip sistemi.",
-    image: "/assets/images/img_calender.png",
-    technologies: ["Node.js", "Express", "MongoDB"],
-    github: "https://github.com/macs/event-management"
-  },
-  {
-    id: 3,
-    title: "MACS Mobile App",
-    description: "Topluluğumuzun mobil uygulaması. Flutter ile geliştirildi.",
-    image: "/assets/images/img_innovation.png",
-    technologies: ["Flutter", "Dart", "Firebase"],
-    github: "https://github.com/macs/mobile-app"
-  }
-];
-
 const ProjectsSection = () => {
+  // State for projects data and loading
+  const [projects, setProjects] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [featuredProject, setFeaturedProject] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [activeFilter, setActiveFilter] = useState(null);
+
+  // Fetch projects and categories when component mounts
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [projectsData, categoriesData, featuredProjectData] = await Promise.all([
+          fetchProjects(),
+          fetchProjectCategories(),
+          fetchFeaturedProject()
+        ]);
+        setProjects(projectsData.projects || projectsData);
+        setCategories(categoriesData);
+        setFeaturedProject(featuredProjectData);
+        setError(null);
+      } catch (err) {
+        setError('Veriler yüklenirken bir hata oluştu');
+        console.error('Error fetching data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Filter projects based on selected category
+  const filteredProjects = activeFilter
+    ? projects.filter(project => project.category_id === activeFilter)
+    : projects;
+
+  if (loading) return <div className="projects-section loading">Yükleniyor...</div>;
+  if (error) return <div className="projects-section error">{error}</div>;
+
   return (
     <section className="projects-section" id="projects">
       <div className="projects-container">
         {/* Section header */}
-        <h2 className="section-title">Projelerimiz</h2>
+        <h2 className="section-title">Projeler</h2>
         <p className="section-description">
-          Topluluğumuz tarafından geliştirilen açık kaynak projeler
+          Matematik ve bilgisayar bilimleri alanında geliştirdiğimiz yenilikçi projeler ve araştırmalarımız.
         </p>
 
-        {/* Projects grid */}
+        {/* Filtreler - Öne çıkan projenin üstünde */}
+        <div className="Buttonss">
+          <div className="Buttons">
+            <button 
+              className={`button ${!activeFilter ? 'active' : ''}`}
+              onClick={() => setActiveFilter(null)}
+            >
+              Tümü
+            </button>
+            {categories.map(category => (
+              <button
+                key={category.id}
+                className={`button ${activeFilter === category.id ? 'active' : ''}`}
+                onClick={() => setActiveFilter(category.id)}
+              >
+                {category.name}
+              </button>
+            ))}
+          </div>
+        </div>
+        <br />
+
+        {/* Öne Çıkan Proje - FeaturedProjectCard bileşeni */}
+        {featuredProject && (
+          <FeaturedProjectCard
+            title={featuredProject.title}
+            description={featuredProject.description}
+            image={featuredProject.image_url}
+            technologies={featuredProject.technologies}
+            githubUrl={featuredProject.github_url}
+            liveUrl={featuredProject.live_url}
+          />
+        )}
+
+        {/* Diğer Projeler - Featured project hariç */}
         <div className="projects-grid">
-          {PROJECTS_DATA.map(project => (
-            <div key={project.id} className="project-card">
-              {/* Project image */}
-              <div className="project-image">
-                <img src={project.image} alt={project.title} />
-              </div>
-
-              {/* Project details */}
-              <div className="project-content">
-                <h3 className="project-title">{project.title}</h3>
-                <p className="project-description">{project.description}</p>
-
-                {/* Technology tags */}
-                <div className="project-technologies">
-                  {project.technologies.map(tech => (
-                    <span key={tech} className="tech-tag">{tech}</span>
-                  ))}
-                </div>
-
-                {/* GitHub link */}
-                <div className="project-links">
-                  <a 
-                    href={project.github} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="github-link"
-                  >
-                    <img src="/assets/images/img_github.png" alt="GitHub" />
-                    GitHub'da İncele
-                  </a>
-                </div>
-              </div>
-            </div>
+          {filteredProjects
+            .filter(project => project.id !== featuredProject?.id) // Featured project'i çıkar
+            .map(project => (
+            <ProjectCard 
+              key={project.id}
+              title={project.title}
+              description={project.description}
+              image={project.image_url}
+              technologies={project.technologies}
+              teamMembers={project.team_members}
+              category={project.category?.name}
+            />
           ))}
         </div>
 

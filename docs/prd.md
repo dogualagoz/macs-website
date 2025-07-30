@@ -16,9 +16,9 @@ MACS Kulübü'nün resmi tanıtım ve içerik yönetim sistemi. Kulüp projeleri
 ## 🏗️ Teknik Mimari
 
 ### Frontend
-- **Framework**: React.js
-- **Styling**: CSS
-- **Durum Yönetimi**: TBD (Context API veya Redux)
+- **Framework**: React ✅
+- **Styling**: CSS Modules ✅
+- **Deployment**: Vercel ✅
 
 ### Backend
 - **Framework**: FastAPI ✅
@@ -30,6 +30,13 @@ MACS Kulübü'nün resmi tanıtım ve içerik yönetim sistemi. Kulüp projeleri
 - **API Documentation**: OpenAPI/Swagger ✅
 - **Rate Limiting**: slowapi ✅
 - **Environment**: python-dotenv ✅
+- **Deployment**: Railway ✅
+
+### Deployment
+- **Frontend**: Vercel (production & preview deployments) ✅
+- **Backend**: Railway (auto-scaling & monitoring) ✅
+- **Database**: Railway PostgreSQL (managed database) ✅
+- **Environment Variables**: Railway & Vercel ✅
 
 ---
 
@@ -51,7 +58,7 @@ MACS Kulübü'nün resmi tanıtım ve içerik yönetim sistemi. Kulüp projeleri
 
 ---
 
-### 3. Veritabanı Modelleri
+## 🗄️ Veritabanı Modelleri
 
 1. User ✅
 - id: Integer, primary key
@@ -68,36 +75,7 @@ MACS Kulübü'nün resmi tanıtım ve içerik yönetim sistemi. Kulüp projeleri
 - created_at: DateTime
 - updated_at: DateTime
 
-2. Project
-- id: Integer, primary key
-- title: String
-- description: String
-- content: Text
-- slug: String, unique
-- image_url: String
-- github_url: String
-- project_url: String
-- category_id: ForeignKey (project_categories.id)
-- created_by: ForeignKey (users.id)
-- is_active: Boolean
-- is_deleted: Boolean
-- views: Integer
-- created_at: DateTime
-- updated_at: DateTime
-
-3. ProjectCategory
-- id: Integer
-- name: String, unique
-
-4. Tag
-- id: Integer
-- name: String, unique
-
-5. ProjectTag (many-to-many)
-- project_id: ForeignKey
-- tag_id: ForeignKey
-
-6. Event ✅
+2. Event ✅
 - id: Integer, primary key
 - title: String
 - slug: String, unique
@@ -114,7 +92,7 @@ MACS Kulübü'nün resmi tanıtım ve içerik yönetim sistemi. Kulüp projeleri
 - created_at: DateTime
 - updated_at: DateTime
 
-7. EventCategory ✅
+3. EventCategory ✅
 - id: Integer
 - name: String, unique
 - created_at: DateTime
@@ -148,204 +126,49 @@ MACS Kulübü'nün resmi tanıtım ve içerik yönetim sistemi. Kulüp projeleri
 
 ---
 
-## 🚀 API Endpoints
-
-🔐 Auth ✅
-- POST /auth/register → Yeni kullanıcı kaydı
-- POST /auth/register/admin → Admin kullanıcı kaydı (secret key ile)
-- POST /auth/login → Giriş (JWT alır)
-
-👤 Users ✅
-- GET /users/me → Profil bilgisi
-- PUT /users/me → Profil güncelleme
-- POST /users/me/change-password → Şifre değiştirme
-- DELETE /users/me → Hesap silme
-- GET /users/ → Tüm kullanıcıları listele (admin)
-- GET /users/{id} → Kullanıcı detay (admin)
-- DELETE /users/{id} → Kullanıcı silme (admin)
-
-📁 Projects (Sprint 3)
-- POST /projects/ → Yeni proje ekle
-- GET /projects/ → Tüm projeleri getir
-- GET /projects/{slug} → Slug ile getir
-- PUT /projects/{id} → Güncelle
-- DELETE /projects/{id} → Sil
-
-📅 Events ✅
-- POST /events/ → Yeni etkinlik ekle
-- GET /events/ → Listele (filtreleme ve pagination desteği ile)
-- GET /events/{id} → ID ile detay getir
-- GET /events/by-slug/{slug} → Slug ile detay getir
-- PUT /events/{id} → Güncelle
-- DELETE /events/{id} → Soft delete
-- DELETE /events/{id}/hard → Hard delete
-
-🏷️ Categories ✅
-- GET /events/categories → Kategorileri listele
-- POST /events/categories → Yeni kategori ekle
-- PUT /events/categories/{id} → Kategori güncelle
-- DELETE /events/categories/{id} → Kategori sil
-
-🔎 Filtreleme ✅
-- GET /events/?status=upcoming|past&category_id=&search=
-- GET /events/?skip=0&limit=10 → Pagination
-- GET /events/?sort_by=start_time&sort_desc=false → Sıralama
-
 ## 📈 Sprint Durumu
 
 ### ✅ Sprint 1 (Tamamlandı)
 - [x] FastAPI Proje Setup
-  - [x] requirements.txt oluşturma
-  - [x] main.py temel yapısı
-  - [x] klasör yapısı organizasyonu
-  - [x] CORS ayarları
-  - [x] Environment variables yapısı
-
 - [x] Database Setup
-  - [x] PostgreSQL bağlantı ayarları
-  - [x] SQLAlchemy ORM entegrasyonu
-  - [x] Database connection helper (database.py)
-  - [x] Connection pooling ayarları
-
 - [x] Alembic Migrations
-  - [x] Alembic konfigürasyonu
-  - [x] İlk migration dosyası
-  - [x] Events ve Categories tabloları
-  - [x] Migration test ve doğrulama
-
 - [x] Events Modülü - Temel
-  - [x] Event model tanımı
-  - [x] EventCategory model tanımı
-  - [x] Model ilişkileri ve foreign key'ler
-  - [x] Temel CRUD endpoints
-  - [x] Response modelleri (Pydantic)
 
 ### ✅ Sprint 2 (Tamamlandı)
 - [x] Authentication Altyapısı
-  - [x] JWT token oluşturma/doğrulama (HS256)
-  - [x] Password hashing (bcrypt)
-  - [x] Token middleware
-  - [x] Role-based yetkilendirme
-  - [x] Auth decorator'lar
-
 - [x] Auth Endpoints
-  - [x] POST /auth/register
-  - [x] POST /auth/register/admin
-  - [x] POST /auth/login
-  - [x] Token response şemaları
-  - [x] Error handling
-
 - [x] Güvenlik Önlemleri
-  - [x] Rate limiting (tüm auth endpointleri)
-  - [x] Hesap kilitleme sistemi (5 deneme/15dk)
-  - [x] Başarısız giriş sayacı
-  - [x] Email format validasyonu
-  - [x] Şifre politikası kontrolleri (min 8 karakter)
-  - [x] Güvenli şifre değişimi kontrolleri
-
 - [x] Users Modülü
-  - [x] User model ve migrations
-  - [x] Profil endpoints (/me)
-  - [x] Admin endpoints
-  - [x] Şifre değiştirme
-  - [x] Kullanıcı silme/deaktive
 
-- [x] Events Modülü - Gelişmiş
-  - [x] Filtreleme sistemi
-    - [x] Tarih bazlı filtreleme (upcoming/past)
-    - [x] Kategori filtreleme
-    - [x] Status filtreleme
-    - [x] Arama (title/description)
-  - [x] Pagination
-    - [x] Skip/limit mantığı
-    - [x] Toplam sayfa hesaplama
-  - [x] Slug sistemi
-    - [x] Otomatik slug oluşturma
-    - [x] Slug ile event getirme
-  - [x] Silme işlemleri
-    - [x] Soft delete
-    - [x] Hard delete (admin)
-  - [x] Sıralama
-    - [x] Çoklu alan desteği
-    - [x] Artan/azalan sıralama
+### ✅ Sprint 3 (Tamamlandı)
+- [x] FastAPI Frontend Setup
+- [x] Vercel Deployment
+- [x] Railway Backend Deployment
+- [x] Production Environment Ayarları
 
-### 🔄 Sprint 3 (Devam Ediyor)
-- [ ] Projects Modülü
-  - [ ] Model ve migrations
-  - [ ] CRUD endpoints
-  - [ ] Filtreleme ve arama
-  - [ ] Kategorilendirme
-  - [ ] Tag sistemi
+### 🔄 Sprint 4 (Devam Ediyor)
+- [ ] Frontend Auth Entegrasyonu
+- [ ] Events Listesi ve Detay Sayfaları
+- [ ] Admin Panel - Events CRUD
+- [ ] Admin Panel - Users CRUD
 
----
+### 📋 Gelecek Özellikler (Backlog)
+1. **Görsel Yönetimi**
+   - Google Cloud Storage entegrasyonu
+   - Görsel upload/delete işlemleri
+   - Görsel optimizasyonu ve CDN
 
-## 🔧 Kurulum ve Çalıştırma
+2. **Projeler Modülü**
+   - Proje CRUD işlemleri
+   - Proje kategorileri
+   - Proje etiketleri
 
-### Backend
-```bash
-cd backend
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-uvicorn main:app --reload
-```
+3. **SEO Optimizasyonları**
+   - Meta tag'ler
+   - Sitemap
+   - robots.txt
 
-### Frontend  
-```bash
-cd frontend
-npm install
-npm start
-```
-
----
-
-## 📝 Notlar
-
-- **Öncelik Sırası**: Setup → Models → Auth → Events API → Testing
-- **Production Ready**: Her adımda clean code ve best practices
-- **Frontend Hazırlık**: Events API tamamlandığında frontend entegrasyonu hazır
-- **Documentation**: Her endpoint için detaylı OpenAPI docs
-
----
-
-## 🎯 Bir Sonraki Adım
-**Şimdi**: Backend proje kurulumu ile başlayacağız. FastAPI setup, klasör yapısı ve temel dependencies.
-
-## 🎯 Başlangıç Noktası
-**İlk adım**: Backend kurulumu ve Events API'lerinin geliştirilmesi. Frontend ekibi ile paralel çalışarak Events bölümünü tamamlayıp entegrasyon testleri yapılacak. 
-
-## 🔍 Loglama Sistemi
-
-### Sistem Logları
-- Uygulama başlatma/kapanma logları
-- Hata logları (5xx, 4xx)
-- Performans metrikleri
-
-### Güvenlik Logları
-- Başarısız giriş denemeleri
-- Hesap kilitlemeleri
-- Admin işlemleri
-
-### Log Formatı
-```
-timestamp | level | user_id | ip | action | details
-```
-
-### Log Saklama
-- Dosya sisteminde günlük rotasyon
-- 30 gün saklama süresi
-- Hassas veri maskeleme
-
-## 📧 Email Doğrulama Sistemi
-
-### Doğrulama Süreci
-1. Admin/moderatör kaydı yapılır
-2. Otomatik doğrulama maili gönderilir
-3. 24 saat geçerli doğrulama linki
-4. Link tıklanınca hesap aktifleşir
-
-### Email Template
-- Kurumsal tasarım
-- Türkçe içerik
-- Doğrulama butonu/linki
-- İletişim bilgileri 
+4. **Analytics**
+   - Sayfa görüntülenme istatistikleri
+   - Kullanıcı davranış analizi
+   - Performance monitoring 
