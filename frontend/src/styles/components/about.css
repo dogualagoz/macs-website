@@ -1,0 +1,99 @@
+.about-section {
+  background-color: #ffffff;
+  padding: 46px 0 21px;
+}
+
+.about-section .section-title {
+  font-size: 32px;
+  margin-bottom: 17px;
+}
+
+.about-description {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 27px;
+  text-align: center;
+  color: #515b69;
+  margin-bottom: 30px;
+  white-space: pre-line;
+}
+
+.mission-card {
+  background-color: #f9fafb;
+  border-radius: 7px;
+  padding: 30px 42px;
+  margin-bottom: 37px;
+}
+
+.mission-title {
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 29px;
+  text-align: center;
+  color: #000000;
+  margin-bottom: 21px;
+  font-family: "Roboto", sans-serif;
+}
+
+.mission-text {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 22px;
+  color: #515b69;
+  white-space: pre-line;
+}
+
+.values-card {
+  background-color: #ffffff;
+  border: 1px solid #ecedf1;
+  border-radius: 7px;
+  padding: 44px 48px;
+}
+
+.values-title {
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 29px;
+  text-align: center;
+  color: #000000;
+  margin-bottom: 17px;
+  font-family: "Roboto", sans-serif;
+}
+
+.values-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 40px;
+}
+
+.value-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.value-header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.value-icon {
+  width: 25px;
+  height: 27px;
+}
+
+.value-name {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 20px;
+  color: #1e1e1e;
+}
+
+.value-description {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 21px;
+  color: #515b69;
+  margin-left: 29px;
+}

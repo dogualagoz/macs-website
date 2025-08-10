@@ -6,8 +6,9 @@
  */
 import React from 'react';
 import PropTypes from 'prop-types';
+import { Link } from 'react-router-dom';
 
-const FeaturedEventCard = ({ title, date, location, description, image, startTime, endTime, maxParticipants }) => {
+const FeaturedEventCard = ({ title, date, location, description, image, startTime, endTime, maxParticipants, slug }) => {
   // Tarihi formatla
   const formatDate = (date) => {
     return new Intl.DateTimeFormat('tr-TR', {
@@ -33,6 +34,7 @@ const FeaturedEventCard = ({ title, date, location, description, image, startTim
   };
 
   return (
+    <Link to={`/${slug || ''}`} style={{ textDecoration: 'none', color: 'inherit' }}>
     <div className='First'>
       <img 
         className='first-img' 
@@ -75,6 +77,7 @@ const FeaturedEventCard = ({ title, date, location, description, image, startTim
         <button className="First-button-sign">Kayıt Ol</button>
       </div>
     </div>
+    </Link>
   );
 };
 
@@ -87,6 +90,7 @@ FeaturedEventCard.propTypes = {
   startTime: PropTypes.string,
   endTime: PropTypes.string,
   maxParticipants: PropTypes.number
+  ,slug: PropTypes.string
 };
 
 export default FeaturedEventCard; 

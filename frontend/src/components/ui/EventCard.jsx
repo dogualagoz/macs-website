@@ -9,8 +9,9 @@
  */
 import React from 'react';
 import PropTypes from 'prop-types';
+import { Link } from 'react-router-dom';
 
-const EventCard = ({ title, date, location, description, image }) => {
+const EventCard = ({ title, date, location, description, image, slug }) => {
   // Tarihi formatla
   const formatDate = (date) => {
     return new Intl.DateTimeFormat('tr-TR', {
@@ -29,7 +30,7 @@ const EventCard = ({ title, date, location, description, image }) => {
   };
 
   return (
-    
+    <Link to={`/${slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>
     <div className="event-card">
       {/* Event image */}
       <div className="event-image">
@@ -70,6 +71,7 @@ const EventCard = ({ title, date, location, description, image }) => {
         {/* <button className="event-button">Detaylar</button> */}
       </div>
     </div>
+    </Link>
   );
 };
 
@@ -78,7 +80,8 @@ EventCard.propTypes = {
   date: PropTypes.instanceOf(Date).isRequired,
   location: PropTypes.string.isRequired,
   description: PropTypes.string.isRequired,
-  image: PropTypes.string
+  image: PropTypes.string,
+  slug: PropTypes.string.isRequired
 };
 
 export default EventCard; 

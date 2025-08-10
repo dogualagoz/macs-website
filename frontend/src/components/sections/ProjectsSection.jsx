@@ -8,8 +8,7 @@
  * - GitHub links
  */
 import React, { useState, useEffect } from 'react';
-import ProjectCard from '../ui/ProjectCard';
-import FeaturedProjectCard from '../ui/FeaturedProjectCard';
+import { ProjectCard, FeaturedProjectCard } from '../projects';
 import { fetchProjects, fetchFeaturedProject, fetchProjectCategories } from '../../services/api';
 import '../../styles/components/projects.css';
 
@@ -118,7 +117,7 @@ const ProjectsSection = () => {
         {/* View all projects link */}
         <div className="projects-cta">
           <a 
-            href="https://github.com/macs" 
+            href="https://github.com/macsclub" 
             target="_blank" 
             rel="noopener noreferrer" 
             className="all-projects-button"

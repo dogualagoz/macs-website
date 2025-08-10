@@ -98,10 +98,53 @@ npm start
 
 ### Frontend Geliştirme
 
-- **Ana Bileşenler:** `frontend/src/components/`
-- **Sayfalar:** `frontend/src/pages/`
+- **Layout:** `frontend/src/components/layout/` (ör. `Header`, `Footer` her sayfada)
+- **Bölümler (sections):** `frontend/src/components/sections/` (ana sayfada kullanılan bloklar)
+- **Özellik UI'ları:** `frontend/src/components/{events,projects}/` (kartlar ve ilgili küçük bileşenler; `index.js` ile barrel export)
+- **Sayfalar:** `frontend/src/pages/` (ör. `Home.jsx`, `EventDetailPage.jsx`)
+- **API:** `frontend/src/api/` (feature bazlı API'ler) ve geriye uyumluluk için `frontend/src/services/api.js` re-export eder
 - **Stiller:** `frontend/src/styles/`
-- **API Servisleri:** `frontend/src/services/`
+
+#### Frontend Klasör Yapısı (özet)
+
+```
+frontend/src/
+  api/
+    http.js              # baseURL + fetch helper
+    events.js            # /events çağrıları
+    projects.js          # /projects çağrıları
+  components/
+    layout/
+      Header.jsx
+      Footer.jsx
+    sections/
+      HeroSection.jsx
+      EventsSection.jsx
+      ProjectsSection.jsx
+      AboutSection.jsx
+      TeamSection.jsx
+    events/
+      index.js           # EventCard, FeaturedEventCard barrel export
+    projects/
+      index.js           # ProjectCard, FeaturedProjectCard barrel export
+    ui/                  # (genel küçük bileşenler için ayrılmıştır)
+  pages/
+    Home.jsx             # Ana sayfa: tüm section'ları bir araya getirir
+    EventDetailPage.jsx  # /:slug
+  services/
+    api.js               # Yeni api/* dosyalarını re-export eder (geçiş kolaylığı)
+  App.js                 # Header + Routes + Footer
+  index.js               # React giriş noktası (BrowserRouter)
+```
+
+#### Routing
+
+- `/` → `pages/Home.jsx`
+- `/:slug` → `pages/EventDetailPage.jsx` (slug ile etkinlik detayı)
+
+Notlar:
+- Footer artık `components/layout/Footer.jsx` olarak her sayfada görünür.
+- `api/http.js` sonda `/` olan base URL'leri otomatik temizler; `.env` içinde `REACT_APP_API_URL` sonuna `/` koymamanız önerilir.
 
 ## 🗄️ Veritabanı
 

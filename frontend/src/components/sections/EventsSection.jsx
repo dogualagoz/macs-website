@@ -7,8 +7,7 @@
  * - Event cards grid
  */
 import React, { useState, useEffect } from 'react';
-import EventCard from '../ui/EventCard';
-import FeaturedEventCard from '../ui/FeaturedEventCard';
+import { EventCard, FeaturedEventCard } from '../events';
 import { fetchEvents, fetchCategories, fetchFeaturedEvent } from '../../services/api';
 import '../../styles/components/events.css';
 
@@ -95,6 +94,7 @@ workshoplar ve seminerler        </p>
             startTime={(featuredEvent || events[0]).start_time}
             endTime={(featuredEvent || events[0]).end_time}
             maxParticipants={(featuredEvent || events[0]).max_participants}
+            slug={(featuredEvent || events[0]).slug}
           />
         )}
         <br />
@@ -110,6 +110,7 @@ workshoplar ve seminerler        </p>
               date={new Date(event.start_time)}
               location={event.location}
               image={event.image_url}
+              slug={event.slug}
             />
           ))}
           

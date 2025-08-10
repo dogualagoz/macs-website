@@ -4,9 +4,10 @@
  */
 import React, { useState, useEffect } from 'react';
 import Header from './components/layout/Header';
-import HeroSection from './components/sections/HeroSection';
-import EventsSection from './components/sections/EventsSection';
-import ProjectsSection from './components/sections/ProjectsSection';
+import Footer from './components/layout/Footer';
+import Home from './pages/Home';
+import { Routes, Route } from 'react-router-dom';
+import EventDetailPage from './pages/EventDetailPage';
 import './styles/App.css';
 
 function App() {
@@ -28,10 +29,12 @@ function App() {
     <div className="app">
       <Header isScrolled={isScrolled} />
       <main>
-        <HeroSection />
-        <EventsSection />
-        <ProjectsSection />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/:slug" element={<EventDetailPage />} />
+        </Routes>
       </main>
+      <Footer />
     </div>
   );
 }
