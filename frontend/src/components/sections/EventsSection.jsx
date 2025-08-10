@@ -7,8 +7,7 @@
  * - Event cards grid
  */
 import React, { useState, useEffect } from 'react';
-import EventCard from '../ui/EventCard';
-import FeaturedEventCard from '../ui/FeaturedEventCard';
+import { EventCard, FeaturedEventCard } from '../events';
 import { fetchEvents, fetchCategories, fetchFeaturedEvent } from '../../services/api';
 import '../../styles/components/events.css';
 

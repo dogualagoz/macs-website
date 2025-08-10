@@ -24,11 +24,11 @@ const Footer = () => {
             <h3>İletişim</h3>
             <div className="contact-info">
               <div className="contact-item">
-                <img src="../assets/images/img_mail.png" alt="Email" />
+                <img src="/assets/images/img_mail.png" alt="Email" />
                 <span>info@macs.edu.tr</span>
               </div>
               <div className="contact-item">
-                <img src="../assets/images/img_phone.png" alt="Phone" />
+                <img src="/assets/images/img_phone.png" alt="Phone" />
                 <span>+90 538 329 6386</span>
               </div>
             </div>
@@ -37,14 +37,14 @@ const Footer = () => {
           <div className="footer-section">
             <h3>Sosyal Medya</h3>
             <div className="social-links">
-              <img src="../assets/images/img_icon.svg" alt="Facebook" />
+              <img src="/assets/images/img_icon.svg" alt="Facebook" />
               <img
-                src="../assets/images/img_icon_gray_50_01.svg"
+                src="/assets/images/img_icon_gray_50_01.svg"
                 alt="Twitter"
               />
-              <img src="../assets/images/img_logo_youtube.svg" alt="YouTube" />
+              <img src="/assets/images/img_logo_youtube.svg" alt="YouTube" />
               <img
-                src="../assets/images/img_icon_gray_50_01_18x18.svg"
+                src="/assets/images/img_icon_gray_50_01_18x18.svg"
                 alt="Instagram"
               />
             </div>
@@ -54,7 +54,7 @@ const Footer = () => {
         <div className="footer-divider"></div>
 
         <div className="footer-bottom">
-          <img src="../assets/images/img_copyright.png" alt="Copyright" />
+          <img src="/assets/images/img_copyright.png" alt="Copyright" />
           <span>2025 MACS. Tüm hakları saklıdır.</span>
         </div>
       </div>
@@ -63,3 +63,5 @@ const Footer = () => {
 };
 
 export default Footer;
+
+

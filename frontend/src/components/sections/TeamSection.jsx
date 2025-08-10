@@ -38,10 +38,10 @@ const TeamSection = () => {
         </div>
 
         <div className="text-center">
-          <a href="#" className="view-more-team">
+          <button type="button" className="view-more-team" aria-label="Daha fazla ekip üyesi göster">
             <span>Daha fazla</span>
             <img src="../assets/images/img_vector.svg" alt="Arrow" />
-          </a>
+          </button>
         </div>
       </div>
     </section>
