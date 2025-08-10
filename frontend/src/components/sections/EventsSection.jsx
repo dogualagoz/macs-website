@@ -95,6 +95,7 @@ workshoplar ve seminerler        </p>
             startTime={(featuredEvent || events[0]).start_time}
             endTime={(featuredEvent || events[0]).end_time}
             maxParticipants={(featuredEvent || events[0]).max_participants}
+            slug={(featuredEvent || events[0]).slug}
           />
         )}
         <br />
@@ -110,6 +111,7 @@ workshoplar ve seminerler        </p>
               date={new Date(event.start_time)}
               location={event.location}
               image={event.image_url}
+              slug={event.slug}
             />
           ))}
           
