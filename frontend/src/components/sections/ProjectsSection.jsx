@@ -8,6 +8,7 @@
  * - GitHub links
  */
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { ProjectCard, FeaturedProjectCard } from '../projects';
 import { fetchProjects, fetchFeaturedProject, fetchProjectCategories } from '../../services/api';
 import '../../styles/components/projects.css';
@@ -102,28 +103,22 @@ const ProjectsSection = () => {
           {filteredProjects
             .filter(project => project.id !== featuredProject?.id) // Featured project'i çıkar
             .map(project => (
-            <ProjectCard 
-              key={project.id}
-              title={project.title}
-              description={project.description}
-              image={project.image_url}
-              technologies={project.technologies}
-              teamMembers={project.team_members}
-              category={project.category?.name}
-            />
+            <Link key={project.id} to={`/projeler/${project.slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+              <ProjectCard 
+                title={project.title}
+                description={project.description}
+                image={project.image_url}
+                technologies={project.technologies}
+                teamMembers={project.team_members}
+                category={project.category?.name}
+              />
+            </Link>
           ))}
         </div>
 
         {/* View all projects link */}
         <div className="projects-cta">
-          <a 
-            href="https://github.com/macsclub" 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            className="all-projects-button"
-          >
-            Tüm Projeler
-          </a>
+          <Link to="/projeler" className="all-projects-button">Tüm Projeler</Link>
         </div>
       </div>
     </section>

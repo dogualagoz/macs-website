@@ -6,6 +6,9 @@ import React, { useState, useEffect } from 'react';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import Home from './pages/Home';
+import Events from './pages/Events';
+import Projects from './pages/Projects';
+import ProjectDetailPage from './pages/ProjectDetailPage';
 import { Routes, Route } from 'react-router-dom';
 import EventDetailPage from './pages/EventDetailPage';
 import './styles/App.css';
@@ -31,7 +34,10 @@ function App() {
       <main>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/:slug" element={<EventDetailPage />} />
+          <Route path="/etkinlikler" element={<Events />} />
+          <Route path="/projeler" element={<Projects />} />
+          <Route path="/projeler/:slug" element={<ProjectDetailPage />} />
+          <Route path="/etkinlikler/:slug" element={<EventDetailPage />} />
         </Routes>
       </main>
       <Footer />

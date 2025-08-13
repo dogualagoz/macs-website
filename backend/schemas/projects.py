@@ -72,6 +72,7 @@ class ProjectUpdate(BaseModel):
 class ProjectResponse(ProjectBase):
     """Proje yanıt şeması"""
     id: int
+    slug: str
     created_by: int
     is_active: bool
     is_deleted: bool

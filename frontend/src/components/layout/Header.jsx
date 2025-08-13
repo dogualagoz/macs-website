@@ -1,4 +1,5 @@
 import React, {} from 'react';
+import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import '../../styles/components/header.css';
 
@@ -8,13 +9,15 @@ const Header = ({ isScrolled }) => {
     <header className={`header ${isScrolled ? 'header-scrolled' : ''}`}>
       <div className="header-container">
         <div className="logo">
-          <img src="/assets/images/img_exclude.png" alt="MACS Logo" />
+          <Link to="/">
+            <img src="/assets/images/img_exclude.png" alt="MACS Logo" />
+          </Link>
         </div>
         <nav className='nav-menu'>
           <ul>
-            <li><a  href="#home" >Ana Sayfa</a></li>
-            <li><a href="#events">Etkinlikler</a></li>
-            <li><a href="#projects">Projeler</a></li>
+            <li><Link to="/">Ana Sayfa</Link></li>
+            <li><Link to="/etkinlikler">Etkinlikler</Link></li>
+            <li><Link to="/projeler">Projeler</Link></li>
             <li><a href="#BlogMakale">Blog/Makaleler</a></li>
             <li><a href="#soruces">Kaynaklar</a></li>
             <li><a href="#about">Hakkımızda</a></li>

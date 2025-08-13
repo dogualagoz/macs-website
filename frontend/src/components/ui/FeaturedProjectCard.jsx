@@ -6,8 +6,9 @@
  */
 import React from 'react';
 import PropTypes from 'prop-types';
+import { Link } from 'react-router-dom';
 
-const FeaturedProjectCard = ({ title, description, image, technologies, githubUrl, liveUrl }) => {
+const FeaturedProjectCard = ({ title, description, image, technologies, githubUrl, liveUrl, slug }) => {
   // Technologies string'ini virgülle ayır
   const techArray = technologies ? technologies.split(',').map(tech => tech.trim()) : [];
 
@@ -44,17 +45,31 @@ const FeaturedProjectCard = ({ title, description, image, technologies, githubUr
         })}
         
         <div className="Detail-Project">
-          <button className='Detail-Project-button'>
-            <img className='Project-icon' src="assets/images/img_linking.png" alt="github" />
-            Projeyi İncele
-          </button>
+          {slug ? (
+            <Link to={`/projeler/${slug}`} className='Detail-Project-button' style={{ textDecoration: 'none' }}>
+              <img className='Project-icon' src="assets/images/img_linking.png" alt="detay" />
+              Projeyi İncele
+            </Link>
+          ) : (
+            <a href={liveUrl || '#'} className='Detail-Project-button' style={{ textDecoration: 'none' }}>
+              <img className='Project-icon' src="assets/images/img_linking.png" alt="detay" />
+              Projeyi İncele
+            </a>
+          )}
         </div>
         
         <div className="Git-div">
-          <button className="Git-button">
-            <img src="assets/images/img_github_18x17.png" alt="Github" className="Git-img" />
-            <span className="Git-span">Git Hub</span>
-          </button>
+          {githubUrl ? (
+            <a href={githubUrl} target="_blank" rel="noreferrer" className="Git-button" style={{ textDecoration: 'none' }}>
+              <img src="assets/images/img_github_18x17.png" alt="Github" className="Git-img" />
+              <span className="Git-span">Git Hub</span>
+            </a>
+          ) : (
+            <div className="Git-button" style={{ opacity: 0.6 }}>
+              <img src="assets/images/img_github_18x17.png" alt="Github" className="Git-img" />
+              <span className="Git-span">Git Hub</span>
+            </div>
+          )}
         </div>
       </div>
     </div>

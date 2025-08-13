@@ -434,22 +434,23 @@ button:hover{
 }
 
 .all-projects-button {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.75rem 2rem;
-  background-color: #007BFF;
-  color: white;
-  text-decoration: none;
-  border-radius: 8px;
-  font-weight: 500;
-  font-size: 0.9rem;
-  transition: all 0.2s ease;
-}
-
-.all-projects-button:hover {
-  background-color: #0056b3;
-  transform: translateY(-2px);
-}
+  
+    padding: 1rem 2rem;
+    background-color: #FFFFFF;
+    color:#384252;
+    border: 1px solid #DCDCDC;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    
+  }
+  
+  .all-projects-button:hover {
+    background-color: #000000;
+    color: #FFFFFF;
+  }
 
 @media (max-width: 768px) {
   .section-title {

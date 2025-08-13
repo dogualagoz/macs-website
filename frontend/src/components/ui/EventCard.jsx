@@ -30,7 +30,7 @@ const EventCard = ({ title, date, location, description, image, slug }) => {
   };
 
   return (
-    <Link to={`/${slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+    <Link to={`/etkinlikler/${slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>
     <div className="event-card">
       {/* Event image */}
       <div className="event-image">

@@ -409,6 +409,18 @@
   color: #FFFFFF;
 }
 
+/* List view for /etkinlikler */
+.events-list {
+  display: grid;
+  gap: 1rem;
+}
+
+/* Past events appear black & white */
+.is-past {
+  filter: grayscale(1);
+  opacity: 0.9;
+}
+
 @media (max-width: 768px) {
   .section-title {
     font-size: 1.75rem;

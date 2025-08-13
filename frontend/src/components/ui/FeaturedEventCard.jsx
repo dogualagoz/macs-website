@@ -34,7 +34,7 @@ const FeaturedEventCard = ({ title, date, location, description, image, startTim
   };
 
   return (
-    <Link to={`/${slug || ''}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+    <Link to={`/etkinlikler/${slug || ''}`} style={{ textDecoration: 'none', color: 'inherit' }}>
     <div className='First'>
       <img 
         className='first-img' 

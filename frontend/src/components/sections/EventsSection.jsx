@@ -7,6 +7,7 @@
  * - Event cards grid
  */
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { EventCard, FeaturedEventCard } from '../events';
 import { fetchEvents, fetchCategories, fetchFeaturedEvent } from '../../services/api';
 import '../../styles/components/events.css';
@@ -116,7 +117,7 @@ workshoplar ve seminerler        </p>
           
         </div>
           <div className="More">
-            <button className='load-more-button'>Daha Fazla Etkinlik Yükle!</button>
+            <Link to="/etkinlikler" className='load-more-button' style={{ textDecoration: 'none', display: 'inline-block', textAlign: 'center' }}>Daha Fazla Etkinlik Yükle</Link>
           </div>
         {/* Show message if no events */}
         {filteredEvents.length === 0 && (

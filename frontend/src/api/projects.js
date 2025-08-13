@@ -10,5 +10,6 @@ export const fetchFeaturedProject = async () => {
   }
 };
 export const fetchProjectCategories = () => getJson('/projects/categories');
+export const fetchProjectBySlug = (slug) => getJson(`/projects/by-slug/${slug}`);
 
 
