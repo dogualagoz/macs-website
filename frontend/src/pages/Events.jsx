@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { FeaturedEventCard } from '../components/events';
+import { FeaturedEventCard,MoreEventCard } from '../components/events';
 import { fetchCategories, fetchEvents } from '../services/api';
 import '../styles/components/events.css';
 
@@ -39,8 +39,22 @@ export default function Events() {
     return list.sort((a, b) => new Date(a.start_time) - new Date(b.start_time));
   }, [events, activeFilter]);
 
-  if (loading) return <div className="events-section loading">Yükleniyor...</div>;
-  if (error) return <div className="events-section error">{error}</div>;
+if (loading) 
+  return (
+    <div className="loading-container">
+      <div className="spinner"></div>
+      <p>Yükleniyor...</p>
+    </div>
+  );
+
+ if (error) 
+  return (
+    <div className="error-container">
+      <div className="error-icon">⚠️</div>
+      <p>{error}</p>
+      <button onClick={() => window.location.reload()}>Tekrar Dene</button>
+    </div>
+  );
 
   return (
     <section className="events-section">
@@ -72,11 +86,11 @@ export default function Events() {
         </div>
 
         <div className="events-list">
-          {filteredAndSorted.map(event => {
+          {filteredAndSorted.map((event,index) => {
             const isPast = new Date(event.end_time || event.start_time) < new Date();
             return (
-              <div key={event.id} className={isPast ? 'is-past' : ''}>
-                <FeaturedEventCard
+              <div key={event.id} className={isPast ? 'is-past' : ''} > 
+                <MoreEventCard
                   title={event.title}
                   date={new Date(event.start_time)}
                   location={event.location}
@@ -86,6 +100,7 @@ export default function Events() {
                   endTime={event.end_time}
                   maxParticipants={event.max_participants}
                   slug={event.slug}
+                  style={{ animationDelay: `${index * 0.25}s` }} 
                 />
               </div>
             );

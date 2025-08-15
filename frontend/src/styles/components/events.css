@@ -412,14 +412,81 @@
 /* List view for /etkinlikler */
 .events-list {
   display: grid;
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+
 }
 
 /* Past events appear black & white */
 .is-past {
-  filter: grayscale(1);
+  /* filter: grayscale(1); */
   opacity: 0.9;
 }
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 60vh; /* ortalamak için yüksekliği ayarladık */
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #000000; /* açık renk */
+  border-top: 5px solid #4f46e5; /* dönen renk */
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 15px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-container p {
+  font-family: 'Roboto', sans-serif;
+  font-size: 18px;
+  color: #4f46e5;
+}
+
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 60vh;
+  background-color: #fff4f4;
+  border: 1px solid #f5c2c2;
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+  font-family: 'Roboto', sans-serif;
+  color: #b00020;
+}
+
+.error-icon {
+  font-size: 3rem;
+  margin-bottom: 15px;
+  cursor: default;
+}
+
+.error-container button {
+  margin-top: 15px;
+  padding: 8px 16px;
+  background-color: #b00020;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.error-container button:hover {
+  background-color: #ff4d4f;
+}
+
 
 @media (max-width: 768px) {
   .section-title {
