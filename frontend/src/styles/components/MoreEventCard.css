@@ -13,6 +13,7 @@
 
   opacity: 0;
   transform: translateY(20px) scale(0.98);
+  transition: ease  all 0.3s;
   animation-name: cardEnter;
   animation-duration: 0.6s;
   animation-fill-mode: forwards;
@@ -43,15 +44,19 @@
 
 .MoreEventCard .Card-İmage img {
   border-radius: 15px 15px 3px 3px;
+  object-fit: cover;
+  width: 100%;
+  height: 10.6rem;  
 }
 
 .Card-Date{
   padding-left: 10px;
-  grid-column: 1/2;
-  grid-row: 9/10;
+  grid-column: 1/3;
+  grid-row: 16/17;
   display: flex;
   align-items: flex-end;
   justify-content: flex-start;
+  gap: 6px;
   font-family: 'Roboto', sans-serif;
   font-size:small;
   color: #000000;
@@ -60,28 +65,31 @@
 
 
 .Card-Date img {
-  padding: 2px;
+  align-self: center;
+  object-fit: cover;
 }
 
 .Card-Location {
-  grid-column: 2/3;
-  grid-row: 9/10;
+  grid-column: 1/3;
+  grid-row: 17/18;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: flex-start;
   font-family: 'Roboto', sans-serif;
   font-size:small;
   color: #000000;
-  font-weight: 400;
+  font-weight: 400;      
 }
 
 .Card-Location img {
-  padding: 2px;
+  align-self: center;
+  padding-left: 6px;
+  object-fit: cover;
 }
 
 .Card-Title {
   grid-column: 1/3;
-  grid-row: 11/13;
+  grid-row: 8/9;
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -95,7 +103,7 @@
 
 .Card-Description {
   grid-column: 1/3;
-  grid-row: 13/17;
+  grid-row: 9/16;
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -103,7 +111,9 @@
   font-size: small;
   color: #000000;
   font-weight: 400;
+  font-size: 0.82rem;
   padding-left: 10px;
+  white-space:  pre-line; /* Taşmaları önlemek için */
 }
 
 .Card-Details {
@@ -117,25 +127,68 @@
   font-weight: 400;
   background-color: none;
   gap: 15px;
-
  overflow: hidden; /* taşmaları gizle */
 }
 
-
 .Card-Details button {
-  padding-left: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.2rem;
+  position: relative;
+  padding: 8px 8px;
   background-color: #FFFFFF;
   border: none;
+  border-radius: 8px;
   cursor: pointer;
   font-family: 'Roboto', sans-serif;
-  font-size: regular;
-  font-style: regular;
-  font-weight: 400;
+  font-size: 0.875rem;
+  font-weight: 500;
   color: #000000;
-  transition: ease 0.3s;
+  overflow: hidden;
+  transition: color 0.3s ease;
 }
 
-.Card-Details img:hover {
-  transition: ease 0.3s;
-  box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.1) inset;
+.Card-Details button img {
+  width: 20px;
+  height: 20px;
+  object-fit: cover;
+  align-self: center;
+  justify-self: flex-start;
+  transition: transform 0.3s ease; 
+}
+
+.Card-Details button:hover img {
+  transform: scale(1.2) translateY(-3px); /* Hover'da resim %20 büyür */
+
+}
+
+.Card-Details button::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #000000;
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+}
+
+.Card-Details button:hover {
+  color: #111;
+}
+
+.Card-Details button:hover::after {
+  transform: translateX(0);
+}
+
+.Card-Details button span {
+  display: inline-block;
+  transition: transform 0.3s ease;
+}
+
+.Card-Details button:hover span {
+  transform: translateY(-3px) scale(1.05);
+
 }

@@ -13,13 +13,13 @@ const MoreEventCard = ({ title, date, location, description, image, startTime, e
     }).format(date);
   };
 
-  // Saatleri formatla
-  const formatTime = (time) => {
-    return new Date(time).toLocaleTimeString('tr-TR', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
+  // // Saatleri formatla
+  // const formatTime = (time) => {
+  //   return new Date(time).toLocaleTimeString('tr-TR', {
+  //     hour: '2-digit',
+  //     minute: '2-digit'
+  //   });
+  // };
 
   // Resim URL'ini kontrol et
   const getImageUrl = (imageUrl) => {
@@ -27,6 +27,20 @@ const MoreEventCard = ({ title, date, location, description, image, startTime, e
     if (imageUrl.startsWith('http')) return imageUrl;
     return process.env.PUBLIC_URL + imageUrl;
   };
+
+  const Description = {
+  aciklama: 
+  `Topluluğumuzun düzenlediği bu etkinlikte bir araya geliyoruz!  
+  Yeni insanlarla tanışacak, birlikte keyifli vakit geçirecek  
+  ve farklı aktivitelerle günümüzü renklendireceğiz.  
+  Sen de bu güzel deneyimin parçası olmayı unutma!`
+};
+
+  const maxChars = 33;
+  const shortLocation =
+  location.length > maxChars
+    ? location.slice(0, maxChars) + "..."
+    : location;
 
     return (
     <Link to={`/etkinlikler/${slug || ''}`} style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -47,7 +61,7 @@ const MoreEventCard = ({ title, date, location, description, image, startTime, e
           <div className="Card-Location">
             <img src="../../assets/images/img_location.png" alt="location" />
             <span>
-              {location}
+              {shortLocation}
             </span>
             </div>
           <div className='Card-Title'>
@@ -55,12 +69,14 @@ const MoreEventCard = ({ title, date, location, description, image, startTime, e
             </div>
           <div className='Card-Description'>
             <span>
-              {description}
+              {Description.aciklama}
             </span>
             </div>
           <div className='Card-Details'>
-            <button>Hepsini Gör</button>
-            <img src="../../assets/images/img_right.png" alt="" />
+            <button>
+              <span>Hepsini Gör</span>
+              <img src="../../assets/images/img_right.png" alt="" />
+            </button>
           </div>
       </div>
     </Link>

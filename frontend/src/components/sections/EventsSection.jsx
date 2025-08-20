@@ -51,7 +51,20 @@ const EventsSection = () => {
     ? events.filter(event => event.category_id === activeFilter)
     : events;
 
-  if (loading) return <div className="events-section loading">Yükleniyor...</div>;
+if (loading) {
+  return (
+    <div class="dot-spinner">
+        <div class="dot-spinner__dot"></div>
+        <div class="dot-spinner__dot"></div>
+        <div class="dot-spinner__dot"></div>
+        <div class="dot-spinner__dot"></div>
+        <div class="dot-spinner__dot"></div>
+        <div class="dot-spinner__dot"></div>
+        <div class="dot-spinner__dot"></div>
+        <div class="dot-spinner__dot"></div>
+    </div>
+  );
+}
   if (error) return <div className="events-section error">{error}</div>;
 
   return (
