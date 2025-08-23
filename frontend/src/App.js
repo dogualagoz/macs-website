@@ -12,6 +12,7 @@ import ProjectDetailPage from './pages/ProjectDetailPage';
 import { Routes, Route } from 'react-router-dom';
 import EventDetailPage from './pages/EventDetailPage';
 import './styles/App.css';
+import Page404 from './pages/Page404';
 
 function App() {
   // State to track whether the page has been scrolled
@@ -38,6 +39,7 @@ function App() {
           <Route path="/projeler" element={<Projects />} />
           <Route path="/projeler/:slug" element={<ProjectDetailPage />} />
           <Route path="/etkinlikler/:slug" element={<EventDetailPage />} />
+          <Route path="*" element={<Page404 />} />
         </Routes>
       </main>
       <Footer />

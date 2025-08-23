@@ -13,47 +13,51 @@ import { ProjectCard, FeaturedProjectCard } from '../projects';
 import { fetchProjects, fetchFeaturedProject, fetchProjectCategories } from '../../services/api';
 import '../../styles/components/projects.css';
 
-const ProjectsSection = () => {
+const ProjectsSection = ({ projects, categories, featuredProject }) => {
   // State for projects data and loading
-  const [projects, setProjects] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [featuredProject, setFeaturedProject] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [activeFilter, setActiveFilter] = useState(null);
-
-  // Fetch projects and categories when component mounts
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const [projectsData, categoriesData, featuredProjectData] = await Promise.all([
-          fetchProjects(),
-          fetchProjectCategories(),
-          fetchFeaturedProject()
-        ]);
-        setProjects(projectsData.projects || projectsData);
-        setCategories(categoriesData);
-        setFeaturedProject(featuredProjectData);
-        setError(null);
-      } catch (err) {
-        setError('Veriler yüklenirken bir hata oluştu');
-        console.error('Error fetching data:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  // Filter projects based on selected category
-  const filteredProjects = activeFilter
-    ? projects.filter(project => project.category_id === activeFilter)
+  // const [projects, setProjects] = useState([]);
+  // const [categories, setCategories] = useState([]);
+  // const [featuredProject, setFeaturedProject] = useState(null);
+  // const [loading, setLoading] = useState(true);
+  // const [error, setError] = useState(null);
+  // const [activeFilter, setActiveFilter] = useState(null);
+    const [activeFilter, setActiveFilter] = useState(null);
+    const filteredProjects = activeFilter
+    ? projects.filter(p => p.category_id === activeFilter)
     : projects;
 
-  if (loading) return <div className="projects-section loading">Yükleniyor...</div>;
-  if (error) return <div className="projects-section error">{error}</div>;
+  // Fetch projects and categories when component mounts
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       setLoading(true);
+  //       const [projectsData, categoriesData, featuredProjectData] = await Promise.all([
+  //         fetchProjects(),
+  //         fetchProjectCategories(),
+  //         fetchFeaturedProject()
+  //       ]);
+  //       setProjects(projectsData.projects || projectsData);
+  //       setCategories(categoriesData);
+  //       setFeaturedProject(featuredProjectData);
+  //       setError(null);
+  //     } catch (err) {
+  //       setError('Veriler yüklenirken bir hata oluştu');
+  //       console.error('Error fetching data:', err);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   fetchData();
+  // }, []);
+
+  // Filter projects based on selected category
+  // const filteredProjects = activeFilter
+  //   ? projects.filter(project => project.category_id === activeFilter)
+  //   : projects;
+
+  // if (loading) return <div className="projects-section loading">Yükleniyor...</div>;
+  // if (error) return <div className="projects-section error">{error}</div>;
 
   return (
     <section className="projects-section" id="projects">

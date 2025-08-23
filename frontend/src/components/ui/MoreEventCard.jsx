@@ -30,10 +30,7 @@ const MoreEventCard = ({ title, date, location, description, image, startTime, e
 
   const Description = {
   aciklama: 
-  `Topluluğumuzun düzenlediği bu etkinlikte bir araya geliyoruz!  
-  Yeni insanlarla tanışacak, birlikte keyifli vakit geçirecek  
-  ve farklı aktivitelerle günümüzü renklendireceğiz.  
-  Sen de bu güzel deneyimin parçası olmayı unutma!`
+  `Topluluğumuzun düzenlediği bu etkinlikte bir araya geliyoruz! `
 };
 
   const maxChars = 33;
@@ -57,6 +54,11 @@ const MoreEventCard = ({ title, date, location, description, image, startTime, e
             <span> 
               {formatDate(date)}
             </span>
+          </div>
+          <div className='İnComing'>
+          <div className='İnComing-Container'>
+            <span>Yaklaşan</span>
+            </div>
           </div>
           <div className="Card-Location">
             <img src="../../assets/images/img_location.png" alt="location" />

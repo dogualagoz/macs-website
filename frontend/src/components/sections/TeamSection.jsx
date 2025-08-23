@@ -1,4 +1,5 @@
 import React from "react";
+import '../../styles/components/team.css'
 
 const TeamSection = () => {
   return (

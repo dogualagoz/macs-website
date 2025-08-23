@@ -63,12 +63,12 @@
   /* text-align: center;
   text-justify: center; */
   display: flex;
-  align-items: start;
+  align-items: center;
   justify-content: center;
 }
 
 .First-come-img{
-  margin-top: 5px;
+  margin-bottom: 0.1rem;
 }
 
 .First-come-span{
@@ -271,6 +271,7 @@ button:hover{
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: transform 0.2s ease;
+  margin-top: 0.7rem;
 }
 
 .project-card:hover {

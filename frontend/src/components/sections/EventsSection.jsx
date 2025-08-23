@@ -12,60 +12,65 @@ import { EventCard, FeaturedEventCard } from '../events';
 import { fetchEvents, fetchCategories, fetchFeaturedEvent } from '../../services/api';
 import '../../styles/components/events.css';
 
-const EventsSection = () => {
-  // State for events data and loading
-  const [events, setEvents] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [featuredEvent, setFeaturedEvent] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+const EventsSection = ({events,categories,featuredEvent}) => {
   const [activeFilter, setActiveFilter] = useState(null);
-
-  // Fetch events and categories when component mounts
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const [eventsData, categoriesData, featuredEventData] = await Promise.all([
-          fetchEvents(),
-          fetchCategories(),
-          fetchFeaturedEvent()
-        ]);
-        setEvents(eventsData);
-        setCategories(categoriesData);
-        setFeaturedEvent(featuredEventData);
-        setError(null);
-      } catch (err) {
-        setError('Veriler yüklenirken bir hata oluştu');
-        console.error('Error fetching data:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  // Filter events based on selected category
+  // Kategoriye göre filtre
   const filteredEvents = activeFilter
     ? events.filter(event => event.category_id === activeFilter)
     : events;
+//   // State for events data and loading
+//   const [events, setEvents] = useState([]);
+//   const [categories, setCategories] = useState([]);
+//   const [featuredEvent, setFeaturedEvent] = useState(null);
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError] = useState(null);
+//   const [activeFilter, setActiveFilter] = useState(null);
 
-if (loading) {
-  return (
-    <div class="dot-spinner">
-        <div class="dot-spinner__dot"></div>
-        <div class="dot-spinner__dot"></div>
-        <div class="dot-spinner__dot"></div>
-        <div class="dot-spinner__dot"></div>
-        <div class="dot-spinner__dot"></div>
-        <div class="dot-spinner__dot"></div>
-        <div class="dot-spinner__dot"></div>
-        <div class="dot-spinner__dot"></div>
-    </div>
-  );
-}
-  if (error) return <div className="events-section error">{error}</div>;
+//   // Fetch events and categories when component mounts
+//   useEffect(() => {
+//     const fetchData = async () => {
+//       try {
+//         setLoading(true);
+//         const [eventsData, categoriesData, featuredEventData] = await Promise.all([
+//           fetchEvents(),
+//           fetchCategories(),
+//           fetchFeaturedEvent()
+//         ]);
+//         setEvents(eventsData);
+//         setCategories(categoriesData);
+//         setFeaturedEvent(featuredEventData);
+//         setError(null);
+//       } catch (err) {
+//         setError('Veriler yüklenirken bir hata oluştu');
+//         console.error('Error fetching data:', err);
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+
+//     fetchData();
+//   }, []);
+
+//   // Filter events based on selected category
+//   const filteredEvents = activeFilter
+//     ? events.filter(event => event.category_id === activeFilter)
+//     : events;
+
+// if (loading) {
+//   return (
+//     <div class="dot-spinner">
+//         <div class="dot-spinner__dot"></div>
+//         <div class="dot-spinner__dot"></div>
+//         <div class="dot-spinner__dot"></div>
+//         <div class="dot-spinner__dot"></div>
+//         <div class="dot-spinner__dot"></div>
+//         <div class="dot-spinner__dot"></div>
+//         <div class="dot-spinner__dot"></div>
+//         <div class="dot-spinner__dot"></div>
+//     </div>
+//   );
+// }
+//   if (error) return <div className="events-section error">{error}</div>;
 
   return (
     <section className="events-section" id="events">

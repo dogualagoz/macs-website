@@ -1,0 +1,63 @@
+*{
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+    cursor: default;
+}
+
+/* Genel container */
+.notfound-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: #f4f4f9;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  text-align: center;
+  padding: 20px;
+}
+
+/* 404 başlığı */
+.notfound-title {
+  font-size: 8rem;
+  font-weight: bold;
+  color: #ff6b6b;
+  margin: 0;
+}
+
+/* Açıklama metni */
+.notfound-text {
+  font-size: 1.5rem;
+  color: #333;
+  margin: 10px 0 30px;
+}
+
+/* Buton stili */
+.notfound-btn {
+  text-decoration: none;
+  background-color: #4f9cf9;
+  color: white;
+  padding: 12px 25px;
+  border-radius: 5px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.notfound-btn:hover {
+  background-color: #357ae8;
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .notfound-title {
+    font-size: 5rem;
+  }
+
+  .notfound-text {
+    font-size: 1.2rem;
+  }
+}

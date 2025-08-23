@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from "react";
 import HeroSection from '../components/sections/HeroSection';
-import EventsSection from '../components/sections/EventsSection';
-import ProjectsSection from '../components/sections/ProjectsSection';
+// import EventsSection from '../components/sections/EventsSection';
+// import ProjectsSection from '../components/sections/ProjectsSection';
 import AboutSection from '../components/sections/AboutSection';
 import TeamSection from '../components/sections/TeamSection';
+import Dashboard from "../components/sections/DashBoard";
 import '../styles/pages/home.css';
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 2 saniye sonra loading false olacak
+    // 1 saniye sonra loading false olacak
     const timer = setTimeout(() => {
       setLoading(false);
     }, 1000);
@@ -38,8 +39,9 @@ export default function Home() {
       ) : (
         <div className="page-content fade-in">
           <HeroSection />
-          <EventsSection />
-          <ProjectsSection />
+          <Dashboard></Dashboard>
+          {/* <EventsSection />
+          <ProjectsSection /> */}
           <AboutSection />
           <TeamSection />
         </div>

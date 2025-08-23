@@ -24,7 +24,7 @@ body {
 
 main {
   flex: 1;
-  margin-top: 70px; /* Header height */
+  margin-top: 0px; /* Header height    70di fazlalık buradan kaynaklanıyormuş*/ 
 }
 
 /* Global utility classes */

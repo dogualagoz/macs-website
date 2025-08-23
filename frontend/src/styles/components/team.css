@@ -1,0 +1,54 @@
+.view-more-team {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-self: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+  background: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+}
+
+/* Alt çizgi */
+.view-more-team::after {
+  content: "";
+  position: absolute;
+  bottom: 4px;
+  left: 0;
+  height: 2px;
+  width: 0;
+  background-color: #007bff;
+  transition: width 0.3s ease-in-out;
+}
+
+/* Hover efektleri */
+.view-more-team:hover {
+  transform: scale(1.05); /* hafif büyüme */
+  box-shadow: 0 0 12px rgba(0, 123, 255, 0.4); /* glow ışık */
+  color: #007bff;
+}
+
+.view-more-team:hover::after {
+  width: 100%;
+}
+
+/* İkon kayma */
+.view-more-team img {
+  transition: transform 0.3s ease;
+}
+
+.view-more-team:hover img {
+  transform: translateX(4px);
+}
+
+/* Basma efekti (aşağı kayma) */
+.view-more-team:active {
+  transform: translateY(2px) scale(1.02); /* hafif aşağı inme */
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15); /* gölge daha azalsın */
+}

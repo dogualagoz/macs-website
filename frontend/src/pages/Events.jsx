@@ -9,6 +9,7 @@ export default function Events() {
   const [activeFilter, setActiveFilter] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [featuredEvent, setFeaturedEvent] = useState(null);
 
   useEffect(() => {
     const load = async () => {
@@ -41,10 +42,20 @@ export default function Events() {
 
 if (loading) 
   return (
-    <div className="loading-container">
-      <div className="spinner"></div>
-      <p>Yükleniyor...</p>
-    </div>
+    <div class="spinner center">
+      <div class="spinner-blade"></div>
+      <div class="spinner-blade"></div>
+      <div class="spinner-blade"></div>
+      <div class="spinner-blade"></div>
+      <div class="spinner-blade"></div>
+      <div class="spinner-blade"></div>
+      <div class="spinner-blade"></div>
+      <div class="spinner-blade"></div>
+      <div class="spinner-blade"></div>
+      <div class="spinner-blade"></div>
+      <div class="spinner-blade"></div>
+      <div class="spinner-blade"></div>
+</div>
   );
 
  if (error) 
@@ -84,9 +95,23 @@ if (loading)
             ))}
           </div>
         </div>
-
+        <div className="Featured">
+               <FeaturedEventCard
+                      title={(featuredEvent || events[0]).title}
+                      date={new Date((featuredEvent || events[0]).start_time)}
+                      location={(featuredEvent || events[0]).location}
+                      description={(featuredEvent || events[0]).description}
+                      image={(featuredEvent || events[0]).image_url}
+                      startTime={(featuredEvent || events[0]).start_time}
+                      endTime={(featuredEvent || events[0]).end_time}
+                      maxParticipants={(featuredEvent || events[0]).max_participants}
+                      slug={(featuredEvent || events[0]).slug}
+                    />
+        </div>
         <div className="events-list">
-          {filteredAndSorted.map((event,index) => {
+          {filteredAndSorted
+          .filter(event => event.id !== (featuredEvent || events[0])?.id)
+          .map((event,index) => {
             const isPast = new Date(event.end_time || event.start_time) < new Date();
             return (
               <div key={event.id} className={isPast ? 'is-past' : ''} > 
