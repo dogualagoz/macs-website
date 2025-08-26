@@ -1,10 +1,16 @@
 import React, {} from 'react';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import '../../styles/components/header.css';
+import '../../styles/components/header.css'
+import { useState } from 'react';
 
 const Header = ({ isScrolled }) => {
-  // const[activate,setActive] = useState(null)
+  const[activate,setActive] = useState(null)
+  const [menuOpen, setMenuOpen] = useState(false); // Menü açık/kapalı durumu
+
+  const toggleMenu = () => {
+    setMenuOpen(prev => !prev);
+  }
   return (
     <header className={`header ${isScrolled ? 'header-scrolled' : ''}`}>
       <div className="header-container">
@@ -13,7 +19,7 @@ const Header = ({ isScrolled }) => {
             <img src="/assets/images/img_exclude.png" alt="MACS Logo" />
           </Link>
         </div>
-        <nav className='nav-menu'>
+        <nav className="nav-menu">
           <ul>
             <li><Link to="/">Ana Sayfa</Link></li>
             <li><Link to="/etkinlikler">Etkinlikler</Link></li>
@@ -28,6 +34,29 @@ const Header = ({ isScrolled }) => {
           <button className="JoinUs"><span>Bize Katıl!</span></button>
         </div>
       </div>
+
+      <div className="responsive-navbar">
+        <div className="r-logo">
+              <img src="/assets/images/img_exclude.png" alt="" />
+        </div>
+        <div className='menu-icon'  onClick={toggleMenu}>
+            <img src= "/assets/images/img_menu.png"alt="Menu"  />
+        </div>
+          <nav className= {`r-navbar${menuOpen ? " active" : ""}`}>
+            <img className='close-icon' src="/assets/images/img_close.png" alt="kapat" onClick={toggleMenu} />
+            <ul>
+              <li><Link to="/" onClick={() => setMenuOpen(false)}>Ana Sayfa</Link></li>
+              <li><Link to="/etkinlikler"onClick={() => setMenuOpen(false)}>Etkinlikler</Link></li>
+              <li><Link to="/projeler" onClick={() => setMenuOpen(false)}>Projeler</Link></li>
+              <li><a href="#BlogMakale" onClick={() => setMenuOpen(false)}>Blog/Makaleler</a></li>
+              <li><a href="#soruces" onClick={() => setMenuOpen(false)}>Kaynaklar</a></li>
+              <li><a href="#about" onClick={() => setMenuOpen(false)}>Hakkımızda</a></li>
+              <li><a href="#contact" onClick={() => setMenuOpen(false)}>İletişim</a></li>
+              <li><a href="" onClick={() => setMenuOpen(false)}>Bize Katıl</a></li>
+          </ul>
+          </nav>
+        </div>
+
     </header>
   );
 };
