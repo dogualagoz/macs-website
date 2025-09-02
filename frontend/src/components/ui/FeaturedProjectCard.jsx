@@ -35,6 +35,7 @@ const FeaturedProjectCard = ({ title, description, image, technologies, githubUr
         </div>
         
         {/* Technology tags - CSS'teki sınıfları kullan */}
+        <div className="tags">
         {techArray.map((tech, index) => {
           const className = techClasses[index] || 'Python'; // Fallback
           return (
@@ -43,6 +44,7 @@ const FeaturedProjectCard = ({ title, description, image, technologies, githubUr
             </div>
           );
         })}
+        </div>
         
         <div className="Detail-Project">
           {slug ? (

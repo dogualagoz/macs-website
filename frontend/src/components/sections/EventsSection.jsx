@@ -118,7 +118,7 @@ workshoplar ve seminerler        </p>
         )}
         <br />
         {/* Diğer Etkinlikler - Featured event hariç */}
-        <div className="events-grid">
+        <div className="events-grids">
           {filteredEvents
             .filter(event => event.id !== (featuredEvent || events[0])?.id) // Featured event'i çıkar
             .map(event => (

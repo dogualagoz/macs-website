@@ -226,7 +226,8 @@
   background-color: #2F80ED;
 }
 
-.events-grid {
+.events-grids{
+
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.5rem;
@@ -422,7 +423,8 @@
 /* List view for /etkinlikler */
 .events-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
 
 }
 
@@ -885,8 +887,45 @@
   background-color: #161A2B;
 }
 
-.swiper-slide {
-  display: flex;
-  justify-content: center;
+.events-list {
+    display: flex !important;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 16px;
+    padding-bottom: 8px;
+    scroll-snap-type: x mandatory;
+  }
+
+  .events-container {
+  overflow-x: visible; /* kaydırmayı engelleyen kısımları kaldır */
+ }
+
+  
+.events-list > div {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  width: 70%;      /* ekran genişliğine göre ayarla */
+  max-width: 250px; 
+  min-width: 180px;
 }
-}
+
+
+  .events-list::-webkit-scrollbar {
+    display: none;
+  }
+
+  .events-grids{
+    grid-template-columns: repeat(auto-fill, minmax(370px,2rem));
+  }
+
+  .load-more-button{
+    margin-left: 16rem;
+    transition: ease 0.75s;
+  }
+
+  .load-more-button:active{
+    transition: ease 0.75s;
+    background-color: #000000;
+  }
+  }

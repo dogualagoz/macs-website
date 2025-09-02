@@ -157,14 +157,18 @@
   }
 
   .responsive-navbar{
-    display: block;
+    display: flex;
+    align-items: center;
+    width: 175%;
+    height: 50px;
   }
 
   .menu-icon{
-    display: flex;
-    justify-content: flex-end;
-    margin-right:5%;
-    align-items: center;
+    /* display: flex;
+    justify-content: flex-end; */
+    /* align-items: center; */
+    justify-self: flex-end;
+    margin-left: 47%;
   }
 
   .menu-icon img{
@@ -172,11 +176,10 @@
   }
 
   .r-logo img{
-    position: absolute;
-    /* align-self: flex-end;
-    justify-self: center; */
-    bottom: 1rem;
-    left: 1rem;
+    position: relative;
+    justify-self: flex-start;
+    align-self: flex-start;
+    margin-left: 1rem;
     height: 4.5rem;
     width: 4.5rem;
     background-size: contain;
@@ -228,5 +231,6 @@
     transform: translateX(0); 
     opacity: 1;
     visibility: visible;
-} 
+}
+
 }

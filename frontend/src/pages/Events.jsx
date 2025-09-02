@@ -3,6 +3,12 @@ import { FeaturedEventCard,MoreEventCard } from '../components/events';
 import { fetchCategories, fetchEvents } from '../services/api';
 import '../styles/components/events.css';
 
+// import { Swiper, SwiperSlide } from 'swiper/react';
+// import 'swiper/css';
+// import 'swiper/css/navigation';
+// import 'swiper/css/pagination';
+
+
 export default function Events() {
   const [events, setEvents] = useState([]);
   const [categories, setCategories] = useState([]);
