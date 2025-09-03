@@ -1,5 +1,5 @@
 # Gerekli kütüphaneler
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from enum import Enum
@@ -164,15 +164,24 @@ def get_events(
 def get_featured_event(db: Session = Depends(get_db)):
     """
     Öne çıkan etkinliği getirir.
-    En yakın tarihli gelecek etkinlik öne çıkan olarak seçilir.
+    is_featured=True olan etkinliği döndürür. Yoksa en yakın tarihli etkinlik döndürülür.
     """
     now = datetime.now()
     
-    # En yakın tarihli gelecek etkinliği bul
+    # Önce is_featured=True olan aktif etkinliği bul
     featured_event = db.query(EventModel).filter(
-        EventModel.start_time >= now,
-        EventModel.is_deleted == False
-    ).order_by(EventModel.start_time.asc()).first()
+        EventModel.is_featured == True,
+        EventModel.is_deleted == False,
+        EventModel.is_active == True
+    ).first()
+    
+    # Eğer öne çıkarılan etkinlik yoksa veya tarihi geçmişse, en yakın etkinliği bul
+    if not featured_event or featured_event.start_time < now:
+        featured_event = db.query(EventModel).filter(
+            EventModel.start_time >= now,
+            EventModel.is_deleted == False,
+            EventModel.is_active == True
+        ).order_by(EventModel.start_time.asc()).first()
     
     if not featured_event:
         raise HTTPException(
@@ -203,8 +212,8 @@ def create_slug(title: str) -> str:
     return slug
 
 @router.post("", response_model=Event, status_code=status.HTTP_201_CREATED)
-def create_event(
-    event: EventCreate,
+async def create_event(
+    request: Request,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -213,7 +222,20 @@ def create_event(
     
     - Otomatik slug oluşturma
     - Kategori kontrolü
+    - is_featured=True ise diğer etkinliklerin is_featured değeri False yapılır
     """
+    # Debug için request body'yi yazdır
+    body = await request.body()
+    print("Request body:", body)
+    
+    try:
+        # JSON olarak parse et
+        event_data = await request.json()
+        print("Parsed JSON:", event_data)
+        event = EventCreate(**event_data)
+    except Exception as e:
+        print("Error parsing request body:", str(e))
+        raise HTTPException(status_code=400, detail=f"Invalid request body: {str(e)}")
     if event.category_id:
         category = db.query(EventCategoryModel).filter(EventCategoryModel.id == event.category_id).first()
         if not category:
@@ -232,6 +254,10 @@ def create_event(
     
     event_data["slug"] = base_slug
     event_data["created_by"] = current_user.id
+    
+    # Eğer is_featured True ise diğer etkinliklerin is_featured değerini False yap
+    if event_data.get("is_featured", False):
+        db.query(EventModel).filter(EventModel.is_featured == True).update({"is_featured": False})
     
     # Event'i oluştur
     db_event = EventModel(**event_data)
@@ -265,6 +291,7 @@ def update_event(
     
     - Başlık değişirse yeni slug oluşturulur
     - Kategori kontrolü yapılır
+    - is_featured=True ise diğer etkinliklerin is_featured değeri False yapılır
     """
     db_event = db.query(EventModel).filter(
         EventModel.id == event_id,
@@ -293,6 +320,13 @@ def update_event(
             timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
             base_slug = f"{base_slug}-{timestamp}"
         update_data["slug"] = base_slug
+    
+    # is_featured değiştiriliyorsa ve True ise diğer etkinliklerin is_featured değerini False yap
+    if "is_featured" in update_data and update_data["is_featured"] == True:
+        db.query(EventModel).filter(
+            EventModel.id != event_id,
+            EventModel.is_featured == True
+        ).update({"is_featured": False})
     
     for key, value in update_data.items():
         setattr(db_event, key, value)

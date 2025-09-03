@@ -173,6 +173,7 @@ def create_project(
     
     - Otomatik slug oluşturma
     - Kategori kontrolü
+    - is_featured=True ise diğer projelerin is_featured değeri False yapılır
     """
     if project.category_id:
         category = db.query(ProjectCategory).filter(ProjectCategory.id == project.category_id).first()
@@ -193,6 +194,10 @@ def create_project(
     project_data["slug"] = base_slug
     project_data["created_by"] = current_user.id
     
+    # Eğer is_featured True ise diğer projelerin is_featured değerini False yap
+    if project_data.get("is_featured", False):
+        db.query(Project).filter(Project.is_featured == True).update({"is_featured": False})
+    
     # Proje'yi oluştur
     db_project = Project(**project_data)
     db.add(db_project)
@@ -205,13 +210,21 @@ def create_project(
 def get_featured_project(db: Session = Depends(get_db)):
     """
     Öne çıkan projeyi getirir.
-    En yeni oluşturulan proje öne çıkan olarak seçilir.
+    is_featured=True olan projeyi döndürür. Yoksa en yeni oluşturulan proje döndürülür.
     """
-    # En yeni oluşturulan projeyi bul
+    # Önce is_featured=True olan aktif projeyi bul
     featured_project = db.query(Project).filter(
+        Project.is_featured == True,
         Project.is_deleted == False,
         Project.is_active == True
-    ).order_by(Project.created_at.desc()).first()
+    ).first()
+    
+    # Eğer öne çıkarılan proje yoksa, en yeni projeyi bul
+    if not featured_project:
+        featured_project = db.query(Project).filter(
+            Project.is_deleted == False,
+            Project.is_active == True
+        ).order_by(Project.created_at.desc()).first()
     
     if not featured_project:
         raise HTTPException(
@@ -265,6 +278,10 @@ def update_project(
 ):
     """
     Proje bilgilerini günceller.
+    
+    - Başlık değişirse yeni slug oluşturulur
+    - Kategori kontrolü yapılır
+    - is_featured=True ise diğer projelerin is_featured değeri False yapılır
     """
     db_project = db.query(Project).filter(
         Project.id == project_id,
@@ -302,6 +319,13 @@ def update_project(
             base_slug = f"{base_slug}-{timestamp}"
         
         update_data["slug"] = base_slug
+    
+    # is_featured değiştiriliyorsa ve True ise diğer projelerin is_featured değerini False yap
+    if "is_featured" in update_data and update_data["is_featured"] == True:
+        db.query(Project).filter(
+            Project.id != project_id,
+            Project.is_featured == True
+        ).update({"is_featured": False})
     
     # Projeyi güncelle
     for field, value in update_data.items():
