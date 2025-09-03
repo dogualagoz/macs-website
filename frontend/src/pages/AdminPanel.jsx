@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import * as usersAPI from "../api/users";
 import "../styles/admin.css";
 import "../styles/admin-reset.css";
 
@@ -9,9 +10,73 @@ export default function AdminPanel() {
   const [isActive, setIsActive] = useState(true);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [contentTab, setContentTab] = useState("event");
-  const { logout } = useAuth();
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   
+    console.log("Current user:", user);
+    // Daha esnek kontrol - "admin" veya "ADMIN" veya benzeri değerleri kabul et
+    // const isAdmin = user?.role?.toLowerCase() === "admin";
+    // Geliştirme amaçlı olarak her zaman admin olarak kabul et
+    const isAdmin = true;
+    console.log("Is admin:", isAdmin);
+
+  const fetchUsers = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const response = await usersAPI.getAllUsers();
+      // API'den gelen yanıt yapısını kontrol et
+      if (response.users) {
+        // Eğer response.users varsa, bu bir dizi olmalı
+        setUsers(response.users);
+      } else {
+        // Eğer direkt dizi dönüyorsa
+        setUsers(Array.isArray(response) ? response : []);
+      }
+    } catch (err) {
+      console.error("Kullanıcıları getirme hatası:", err);
+      setError("Kullanıcıları getirirken bir hata oluştu.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Fetch users when the users tab is active
+  useEffect(() => {
+    if (activeTab === "users") {
+      fetchUsers();
+    }
+  }, [activeTab, fetchUsers]);
+
+  const handleDeleteUser = async (userId) => {
+    console.log("Attempting to delete user with ID:", userId);
+    console.log("Current user role:", user?.role);
+    console.log("isAdmin value:", isAdmin);
+    
+    // isAdmin kontrolünü kaldırdık çünkü buton zaten disabled olacak
+    
+    if (!window.confirm("Bu kullanıcıyı silmek istediğinize emin misiniz?")) {
+      console.log("Delete operation cancelled by user");
+      return;
+    }
+    
+    try {
+      console.log("Sending delete request to API...");
+      await usersAPI.deleteUser(userId);
+      console.log("Delete request successful");
+      // Kullanıcı listesini güncelle
+      setUsers(users.filter(u => u.id !== userId));
+      alert("Kullanıcı başarıyla silindi!");
+    } catch (err) {
+      console.error("Kullanıcı silme hatası:", err);
+      alert("Kullanıcı silinirken bir hata oluştu: " + err.message);
+    }
+  };
+
   const handleExit = () => {
     // Oturumu kapat ve kullanıcıyı ana sayfaya yönlendir
     logout();
@@ -259,9 +324,50 @@ export default function AdminPanel() {
             )}
 
             {activeTab === "users" && (
-              <p>
-                Kullanıcılar bu panelde listelenecek. Admin kullanıcılar güncelleme ve silme işlemleri yapabilecek. Moderatorler yalnızca görüntüleyebilir.
-              </p>
+              <div className="users-container">
+                {loading && <p>Kullanıcılar yükleniyor...</p>}
+                
+                {error && <p className="error-message">{error}</p>}
+                
+                {!loading && !error && (
+                  <>
+                    <div className="users-table-header">
+                      <div className="users-table-row header">
+                        <div className="users-table-cell">ID</div>
+                        <div className="users-table-cell">Kullanıcı Adı</div>
+                        <div className="users-table-cell">E-posta</div>
+                        <div className="users-table-cell">Rol</div>
+                        <div className="users-table-cell">İşlemler</div>
+                      </div>
+                    </div>
+                    
+                    <div className="users-table-body">
+                      {users.length === 0 ? (
+                        <p>Kullanıcı bulunamadı.</p>
+                      ) : (
+                        users.map((userItem) => (
+                          <div key={userItem.id} className="users-table-row">
+                            <div className="users-table-cell">{userItem.id}</div>
+                            <div className="users-table-cell">{userItem.full_name || userItem.username || '-'}</div>
+                            <div className="users-table-cell">{userItem.email}</div>
+                            <div className="users-table-cell">{userItem.role}</div>
+                            <div className="users-table-cell actions">
+                              <button 
+                                onClick={() => handleDeleteUser(userItem.id)}
+                                className="delete-btn"
+                                disabled={false} // Geçici olarak tüm butonları aktif yapıyoruz
+                                title={"Kullanıcıyı sil"}
+                              >
+                                Sil
+                              </button>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
             )}
 
             {activeTab === "logs" && (

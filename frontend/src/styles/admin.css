@@ -210,3 +210,72 @@ body, html {
 .btn-primary:hover {
   background-color: #2563eb;
 }
+
+/* Users table */
+.users-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.users-table-header,
+.users-table-body {
+  width: 100%;
+}
+
+.users-table-row {
+  display: grid;
+  grid-template-columns: 0.5fr 1fr 1.5fr 1fr 1fr 0.8fr;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  align-items: center;
+}
+
+.users-table-row.header {
+  font-weight: 600;
+  color: #374151;
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.users-table-body .users-table-row {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.users-table-body .users-table-row:hover {
+  background-color: #f9fafb;
+}
+
+.users-table-cell {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.users-table-cell.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.delete-btn {
+  padding: 0.25rem 0.75rem;
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  background-color: #dc2626;
+}
+
+.delete-btn:disabled {
+  background-color: #d1d5db;
+  cursor: not-allowed;
+}
+
+.error-message {
+  color: #ef4444;
+  font-weight: 500;
+}
