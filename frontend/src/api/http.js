@@ -22,6 +22,16 @@ export async function getJson(path, init = {}) {
   });
   
   if (!response.ok) {
+    // Token expire/unauthorized ise otomatik çıkış
+    if (response.status === 401) {
+      try {
+        localStorage.removeItem('token');
+        localStorage.removeItem('token_exp');
+        if (window.location.pathname.startsWith('/admin')) {
+          window.location.href = '/login?expired=1';
+        }
+      } catch (_e) {}
+    }
     const text = await response.text().catch(() => '');
     throw new Error(`Request failed ${response.status}: ${text || response.statusText}`);
   }

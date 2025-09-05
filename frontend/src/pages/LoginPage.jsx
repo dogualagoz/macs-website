@@ -12,6 +12,7 @@ export default function LoginPage() {
   const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const expired = new URLSearchParams(location.search).get('expired') === '1';
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -50,6 +51,11 @@ export default function LoginPage() {
           <h2 className="login-title">Admin Giriş</h2>
         </div>
         <div className="login-body">
+          {expired && (
+            <div className="error-message" style={{ marginBottom: 10 }}>
+              Oturum süreniz doldu. Lütfen tekrar giriş yapın.
+            </div>
+          )}
           {error && (
             <div className="error-message">
               {error}

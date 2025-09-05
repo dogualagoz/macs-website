@@ -2,12 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { fetchProjectBySlug } from '../services/api';
 import '../styles/components/projects.css';
+import { getImageUrl, handleImageError } from '../utils/imageUtils';
 
 export default function ProjectDetailPage() {
   const { slug } = useParams();
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // getImageUrl artık import edildi
 
   useEffect(() => {
     const load = async () => {
@@ -40,7 +43,12 @@ export default function ProjectDetailPage() {
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem' }}>
           <div style={{ background: '#F9FAFB', border: '1px solid #E1E1E1', borderRadius: 10, overflow: 'hidden' }}>
-            <img src={project.image_url || '/assets/images/img_source_code.png'} alt={project.title} style={{ width: '100%', height: 360, objectFit: 'cover' }} />
+            <img 
+              src={getImageUrl(project.image_url, '/assets/images/img_source_code.png')} 
+              alt={project.title} 
+              style={{ width: '100%', height: 360, objectFit: 'cover' }}
+              onError={(e) => handleImageError(e, '/assets/images/img_source_code.png')}
+            />
           </div>
 
           <div style={{ display: 'grid', gap: '1rem' }}>

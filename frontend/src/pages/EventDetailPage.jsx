@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import '../styles/pages/styles.css';
+import { getImageUrl, handleImageError } from '../utils/imageUtils';
+import { getJson } from '../api/http';
 
 const containerStyle = {
   maxWidth: 1100,
@@ -18,31 +20,23 @@ const cardStyle = {
   padding: 24
 };
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+// BASE_URL ve hata yönetimi getJson içinde merkezi olarak sağlanır
 
 export default function EventDetailPage() {
   const { slug } = useParams();
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // getImageUrl artık import edildi
 
   useEffect(() => {
     let isMounted = true;
     setLoading(true);
-    fetch(`${API_URL}/events/by-slug/${slug}`)
-      .then(async (res) => {
-        if (!res.ok) throw new Error('Etkinlik bulunamadı');
-        return await res.json();
-      })
-      .then((data) => {
-        if (isMounted) setEvent(data);
-      })
-      .catch((err) => {
-        if (isMounted) setError(err.message || 'Bir hata oluştu');
-      })
-      .finally(() => {
-        if (isMounted) setLoading(false);
-      });
+    getJson(`/events/by-slug/${slug}`)
+      .then((data) => { if (isMounted) setEvent(data); })
+      .catch((err) => { if (isMounted) setError(err.message || 'Bir hata oluştu'); })
+      .finally(() => { if (isMounted) setLoading(false); });
     return () => {
       isMounted = false;
     };
@@ -60,7 +54,12 @@ export default function EventDetailPage() {
       <div style={cardStyle}>
         <div style={{ width: 330, height: 174, borderRadius: 8, overflow: 'hidden', background: '#9ca5b1' }}>
           {event.image_url && (
-            <img src={event.image_url} alt={event.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <img 
+              src={getImageUrl(event.image_url)} 
+              alt={event.title} 
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              onError={(e) => handleImageError(e)}
+            />
           )}
         </div>
         <div>

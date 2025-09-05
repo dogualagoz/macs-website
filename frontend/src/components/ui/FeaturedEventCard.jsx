@@ -7,6 +7,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
+import { getImageUrl, handleImageError } from '../../utils/imageUtils';
 
 const FeaturedEventCard = ({ title, date, location, description, image, startTime, endTime, maxParticipants, slug }) => {
   // Tarihi formatla
@@ -26,12 +27,7 @@ const FeaturedEventCard = ({ title, date, location, description, image, startTim
     });
   };
 
-  // Resim URL'ini kontrol et
-  const getImageUrl = (imageUrl) => {
-    if (!imageUrl) return '/assets/images/img_innovation.png';
-    if (imageUrl.startsWith('http')) return imageUrl;
-    return process.env.PUBLIC_URL + imageUrl;
-  };
+  // formatDate ve formatTime fonksiyonları korundu, getImageUrl artık import edildi
 
   return (
     <Link to={`/etkinlikler/${slug || ''}`} style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -40,10 +36,7 @@ const FeaturedEventCard = ({ title, date, location, description, image, startTim
         className='first-img' 
         src={getImageUrl(image)} 
         alt={title}
-        onError={(e) => {
-          e.target.onerror = null;
-          e.target.src = '/assets/images/img_innovation.png';
-        }}
+        onError={(e) => handleImageError(e)}
       />
       <div className="First-div">Öne Çıkan</div>
       <div className="date">

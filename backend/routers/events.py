@@ -130,7 +130,10 @@ def get_events(
     - Sayfalama: skip, limit
     """
     # Base query
-    query = db.query(EventModel).filter(EventModel.is_deleted == False)
+    query = db.query(EventModel).filter(
+        EventModel.is_deleted == False,
+        EventModel.is_active == True
+    )
 
     # İsme göre arama
     if search:
@@ -157,6 +160,46 @@ def get_events(
         query = query.order_by(sort_column)
 
     # Pagination
+    return query.offset(skip).limit(limit).all()
+
+# Yalnızca admin/moderator için: pasif olanlar dahil tüm etkinlikler
+@router.get("/admin", response_model=List[Event])
+def get_events_admin(
+    db: Session = Depends(get_db),
+    skip: int = 0,
+    limit: int = 50,
+    search: Optional[str] = None,
+    category_id: Optional[int] = None,
+    status: EventStatus = EventStatus.ALL,
+    sort_by: Optional[str] = "start_time",
+    sort_desc: bool = False,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Admin görünümü için etkinlikleri listeler (is_active filtresi olmadan).
+    """
+    query = db.query(EventModel).filter(
+        EventModel.is_deleted == False
+    )
+
+    if search:
+        query = query.filter(EventModel.title.ilike(f"%{search}%"))
+
+    if category_id:
+        query = query.filter(EventModel.category_id == category_id)
+
+    now = datetime.now()
+    if status == EventStatus.UPCOMING:
+        query = query.filter(EventModel.start_time >= now)
+    elif status == EventStatus.PAST:
+        query = query.filter(EventModel.start_time < now)
+
+    if sort_by:
+        sort_column = getattr(EventModel, sort_by)
+        if sort_desc:
+            sort_column = sort_column.desc()
+        query = query.order_by(sort_column)
+
     return query.offset(skip).limit(limit).all()
 
 # Spesifik route'lar - genel route'lardan önce
@@ -196,7 +239,8 @@ def get_event_by_slug(slug: str, db: Session = Depends(get_db)):
     """Slug'a göre etkinlik getirir."""
     db_event = db.query(EventModel).filter(
         EventModel.slug == slug,
-        EventModel.is_deleted == False
+        EventModel.is_deleted == False,
+        EventModel.is_active == True
     ).first()
     
     if not db_event:
@@ -272,7 +316,8 @@ def get_event(event_id: int, db: Session = Depends(get_db)):
     """ID'ye göre etkinlik getirir."""
     db_event = db.query(EventModel).filter(
         EventModel.id == event_id,
-        EventModel.is_deleted == False
+        EventModel.is_deleted == False,
+        EventModel.is_active == True
     ).first()
 
     if not db_event:

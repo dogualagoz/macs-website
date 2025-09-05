@@ -10,6 +10,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
+import { getImageUrl, handleImageError } from '../../utils/imageUtils';
 
 const EventCard = ({ title, date, location, description, image, slug }) => {
   // Tarihi formatla
@@ -22,12 +23,7 @@ const EventCard = ({ title, date, location, description, image, slug }) => {
       minute: 'numeric'
     }).format(date);
   };
-  // Resim URL'ini kontrol et
-  const getImageUrl = (imageUrl) => {
-    if (!imageUrl) return '/assets/images/img_innovation.png';
-    if (imageUrl.startsWith('http')) return imageUrl;
-    return process.env.PUBLIC_URL + imageUrl;
-  };
+  // formatDate fonksiyonu korundu, getImageUrl artık import edildi
 
   return (
     <Link to={`/etkinlikler/${slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -37,10 +33,7 @@ const EventCard = ({ title, date, location, description, image, slug }) => {
         <img 
           src={getImageUrl(image)} 
           alt={title}
-          onError={(e) => {
-            e.target.onerror = null;
-            e.target.src = '/assets/images/img_innovation.png';
-          }}
+          onError={(e) => handleImageError(e)}
         />
       </div>
 

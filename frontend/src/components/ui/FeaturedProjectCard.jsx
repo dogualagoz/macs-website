@@ -7,6 +7,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
+import { getImageUrl, handleImageError } from '../../utils/imageUtils';
 
 const FeaturedProjectCard = ({ title, description, image, technologies, githubUrl, liveUrl, slug }) => {
   // Technologies string'ini virgülle ayır
@@ -14,11 +15,18 @@ const FeaturedProjectCard = ({ title, description, image, technologies, githubUr
 
   // CSS'teki teknoloji sınıflarını kullan
   const techClasses = ['Python', 'TensorFlow', 'React', 'MachineLearn'];
+  
+  // techArray ve techClasses değişkenleri korundu, getImageUrl artık import edildi
 
   return (
     <div className="First-2">
       <div className="Image-container">
-        <img className='First-img' src={image || "assets/images/img_source_code.png"} alt={title} />
+        <img 
+          className='First-img' 
+          src={getImageUrl(image, '/assets/images/img_source_code.png')} 
+          alt={title}
+          onError={(e) => handleImageError(e, '/assets/images/img_source_code.png')}
+        />
       </div>
       <div className="Details-Container">
         <div className="First-come">

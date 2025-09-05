@@ -132,7 +132,10 @@ def get_projects(
     - Sayfalama: skip, limit
     """
     # Base query
-    query = db.query(Project).filter(Project.is_deleted == False)
+    query = db.query(Project).filter(
+        Project.is_deleted == False,
+        Project.is_active == True
+    )
 
     # İsme göre arama
     if search:
@@ -153,6 +156,44 @@ def get_projects(
     total = query.count()
 
     # Pagination
+    projects = query.offset(skip).limit(limit).all()
+
+    return ProjectListResponse(
+        projects=projects,
+        total=total,
+        page=skip // limit + 1,
+        size=limit
+    )
+
+@router.get("/admin", response_model=ProjectListResponse)
+def get_projects_admin(
+    skip: int = Query(0, ge=0, description="Atlanacak kayıt sayısı"),
+    limit: int = Query(50, ge=1, le=200, description="Sayfa başına kayıt sayısı"),
+    category_id: Optional[int] = Query(None, description="Kategori ID'si ile filtrele"),
+    status: Optional[str] = Query(None, description="Durum ile filtrele"),
+    search: Optional[str] = Query(None, description="Başlık veya açıklamada ara"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Admin/mode için projeleri listeler. Pasif projeler de dahildir.
+    """
+    query = db.query(Project).filter(
+        Project.is_deleted == False
+    )
+
+    if search:
+        query = query.filter(Project.title.ilike(f"%{search}%"))
+
+    if category_id:
+        query = query.filter(Project.category_id == category_id)
+
+    if status:
+        query = query.filter(Project.status == status)
+
+    query = query.order_by(Project.created_at.desc())
+
+    total = query.count()
     projects = query.offset(skip).limit(limit).all()
 
     return ProjectListResponse(
@@ -239,7 +280,8 @@ def get_project_by_slug(slug: str, db: Session = Depends(get_db)):
     """Slug'a göre proje getirir."""
     db_project = db.query(Project).filter(
         Project.slug == slug,
-        Project.is_deleted == False
+        Project.is_deleted == False,
+        Project.is_active == True
     ).first()
     
     if not db_project:
@@ -262,7 +304,8 @@ def get_project(project_id: int, db: Session = Depends(get_db)):
     """ID'ye göre proje getirir."""
     db_project = db.query(Project).filter(
         Project.id == project_id,
-        Project.is_deleted == False
+        Project.is_deleted == False,
+        Project.is_active == True
     ).first()
 
     if not db_project:

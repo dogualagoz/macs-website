@@ -15,6 +15,22 @@ export const fetchEvents = (params = {}) => {
   return getJson(`/events${queryString ? `?${queryString}` : ''}`);
 };
 
+// Admin görünümü: pasif etkinlikler dahil
+export const fetchEventsAdmin = (params = {}) => {
+  const queryParams = new URLSearchParams();
+  if (params.skip) queryParams.append('skip', params.skip);
+  if (params.limit) queryParams.append('limit', params.limit);
+  if (params.search) queryParams.append('search', params.search);
+  if (params.category_id) queryParams.append('category_id', params.category_id);
+  if (params.status) queryParams.append('status', params.status);
+  const queryString = queryParams.toString();
+  return getJson(`/events/admin${queryString ? `?${queryString}` : ''}`, {
+    headers: {
+      ...getAuthHeader()
+    }
+  });
+};
+
 export const fetchFeaturedEvent = async () => {
   try {
     return await getJson('/events/featured');

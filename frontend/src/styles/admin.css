@@ -256,6 +256,102 @@ body, html {
   gap: 0.5rem;
 }
 
+/* Dashboard tables */
+.dashboard-table-container {
+  width: 100%;
+  overflow-x: auto;
+  margin-top: 1rem;
+}
+
+.dashboard-table-header,
+.dashboard-table-body {
+  width: 100%;
+}
+
+.dashboard-table-row {
+  display: grid;
+  grid-template-columns: 0.3fr 1.5fr 1fr 1fr 0.7fr 0.7fr 1.5fr;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  align-items: center;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.dashboard-table-row.header {
+  font-weight: 600;
+  color: #374151;
+  background-color: #f9fafb;
+}
+
+.dashboard-table-body .dashboard-table-row:hover {
+  background-color: #f9fafb;
+}
+
+.dashboard-table-cell {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-table-cell.actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+/* Status ve Featured badge'leri */
+.status-badge, .featured-badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  display: inline-block;
+}
+
+.status-badge.active {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.status-badge.inactive {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.featured-badge.featured {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+/* Action butonları */
+.status-btn, .featured-btn, .delete-btn {
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  border: none;
+  margin-left: 5px;
+}
+
+.status-btn.activate {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.status-btn.deactivate {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.featured-btn.featured {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.featured-btn.unfeatured {
+  background-color: #e5e7eb;
+  color: #4b5563;
+}
+
 .delete-btn {
   padding: 0.25rem 0.75rem;
   background-color: #ef4444;
@@ -301,4 +397,40 @@ body, html {
   border-radius: 0.375rem;
   padding: 5px;
   display: inline-block;
+}
+
+/* Loglar tablosu */
+.logs-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.logs-table-header,
+.logs-table-body {
+  width: 100%;
+}
+
+.logs-table-row {
+  display: grid;
+  grid-template-columns: 0.3fr 1fr 1fr 1.5fr 1fr;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  align-items: center;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.logs-table-row.header {
+  font-weight: 600;
+  color: #374151;
+  background-color: #f9fafb;
+}
+
+.logs-table-body .logs-table-row:hover {
+  background-color: #f9fafb;
+}
+
+.logs-table-cell {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
