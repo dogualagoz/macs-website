@@ -80,7 +80,8 @@ export const uploadFile = async (file) => {
   const formData = new FormData();
   formData.append('file', file);
   
-  const url = `${BASE_URL}/upload`;
+  // FastAPI'de endpoint '/upload/' olarak tanımlı; redirect (307) yaşamamak için trailing slash kullan
+  const url = `${BASE_URL}/upload/`;
   const response = await fetch(url, {
     method: 'POST',
     headers: {
