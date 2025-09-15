@@ -467,6 +467,7 @@ button:hover{
 @media (max-width: 768px) {
   .section-title {
     font-size: 2rem;
+    margin-top: 1rem;
   }
 
   .section-description {
@@ -484,7 +485,7 @@ button:hover{
   .First-2{
     grid-template-columns: 320px 320px;
     width: 650px;
-    margin-left: 4.5rem;
+    margin-left: 2rem;
   }
 
   .First-2 .Image-container img{

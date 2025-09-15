@@ -1,0 +1,296 @@
+/* Genel Sıfırlamalar */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.project-detail-page {
+  font-family: 'Roboto', sans-serif;
+  background-color: #f8f8f8;
+  color: #191919;
+}
+
+.project-detail-container {
+  width: 95%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 0;
+  margin-top: 6rem;
+}
+
+/* Back Button */
+.project-detail-backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #555;
+  cursor: pointer;
+  margin-bottom: 12px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  position: relative;
+}
+
+.project-detail-backBtn::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0px; 
+  width: 0%;
+  height: 1px;
+  background-color: #555;
+  transition: width 0.3s ease;
+}
+
+.project-detail-backBtn:hover::after {
+  width: 100%;
+}
+
+/* Hero Section */
+.project-detail-hero {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 2rem;
+  margin-bottom: 3rem;
+  box-shadow: 5px 5px 15px rgba(0,0,0,0.1);
+  border-radius: 5px;
+  padding: 1rem;
+  background-color: #fff;
+}
+
+.project-detail-heroImage {
+  width: 50%;
+  border-radius: 12px;
+  object-fit: cover;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+.project-detail-heroText {
+  flex: 1;
+}
+
+.project-detail-heroTitle {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: #000;
+}
+
+.project-detail-heroSubtitle {
+  font-size: 1rem;
+  color: #555;
+  margin-bottom: 1.5rem;
+}
+
+.project-detail-heroButtons {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.project-detail-buttonPrimary,
+.project-detail-buttonSecondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.project-detail-buttonPrimary {
+  background-color: #000;
+  color: #fff;
+  border: none;
+}
+.project-detail-buttonPrimary:hover {
+  background-color: #333;
+}
+
+.project-detail-buttonSecondary {
+  background-color: #fff;
+  color: #000;
+  border: 1px solid #000;
+}
+.project-detail-buttonSecondary:hover {
+  background-color: #000;
+  color: #fff;
+}
+
+/* Content Flex */
+.project-detail-contentFlex {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+/* Sol Kolon */
+.project-detail-leftColumn {
+  flex: 2;
+  white-space: pre-line;
+  min-width: 250px;
+}
+
+/* Sağ Kolon */
+.project-detail-rightColumn {
+  flex: 1;
+  min-width: 200px;
+}
+
+/* Section */
+.project-detail-section {
+  margin-bottom: 2.5rem;
+  padding: 1rem;
+  border-radius: 20px;
+  box-shadow: 5px 5px 15px rgba(0,0,0,0.1);
+  background-color: #fff;
+}
+
+.sectionTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+/* Perk / Özellik Listesi */
+.project-detail-perkList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.project-detail-perkItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  color: #555;
+}
+
+/* Stages / Program */
+.project-detail-stageItem {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 0.8rem;
+}
+
+.project-detail-time {
+  font-weight: 600;
+  color: #333;
+  min-width: 70px;
+}
+
+/* Team Cards */
+.project-detail-teamList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 16px 0;
+  justify-content: flex-start;
+  overflow-x: auto; /* mobil kaydırma için */
+  scroll-behavior: smooth;
+}
+
+.project-detail-teamList::-webkit-scrollbar {
+  display: none;
+}
+
+.project-detail-teamCard {
+  flex: 0 0 calc(33.333% - 10.666px);
+  background-color: #fff;
+  padding: 1rem;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+  transition: transform 0.3s ease;
+}
+
+.project-detail-teamCard:hover {
+  transform: translateY(-6px);
+}
+
+.project-detail-teamCard img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 0.6rem;
+}
+
+.project-detail-teamName {
+  font-weight: 600;
+  margin-bottom: 0.2rem;
+}
+
+.project-detail-teamRole {
+  font-size: 0.85rem;
+  color: #555;
+}
+
+/* Responsive: Tablet */
+@media (max-width: 1024px) {
+  .project-detail-contentFlex {
+    flex-direction: column;
+  }
+
+  .project-detail-hero {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .project-detail-heroImage {
+    width: 100%;
+  }
+
+  .project-detail-leftColumn,
+  .project-detail-rightColumn {
+    width: 100%;
+  }
+
+  .project-detail-teamCard {
+    flex: 0 0 calc(50% - 8px); /* tabletde 2 kart */
+  }
+}
+
+/* Responsive: Mobil */
+@media (max-width: 768px) {
+  .project-detail-teamList {
+    flex-wrap: nowrap; /* yatay kaydırmalı */
+  }
+
+  .project-detail-teamCard {
+    flex: 0 0 200px; /* kaydırmalı kart genişliği */
+  }
+
+  .project-detail-heroTitle {
+    font-size: 1.8rem;
+  }
+
+  .project-detail-heroSubtitle {
+    font-size: 0.95rem;
+  }
+
+  .project-detail-heroButtons {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .project-detail-teamCard {
+    flex: 0 0 160px;
+  }
+
+  .project-detail-heroTitle {
+    font-size: 1.5rem;
+  }
+
+  .project-detail-heroSubtitle {
+    font-size: 0.9rem;
+  }
+}

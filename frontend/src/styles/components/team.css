@@ -1,3 +1,7 @@
+.text-center {
+  cursor: pointer;
+}
+
 .view-more-team {
   position: relative;
   display: inline-flex;
@@ -13,6 +17,15 @@
   padding: 10px 16px;
   cursor: pointer;
   transition: all 0.3s ease-in-out;
+}
+
+.view-more-team span {
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.view-more-team img{
+  cursor: pointer;
 }
 
 /* Alt çizgi */

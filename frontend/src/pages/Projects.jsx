@@ -40,8 +40,32 @@ export default function Projects() {
     return activeFilter ? projects.filter(p => p.category_id === activeFilter) : projects;
   }, [projects, activeFilter]);
 
-  if (loading) return <div className="projects-section loading">Yükleniyor...</div>;
-  if (error) return <div className="projects-section error">{error}</div>;
+if (loading) 
+  return (
+    <div class="spinner center">
+      <div class="spinner-blade"></div>
+      <div class="spinner-blade"></div>
+      <div class="spinner-blade"></div>
+      <div class="spinner-blade"></div>
+      <div class="spinner-blade"></div>
+      <div class="spinner-blade"></div>
+      <div class="spinner-blade"></div>
+      <div class="spinner-blade"></div>
+      <div class="spinner-blade"></div>
+      <div class="spinner-blade"></div>
+      <div class="spinner-blade"></div>
+      <div class="spinner-blade"></div>
+</div>
+  );
+
+ if (error) 
+  return (
+    <div className="error-container">
+      <div className="error-icon">⚠️</div>
+      <p>{error}</p>
+      <button onClick={() => window.location.reload()}>Tekrar Dene</button>
+    </div>
+  );
 
   return (
     <section className="projects-section">

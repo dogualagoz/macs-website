@@ -1,9 +1,26 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { fetchProjectBySlug } from '../services/api';
-import '../styles/components/projects.css';
+import React, { useState, useEffect, } from "react";
+import { motion } from "framer-motion";
+import {
+  Share2,
+  ArrowLeft,
+  CheckCircle2
+} from "lucide-react";
+import { useParams } from "react-router-dom";
+import { fetchProjectBySlug } from "../services/api"; // API'yi projeye göre ayarlayın
+import '../styles/pages/ProjectDetail.css';
 
-export default function ProjectDetailPage() {
+
+function Section({ title, children }) {
+  return (
+    <section className="project-detail-section">
+      <h3 className="sectionTitle">{title}</h3>
+      {children}
+    </section>
+  );
+}
+
+// ---------- Main Component ----------
+const ProjectDetail = () => {
   const { slug } = useParams();
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -14,11 +31,11 @@ export default function ProjectDetailPage() {
       try {
         setLoading(true);
         const found = await fetchProjectBySlug(slug);
-        setProject(found || null);
-        if (!found) setError('Proje bulunamadı');
+        if (!found) setError("Proje bulunamadı");
+        setProject(found || {});
       } catch (err) {
         console.error(err);
-        setError('Proje yüklenirken bir hata oluştu');
+        setError("Proje yüklenirken bir hata oluştu");
       } finally {
         setLoading(false);
       }
@@ -26,53 +43,219 @@ export default function ProjectDetailPage() {
     load();
   }, [slug]);
 
-  if (loading) return <div className="projects-section loading">Yükleniyor...</div>;
-  if (error) return <div className="projects-section error">{error}</div>;
+if (loading) 
+  return (
+    <div class="spinner center">
+      <div class="spinner-blade"></div>
+      <div class="spinner-blade"></div>
+      <div class="spinner-blade"></div>
+      <div class="spinner-blade"></div>
+      <div class="spinner-blade"></div>
+      <div class="spinner-blade"></div>
+      <div class="spinner-blade"></div>
+      <div class="spinner-blade"></div>
+      <div class="spinner-blade"></div>
+      <div class="spinner-blade"></div>
+      <div class="spinner-blade"></div>
+      <div class="spinner-blade"></div>
+</div>
+  );
+
+ if (error) 
+  return (
+    <div className="error-container">
+      <div className="error-icon">⚠️</div>
+      <p>{error}</p>
+      <button onClick={() => window.location.reload()}>Tekrar Dene</button>
+    </div>
+  );
   if (!project) return null;
 
-  const techArray = project.technologies ? project.technologies.split(',').map(t => t.trim()) : [];
+
+const team = project.team || [
+  { name: "Ali Veli", role: "Frontend Developer", avatar: "/assets/images/team1.jpg" },
+  { name: "Ayşe Yılmaz", role: "Backend Developer", avatar: "/assets/images/team2.jpg" },
+  { name: "Mehmet Kaya", role: "UI/UX Designer", avatar: "/assets/images/team3.jpg" },
+  { name: "Zeynep Demir", role: "Project Manager", avatar: "/assets/images/team4.jpg" },
+  { name: "Can Öztürk", role: "Mobile Developer", avatar: "/assets/images/team5.jpg" },
+  { name: "Elif Arslan", role: "QA Engineer", avatar: "/assets/images/team6.jpg" },
+  { name: "Murat Çelik", role: "DevOps Engineer", avatar: "/assets/images/team7.jpg" },
+  { name: "Selin Aksoy", role: "Content Strategist", avatar: "/assets/images/team8.jpg" }
+];
+
+
+  const örnekDescription = `📌 Proje Açıklaması: MACS Websitesi
+
+Proje Adı: MACS Official Website
+Amaç: MACS kulübünü tanıtmak, etkinlikleri duyurmak ve üyeler arasında iletişimi kolaylaştırmak için modern, kullanıcı dostu ve dinamik bir web sitesi geliştirmek.
+
+🎯 Hedefler
+
+Kulüp hakkında genel bilgileri paylaşmak (vizyon, misyon, ekip).
+
+Etkinlikleri ve duyuruları kolayca yayınlamak.
+
+Üyeler için özel giriş sistemi sunmak.
+
+Hava durumu, spor karşılaşmaları ve kripto para gibi ilgi çekici dinamik içerikler eklemek.
+
+Modern, mobil uyumlu ve hızlı çalışan bir arayüz oluşturmak.
+
+🛠️ Kullanılacak Teknolojiler
+
+Frontend: React.js, TailwindCSS, Framer Motion (animasyonlar için)
+
+Backend: Django veya Node.js (API servisleri için)
+
+Veritabanı: PostgreSQL veya MongoDB
+
+Diğer: GitHub (versiyon kontrolü), Figma (UI/UX tasarımı)
+
+📑 Özellikler
+
+Ana Sayfa: Kulübün kısa tanıtımı, son duyurular, öne çıkan etkinlikler.
+
+Etkinlikler Sayfası: Takvim, geçmiş ve gelecek etkinlikler.
+
+Üyelik Sistemi: Kullanıcı girişi, profil oluşturma, özel görev listesi.
+
+Dinamik İçerikler: Hava durumu, kripto fiyatları, spor skorları.
+
+İletişim: İletişim formu, sosyal medya bağlantıları.
+
+👥 Ekip ve Roller
+
+Frontend Geliştirici: Kullanıcı arayüzünü tasarlayıp geliştirecek.
+
+Backend Geliştirici: API’leri ve veritabanı bağlantısını sağlayacak.
+
+UI/UX Tasarımcı: Kullanıcı deneyimi ve tasarımı yönetecek.
+
+Proje Yöneticisi: Görev dağılımı ve zaman yönetiminden sorumlu olacak.
+
+📅 Zaman Çizelgesi
+
+1. Hafta: Tasarım & planlama
+
+2-3. Hafta: Frontend geliştirme
+
+4-5. Hafta: Backend geliştirme ve veritabanı entegrasyonu
+
+6. Hafta: Testler ve hata düzeltmeleri
+
+7. Hafta: Yayına alma
+
+🚀 Beklenen Sonuç
+
+Kullanıcı dostu, hızlı, güvenli ve mobil uyumlu bir MACS web sitesi. Kulüp etkinliklerini dijital ortama taşıyarak üyeler ve takipçiler arasında daha güçlü bir iletişim kanalı sağlanacak.`;
+
+  const  örnekFeatures = [
+    {time: 1, title: "Planlama ve Analiz"},
+    {time: 2, title: "Tasarım (UI/UX)"},
+    {time: "3-4", title: "Frontend Geliştirme"},
+    {time: "5-6", title: "Backend Geliştirme"},
+    {time: 6, title: "Entegrasyon"},
+    {time: 7, title: "Test Süreci"},
+    {time: 8, title: "Yayına Alma (Deployment)"},
+    {time: "Sürekli", title: "Bakım ve Güncellemeler"}
+]
+
 
   return (
-    <section className="projects-section">
-      <div className="projects-container" style={{ maxWidth: 960 }}>
-        <Link to="/projeler" style={{ textDecoration: 'none' }}>&larr; Projelere Dön</Link>
-        <h1 className="section-title" style={{ textAlign: 'left' }}>{project.title}</h1>
+    <div className="project-detail-page">
+      <div className="project-detail-container">
+        {/* Back */}
+        <div onClick={() => window.history.back()} className="project-detail-backBtn">
+          <ArrowLeft size={16} /> Geri Dön
+        </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem' }}>
-          <div style={{ background: '#F9FAFB', border: '1px solid #E1E1E1', borderRadius: 10, overflow: 'hidden' }}>
-            <img src={project.image_url || '/assets/images/img_source_code.png'} alt={project.title} style={{ width: '100%', height: 360, objectFit: 'cover' }} />
-          </div>
-
-          <div style={{ display: 'grid', gap: '1rem' }}>
-            <p style={{ color: '#4B5563', lineHeight: 1.7 }}>{project.description}</p>
-
-            {techArray.length > 0 && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                {techArray.map(tech => (
-                  <span key={tech} className="tech-tag">{tech}</span>
-                ))}
-              </div>
-            )}
-
-            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 8 }}>
-              {project.github_url && (
-                <a className="all-projects-button" href={project.github_url} target="_blank" rel="noreferrer">GitHub</a>
-              )}
-              {project.live_url && (
-                <a className="all-projects-button" href={project.live_url} target="_blank" rel="noreferrer">Canlı Demo</a>
-              )}
-            </div>
-
-            <div style={{ marginTop: 16, color: '#6B7280' }}>
-              <div><strong>Kategori:</strong> {project.category?.name || '—'}</div>
-              <div><strong>Takım:</strong> {project.team_members || '—'}</div>
-              <div><strong>Durum:</strong> {project.status || '—'}</div>
+        {/* Hero */}
+        <div className="project-detail-hero">
+          <motion.img
+            src={project.image_url || "/assets/images/bootcamp.jpg"}
+            alt={project.title|| "Proje"}
+            className="project-detail-heroImage"
+            initial={{ scale: 1.06, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.9 }}
+          />
+          <div className="project-detail-heroText">
+            <motion.h1
+              className="project-detail-heroTitle"
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+            >
+              {project.title || "Proje Başlığı"}
+            </motion.h1>
+            <p className="project-detail-heroSubtitle">{project.subtitle || ""}</p>
+            <div className="project-detail-heroButtons">
+              <button className="project-detail-buttonPrimary">
+                Projeyi İncele
+              </button>
+              <button className="project-detail-buttonSecondary">
+                <Share2 size={14} /> Paylaş
+              </button>
             </div>
           </div>
         </div>
+
+        {/* Content */}
+        <div className="project-detail-contentFlex">
+          <div className="project-detail-leftColumn">
+            <Section title="Proje Açıklaması">
+              <p>{project.content || "-"}</p>
+              <div className="project-detail-perkList">
+                {(project.features || []).map((f, i) => (
+                  <div key={i} className="project-detail-perkItem">
+                    <CheckCircle2 size={16} /> {f}
+                  </div>
+                ))}
+              </div>
+            </Section>
+
+            <Section title="Proje Aşamaları">
+              {(project.stages || örnekFeatures).map((s, i) => (
+                <div key={i} className="project-detail-stageItem">
+                  <span className="project-detail-time">{s.time || "-"}</span>
+                  <span>{s.title || "-"}</span>
+                </div>
+              ))}
+            </Section>
+
+            <Section title="Proje Ekibi">
+              <div className="project-detail-teamList">
+                {team.map((member, i) => (
+                  <div key={i} className="project-detail-teamCard">
+                    <img src={member.avatar || "/assets/images/avatar-placeholder.png"} alt={member.name} />
+                    <div className="project-detail-teamName">{member.name}</div>
+                    <div className="project-detail-teamRole">{member.role}</div>
+                  </div>
+                ))}
+              </div>
+            </Section>
+
+
+          </div>
+
+          {/* Right Card */}
+          <div className="project-detail-rightColumn">
+            {/* <Section title="Proje Bilgisi">
+              <div className="project-detail-rightCardTop">
+                <Users size={16} /> <span>Katılımcılar sınırlı</span>
+              </div>
+              <div className="project-detail-rightCardInfo">
+                <div><CalendarDays size={14} /> {StartDate || "-"}</div>
+                <div><Clock size={14} /> {StartDate} - {EndDate}</div>
+                <div><MapPin size={14} /> {project.location || "-"}</div>
+              </div>
+              <button className="project-detail-buttonPrimary fullWidth">Projeyi Gör</button>
+            </Section> */}
+          </div>
+        </div>
       </div>
-    </section>
+    </div>
   );
-}
+};
 
-
+export default ProjectDetail;
