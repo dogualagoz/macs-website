@@ -10,9 +10,10 @@ import { Link } from 'react-router-dom';
 
 const FeaturedProjectCard = ({ title, description, image, technologies, githubUrl, liveUrl, slug }) => {
   // Technologies string'ini virgülle ayır
-  const techArray = technologies ? technologies.split(',').map(tech => tech.trim()) : [];
+  const techArray = technologies ? technologies.split(',').map(tech => tech.trim()).filter(Boolean) : [];
 
   // CSS'teki teknoloji sınıflarını kullan
+  console.log(techArray);
   const techClasses = ['Python', 'TensorFlow', 'React', 'MachineLearn'];
 
   return (
@@ -35,11 +36,20 @@ const FeaturedProjectCard = ({ title, description, image, technologies, githubUr
         </div>
         
         {/* Technology tags - CSS'teki sınıfları kullan */}
-        <div className="tags">
+        {/* <div className="tags">
         {techArray.map((tech, index) => {
           const className = techClasses[index] || 'Python'; // Fallback
           return (
             <div key={index} className={className}>
+              {tech}
+            </div>
+          );
+        })}
+        </div> */}
+        <div className="tags">
+        {techArray.map((tech, index) => {
+          return (
+            <div key={index} className="tag">
               {tech}
             </div>
           );

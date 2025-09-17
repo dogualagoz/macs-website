@@ -103,8 +103,8 @@
   flex-direction: row;
   align-items: center;
   justify-content: flex-start;
-  gap: 15px;
-  margin-left: 15px;
+  gap: 10px;
+  margin-left: 25px;
 }
 
 .Python{
@@ -153,6 +153,20 @@
   color: #374151;
   font-weight: 600;
   font-size: 15px;
+}
+
+.tag{
+  display: inline-flex;
+  background-color: #E5E7EB;
+  border-radius: 15px;
+  align-self: center;  justify-self: center;
+  text-align: center;   text-justify: center;
+  color: #374151;
+  font-weight: 600;
+  font-size: 15px;
+  height: 30px; /* Sabit yükseklik */
+  white-space: nowrap; /* Tek satırda tut */
+  padding: 0 8px; /* Yatayda biraz boşluk */
 }
 
 .Detail-Project{

@@ -24,8 +24,8 @@ const Header = ({ isScrolled }) => {
             <li><Link to="/">Ana Sayfa</Link></li>
             <li><Link to="/etkinlikler">Etkinlikler</Link></li>
             <li><Link to="/projeler">Projeler</Link></li>
-            <li><a href="#BlogMakale">Blog/Makaleler</a></li>
-            <li><a href="#soruces">Kaynaklar</a></li>
+            {/* <li><a href="#BlogMakale">Blog/Makaleler</a></li>
+            <li><a href="#soruces">Kaynaklar</a></li> */}
             <li><a href="#about">Hakkımızda</a></li>
             <li><a href="#contact">İletişim</a></li>
           </ul>
@@ -48,8 +48,8 @@ const Header = ({ isScrolled }) => {
               <li><Link to="/" onClick={() => setMenuOpen(false)}>Ana Sayfa</Link></li>
               <li><Link to="/etkinlikler"onClick={() => setMenuOpen(false)}>Etkinlikler</Link></li>
               <li><Link to="/projeler" onClick={() => setMenuOpen(false)}>Projeler</Link></li>
-              <li><a href="#BlogMakale" onClick={() => setMenuOpen(false)}>Blog/Makaleler</a></li>
-              <li><a href="#soruces" onClick={() => setMenuOpen(false)}>Kaynaklar</a></li>
+              {/* <li><a href="#BlogMakale" onClick={() => setMenuOpen(false)}>Blog/Makaleler</a></li>
+              <li><a href="#soruces" onClick={() => setMenuOpen(false)}>Kaynaklar</a></li> */}
               <li><a href="#about" onClick={() => setMenuOpen(false)}>Hakkımızda</a></li>
               <li><a href="#contact" onClick={() => setMenuOpen(false)}>İletişim</a></li>
               <li><a href="" onClick={() => setMenuOpen(false)}>Bize Katıl</a></li>

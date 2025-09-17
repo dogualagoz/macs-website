@@ -69,6 +69,10 @@
   background-color: #E9ECEF;
 }
 
+.Button{
+  cursor: pointer;
+}
+
 .JoinUs{
   position: relative;
   justify-content: flex-end;
@@ -83,6 +87,10 @@
   font-size: 0.95rem;
   overflow: hidden;
   z-index: 0;
+}
+
+.JoinUs span{
+  cursor: pointer;
 }
 
 /* .JoinUs::before{

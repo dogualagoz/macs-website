@@ -42,7 +42,7 @@ const Footer = () => {
                 src="/assets/images/img_icon_gray_50_01.svg"
                 alt="Twitter"
               />
-              <img src="/assets/images/img_logo_youtube.svg" alt="YouTube" />
+              {/* <img src="/assets/images/img_logo_youtube.svg" alt="YouTube" /> */}
               <img
                 src="/assets/images/img_icon_gray_50_01_18x18.svg"
                 alt="Instagram"

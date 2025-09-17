@@ -179,6 +179,7 @@
   align-self: center;
   justify-self: flex-start;
   transition: transform 0.3s ease; 
+  cursor: pointer;
 }
 
 .Card-Details button:hover img {
@@ -209,6 +210,7 @@
 .Card-Details button span {
   display: inline-block;
   transition: transform 0.3s ease;
+  cursor: pointer;
 }
 
 .Card-Details button:hover span {
