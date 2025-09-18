@@ -9,6 +9,7 @@
  */
 import React from 'react';
 import PropTypes from 'prop-types';
+import { getImageUrl, handleImageError } from '../../utils/imageUtils';
 
 const ProjectCard = ({ title, description, image, technologies, teamMembers, category }) => {
   // Technologies string'ini virgülle ayır
@@ -16,12 +17,18 @@ const ProjectCard = ({ title, description, image, technologies, teamMembers, cat
   
   // Team members string'ini virgülle ayır ve ilk elemanı al
   const firstTeamMember = teamMembers ? teamMembers.split(',').map(member => member.trim())[0] : 'Ayşe Yıldız';
+  
+  // techArray ve firstTeamMember değişkenleri korundu, getImageUrl artık import edildi
 
   return (
     <div className="project-card">
       {/* Project image */}
       <div className="project-image">
-        <img src={image || "/assets/images/img_source_code.png"} alt={title} />
+        <img 
+          src={getImageUrl(image, '/assets/images/img_source_code.png')} 
+          alt={title}
+          onError={(e) => handleImageError(e, '/assets/images/img_source_code.png')}
+        />
       </div>
 
       {/* Project details */}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect , useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   CalendarDays,
@@ -13,8 +13,9 @@ import {
   CheckCircle2,
   ChevronLeft
 } from "lucide-react";
-import { useParams } from "react-router-dom";
-import { fetchEventBySlug } from "../services/api";
+import { useParams, Link } from "react-router-dom";
+import { getImageUrl, handleImageError } from '../utils/imageUtils';
+import { getJson } from '../api/http';
 import '../styles/pages/EventDetail.css';
 
 // ---------- Components ----------
@@ -41,51 +42,58 @@ const EventDetail = () => {
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // getImageUrl artık import edildi
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        setLoading(true);
-        const found = await fetchEventBySlug(slug);
-        if (!found) setError("Etkinlik bulunamadı");
-        setEvent(found || {});
-        console.log(found);
-      } catch (err) {
-        console.error(err);
-        setError("Etkinlik yüklenirken bir hata oluştu");
-      } finally {
-        setLoading(false);
-      }
+    let isMounted = true;
+    setLoading(true);
+    getJson(`/events/by-slug/${slug}`)
+      .then((data) => { 
+        if (isMounted) {
+          setEvent(data);
+          setError(null);
+        }
+      })
+      .catch((err) => { 
+        if (isMounted) {
+          setError(err.message || 'Etkinlik yüklenirken bir hata oluştu');
+          console.error('Event fetch error:', err);
+        }
+      })
+      .finally(() => { if (isMounted) setLoading(false); });
+    
+    return () => {
+      isMounted = false;
     };
-    load();
   }, [slug]);
 
-if (loading) 
-  return (
-    <div class="spinner center">
-      <div class="spinner-blade"></div>
-      <div class="spinner-blade"></div>
-      <div class="spinner-blade"></div>
-      <div class="spinner-blade"></div>
-      <div class="spinner-blade"></div>
-      <div class="spinner-blade"></div>
-      <div class="spinner-blade"></div>
-      <div class="spinner-blade"></div>
-      <div class="spinner-blade"></div>
-      <div class="spinner-blade"></div>
-      <div class="spinner-blade"></div>
-      <div class="spinner-blade"></div>
-</div>
-  );
+  if (loading) 
+    return (
+      <div className="spinner center">
+        <div className="spinner-blade"></div>
+        <div className="spinner-blade"></div>
+        <div className="spinner-blade"></div>
+        <div className="spinner-blade"></div>
+        <div className="spinner-blade"></div>
+        <div className="spinner-blade"></div>
+        <div className="spinner-blade"></div>
+        <div className="spinner-blade"></div>
+        <div className="spinner-blade"></div>
+        <div className="spinner-blade"></div>
+        <div className="spinner-blade"></div>
+        <div className="spinner-blade"></div>
+      </div>
+    );
 
- if (error) 
-  return (
-    <div className="error-container">
-      <div className="error-icon">⚠️</div>
-      <p>{error}</p>
-      <button onClick={() => window.location.reload()}>Tekrar Dene</button>
-    </div>
-  );
+  if (error) 
+    return (
+      <div className="error-container">
+        <div className="error-icon">⚠️</div>
+        <p>{error}</p>
+        <button onClick={() => window.location.reload()}>Tekrar Dene</button>
+      </div>
+    );
   if (!event) return null;
 
   const StartTime  = (event.start_time || "").split('T')[1].substring(0,5);
@@ -162,9 +170,10 @@ const speakers = [
     {/* Hero */}
     <div className="event-detail-hero">
       <motion.img
-        src={event.image_url || "/assets/images/bootcamp.jpg"}
-        alt={event.title || "assets"}
+        src={getImageUrl(event.image_url) || "/assets/images/bootcamp.jpg"}
+        alt={event.title || "Event"}
         className="event-detail-heroImage"
+        onError={(e) => handleImageError(e)}
         initial={{ scale: 1.06, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.9 }}
@@ -238,7 +247,11 @@ const speakers = [
              <ChevronLeft size={45} className="event-detail-speakerChevron" />
             {(event.speakers || speakers).map((s, i) => (
               <div key={s.name || i} className="event-detail-speakerCard">
-                <img src={s.avatar || "/assets/images/img_shape.png"} alt={s.name || "Konuşmacı"} />
+                <img 
+                  src={getImageUrl(s.avatar) || "/assets/images/img_shape.png"} 
+                  alt={s.name || "Konuşmacı"}
+                  onError={(e) => handleImageError(e)}
+                />
                 <div className="event-detail-speakerName">{s.name || "-"}</div>
                 <div className="event-detail-speakerTitle">{s.title || "-"}</div>
               </div>

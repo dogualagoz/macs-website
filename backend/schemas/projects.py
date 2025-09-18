@@ -48,6 +48,8 @@ class ProjectBase(BaseModel):
     team_members: Optional[str] = None
     started_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
+    is_active: Optional[bool] = True
+    is_featured: Optional[bool] = False
 
 class ProjectCreate(ProjectBase):
     """Proje oluşturma şeması"""
@@ -68,6 +70,7 @@ class ProjectUpdate(BaseModel):
     started_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
     is_active: Optional[bool] = None
+    is_featured: Optional[bool] = None
 
 class ProjectResponse(ProjectBase):
     """Proje yanıt şeması"""
@@ -76,6 +79,7 @@ class ProjectResponse(ProjectBase):
     created_by: int
     is_active: bool
     is_deleted: bool
+    is_featured: bool
     created_at: datetime
     updated_at: Optional[datetime] = None
     category: Optional[ProjectCategoryResponse] = None

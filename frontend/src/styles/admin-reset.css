@@ -1,0 +1,38 @@
+/* Admin sayfası için reset CSS */
+
+/* Tüm margin ve padding değerlerini sıfırla */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Sayfa gövdesi için tam yükseklik ve genişlik */
+html, body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+}
+
+/* Admin container için tam ekran */
+.admin-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  min-height: 100vh;
+  z-index: 9999;
+  overflow-y: auto;
+}
+
+/* Tüm diğer içerik öğelerinin üzerinde olmasını sağla */
+#root {
+  height: 100%;
+}
+
+.app {
+  height: 100%;
+}

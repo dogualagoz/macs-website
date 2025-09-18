@@ -1,10 +1,12 @@
 # Gerekli kütüphaneler
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+import os
 from database import engine, Base
 from fastapi.middleware.cors import CORSMiddleware
 
 # Router'ları import et
-from routers import auth_router, events_router, users_router, projects_router
+from routers import auth_router, events_router, users_router, projects_router, uploads_router
 
 app = FastAPI(
     title = "MACS API",
@@ -34,11 +36,18 @@ app.add_middleware(
 # Database tablolarını oluştur
 Base.metadata.create_all(bind=engine)
 
+# Statik dosya klasörünü oluştur
+os.makedirs("static/uploads", exist_ok=True)
+
+# Statik dosyaları sunmak için middleware ekle
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 # Routerları ekle
 app.include_router(events_router)
 app.include_router(projects_router)
 app.include_router(auth_router)
 app.include_router(users_router)
+app.include_router(uploads_router)
 
 
 @app.get("/")

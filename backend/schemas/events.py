@@ -31,6 +31,7 @@ class EventBase(BaseModel):
     end_time: Optional[datetime] = None
     category_id: Optional[int] = None
     is_active: bool = True
+    is_featured: bool = False
 
 #! Frontend'e gidecek veriler (inherit ettik üsttekinden)
 class EventCreate(EventBase): 
@@ -47,6 +48,7 @@ class EventUpdate(BaseModel):
     end_time: Optional[datetime] = None
     category_id: Optional[int] = None
     is_active: Optional[bool] = None
+    is_featured: Optional[bool] = None
 
 #! tüm alanları temsil eder (response modeli)
 class Event(EventBase):

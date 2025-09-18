@@ -66,6 +66,7 @@ class Project(Base):
     # Durum bilgileri
     is_active = Column(Boolean, default=True)
     is_deleted = Column(Boolean, default=False)
+    is_featured = Column(Boolean, default=False)
     
     # Zaman damgaları
     created_at = Column(DateTime(timezone=True), server_default=func.now())

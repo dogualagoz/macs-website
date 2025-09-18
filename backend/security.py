@@ -10,9 +10,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # JWT ayarları
+# Not: Prod ortamında henüz set edilmemişse uygulama açılışını engellememek için
+# import anında exception fırlatmıyoruz. İlgili fonksiyon çağrıldığında 500 dönecek.
 SECRET_KEY = getenv("JWT_SECRET_KEY")
-if not SECRET_KEY:
-    raise ValueError("JWT_SECRET_KEY must be set in environment variables")
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = int(getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
@@ -39,6 +39,12 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
     """Login olunca kullanıcıya verilecek JWT token'ı oluşturur"""
     if not data:
         raise ValueError("Token verisi boş olamaz")
+    if not SECRET_KEY:
+        # Uygulama yanlış yapılandırılmış
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Server misconfigured: JWT_SECRET_KEY is not set",
+        )
     
     to_encode = data.copy()
     
@@ -63,6 +69,12 @@ def verify_token(token: str) -> dict:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token eksik",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    if not SECRET_KEY:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Server misconfigured: JWT_SECRET_KEY is not set",
             headers={"WWW-Authenticate": "Bearer"},
         )
     

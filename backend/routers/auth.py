@@ -24,9 +24,8 @@ router = APIRouter(
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 # Admin secret key'i environment variables'dan al
+# Not: Uygulamanın açılışını engellememesi için import anında hata fırlatmıyoruz.
 ADMIN_SECRET_KEY = getenv("ADMIN_SECRET_KEY")
-if not ADMIN_SECRET_KEY:
-    raise ValueError("ADMIN_SECRET_KEY must be set in environment variables")
 
 # Başarısız giriş denemesi limitleri
 MAX_LOGIN_ATTEMPTS = int(getenv("MAX_LOGIN_ATTEMPTS", "5"))  # 5 başarısız deneme
@@ -104,6 +103,12 @@ async def register_admin(
     - Rate limit: 3/dakika
     """
     try:
+        # Sunucu konfigürasyonu kontrolü
+        if not ADMIN_SECRET_KEY:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Admin kaydı devre dışı: ADMIN_SECRET_KEY yapılandırılmamış"
+            )
         # Admin secret kontrolü
         if admin.admin_secret != ADMIN_SECRET_KEY:
             raise HTTPException(

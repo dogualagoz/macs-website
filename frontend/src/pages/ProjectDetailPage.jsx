@@ -1,12 +1,13 @@
-import React, { useState, useEffect, } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Share2,
   ArrowLeft,
   CheckCircle2
 } from "lucide-react";
-import { useParams } from "react-router-dom";
-import { fetchProjectBySlug } from "../services/api"; // API'yi projeye göre ayarlayın
+import { useParams, Link } from "react-router-dom";
+import { fetchProjectBySlug } from "../services/api";
+import { getImageUrl, handleImageError } from '../utils/imageUtils';
 import '../styles/pages/ProjectDetail.css';
 
 
@@ -25,6 +26,8 @@ const ProjectDetail = () => {
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // getImageUrl artık import edildi
 
   useEffect(() => {
     const load = async () => {
@@ -172,9 +175,10 @@ Kullanıcı dostu, hızlı, güvenli ve mobil uyumlu bir MACS web sitesi. Kulüp
         {/* Hero */}
         <div className="project-detail-hero">
           <motion.img
-            src={project.image_url || "/assets/images/bootcamp.jpg"}
-            alt={project.title|| "Proje"}
+            src={getImageUrl(project.image_url) || "/assets/images/img_source_code.png"}
+            alt={project.title || "Proje"}
             className="project-detail-heroImage"
+            onError={(e) => handleImageError(e)}
             initial={{ scale: 1.06, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.9 }}
@@ -188,11 +192,28 @@ Kullanıcı dostu, hızlı, güvenli ve mobil uyumlu bir MACS web sitesi. Kulüp
             >
               {project.title || "Proje Başlığı"}
             </motion.h1>
-            <p className="project-detail-heroSubtitle">{project.subtitle || ""}</p>
+            <p className="project-detail-heroSubtitle">{project.subtitle || project.description || ""}</p>
+            
+            {/* Technology Tags */}
+            {project.technologies && (
+              <div className="project-detail-techTags">
+                {project.technologies.split(',').filter(tech => tech.trim()).map(tech => (
+                  <span key={tech.trim()} className="tech-tag">{tech.trim()}</span>
+                ))}
+              </div>
+            )}
+            
             <div className="project-detail-heroButtons">
-              <button className="project-detail-buttonPrimary">
-                Projeyi İncele
-              </button>
+              {project.github_url && (
+                <a href={project.github_url} target="_blank" rel="noreferrer" className="project-detail-buttonPrimary">
+                  GitHub
+                </a>
+              )}
+              {project.live_url && (
+                <a href={project.live_url} target="_blank" rel="noreferrer" className="project-detail-buttonPrimary">
+                  Canlı Demo
+                </a>
+              )}
               <button className="project-detail-buttonSecondary">
                 <Share2 size={14} /> Paylaş
               </button>
@@ -227,7 +248,11 @@ Kullanıcı dostu, hızlı, güvenli ve mobil uyumlu bir MACS web sitesi. Kulüp
               <div className="project-detail-teamList">
                 {team.map((member, i) => (
                   <div key={i} className="project-detail-teamCard">
-                    <img src={member.avatar || "/assets/images/avatar-placeholder.png"} alt={member.name} />
+                    <img 
+                      src={getImageUrl(member.avatar) || "/assets/images/img_shape.png"} 
+                      alt={member.name}
+                      onError={(e) => handleImageError(e)}
+                    />
                     <div className="project-detail-teamName">{member.name}</div>
                     <div className="project-detail-teamRole">{member.role}</div>
                   </div>
