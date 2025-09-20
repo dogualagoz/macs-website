@@ -1,4 +1,5 @@
 import React from "react";
+import '../../styles/components/footer.css';
 
 const Footer = () => {
   return (
@@ -25,7 +26,7 @@ const Footer = () => {
             <div className="contact-info">
               <div className="contact-item">
                 <img src="/assets/images/img_mail.png" alt="Email" />
-                <span>info@macs.edu.tr</span>
+                <span>mathandcomputersociety@gmail.com</span>
               </div>
               <div className="contact-item">
                 <img src="/assets/images/img_phone.png" alt="Phone" />
@@ -37,16 +38,19 @@ const Footer = () => {
           <div className="footer-section">
             <h3>Sosyal Medya</h3>
             <div className="social-links">
-              <img src="/assets/images/img_icon.svg" alt="Facebook" />
-              <img
-                src="/assets/images/img_icon_gray_50_01.svg"
-                alt="Twitter"
-              />
-              {/* <img src="/assets/images/img_logo_youtube.svg" alt="YouTube" /> */}
+              <img src="/assets/images/img_icon.svg" alt="X" />
               <img
                 src="/assets/images/img_icon_gray_50_01_18x18.svg"
-                alt="Instagram"
+                alt="Linkedin"
               />
+              {/* <img src="/assets/images/img_logo_youtube.svg" alt="YouTube" /> */}
+              <a href="https://www.instagram.com/esogumacs/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                <img
+               
+                  src="/assets/images/img_icon_gray_50_01.svg"
+                  alt="Instagram"
+                />
+              </a>
             </div>
           </div>
         </div>

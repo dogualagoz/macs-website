@@ -217,3 +217,13 @@
   transform: translateY(-3px) scale(1.05);
 
 }
+
+@media (max-width: 768px) {
+  .MoreEventCard {
+    width: 100%;
+    max-width: 360px;
+    grid-template-columns: 1fr 1fr;
+  }
+  .MoreEventCard .Card-İmage { width: 100%; }
+  .MoreEventCard .Card-İmage img { height: 10rem; }
+}

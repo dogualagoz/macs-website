@@ -97,3 +97,10 @@
   color: #515b69;
   margin-left: 29px;
 }
+
+@media (max-width: 768px) {
+  .about-description { font-size: 15px; line-height: 24px; padding: 0 12px; }
+  .mission-card { padding: 20px; }
+  .values-card { padding: 28px; }
+  .values-grid { grid-template-columns: 1fr; gap: 20px; }
+}

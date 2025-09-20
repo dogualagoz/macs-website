@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect, useRef } from 'react';
+import React, { createContext, useState, useContext, useEffect, useRef, useCallback } from 'react';
 import * as authAPI from '../api/auth';
 
 const AuthContext = createContext();
@@ -36,7 +36,15 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const scheduleAutoLogout = (token) => {
+  // Logout function
+  const logout = useCallback(() => {
+    clearLogoutTimer();
+    localStorage.removeItem('token');
+    localStorage.removeItem('token_exp');
+    setUser(null);
+  }, []);
+
+  const scheduleAutoLogout = useCallback((token) => {
     clearLogoutTimer();
     const payload = decodeJwt(token);
     const expSeconds = payload?.exp; // seconds since epoch
@@ -59,7 +67,7 @@ export const AuthProvider = ({ children }) => {
         }
       } catch (_e) {}
     }, Math.min(delay, 2 ** 31 - 1)); // setTimeout sınırı guard
-  };
+  }, [logout]);
 
   // Check if user is authenticated on initial load
   useEffect(() => {
@@ -108,7 +116,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     checkAuthStatus();
-  }, []);
+  }, [scheduleAutoLogout]);
 
   // Login function
   const login = async (email, password) => {
@@ -135,14 +143,6 @@ export const AuthProvider = ({ children }) => {
       setError(err.message);
       return false;
     }
-  };
-
-  // Logout function
-  const logout = () => {
-    clearLogoutTimer();
-    localStorage.removeItem('token');
-    localStorage.removeItem('token_exp');
-    setUser(null);
   };
 
   // Check if user is authenticated

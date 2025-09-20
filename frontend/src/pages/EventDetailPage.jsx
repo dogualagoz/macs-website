@@ -9,23 +9,15 @@ import {
   ChevronRight,
   ArrowLeft,
   Users,
-  Star,
   CheckCircle2,
   ChevronLeft
 } from "lucide-react";
-import { useParams, Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { getImageUrl, handleImageError } from '../utils/imageUtils';
 import { getJson } from '../api/http';
 import '../styles/pages/EventDetail.css';
 
 // ---------- Components ----------
-function Badge({ children }) {
-  return (
-    <span className="badge">
-      <Star size={14} /> {children}
-    </span>
-  );
-}
 
 function Section({ title, children }) {
   return (
@@ -100,27 +92,6 @@ const EventDetail = () => {
   const EndTime    = (event.end_time   || "").split('T')[1];
   const EventDate  = (event.start_time || "").split('T')[0].split('-').reverse().join('/');
 
-  const örnekAçıklama = `Bu etkinlik, dijital pazarlama dünyasına hızlı bir giriş yapmak isteyen herkes için tasarlanmıştır. Katılımcılar, sektörün önde gelen uzmanlarından güncel stratejiler, SEO, sosyal medya reklamcılığı ve içerik pazarlaması konularında bilgi alacak.
-
-Etkinlik boyunca interaktif atölyeler ve canlı örneklerle, teorik bilgileri pratiğe dönüştürme fırsatı bulacaksınız. Ayrıca ağ kurma (networking) etkinlikleri ile benzer ilgi alanlarına sahip kişilerle tanışabilir ve iş birliği fırsatları yakalayabilirsiniz.
-
-Kimler Katılmalı?
-
--Dijital pazarlama alanında kendini geliştirmek isteyen öğrenciler ve profesyoneller
-
--Kendi işini büyütmek isteyen girişimciler
-
-Pazarlama stratejilerini güncel tutmak isteyen herkes
-
-Katılımcılar Etkinlikten Şunları Öğrenecek:
-
-Sosyal medya platformlarında etkili reklam stratejileri
-
-SEO ve içerik optimizasyonu
-
-E-posta pazarlaması ve otomasyon
-
-Analitik araçlar ile performans ölçümü`;
 
 
   const program = [

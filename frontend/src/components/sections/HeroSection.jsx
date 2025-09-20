@@ -10,10 +10,16 @@
 import React from 'react';
 import '../../styles/components/hero.css';
 
-
 const HeroSection = () => {
+  const heroStyle = {
+    backgroundImage: 'url(/assets/images/ekip2.png)',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center center',
+    backgroundRepeat: 'no-repeat'
+  };
+
   return (
-    <section className="hero" id="home">
+    <section className="hero" id="home" style={heroStyle}>
       <div className="hero-container">
         {/* Main logo */}
         <div className="hero-logo">

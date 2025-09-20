@@ -13,11 +13,7 @@ const FeaturedProjectCard = ({ title, description, image, technologies, githubUr
   // Technologies string'ini virgülle ayır
   const techArray = technologies ? technologies.split(',').map(tech => tech.trim()).filter(Boolean) : [];
 
-  // CSS'teki teknoloji sınıflarını kullan
-  console.log(techArray);
-  const techClasses = ['Python', 'TensorFlow', 'React', 'MachineLearn'];
-  
-  // techArray ve techClasses değişkenleri korundu, getImageUrl artık import edildi
+  // getImageUrl artık import edildi
 
   return (
     <div className="First-2">
@@ -64,32 +60,34 @@ const FeaturedProjectCard = ({ title, description, image, technologies, githubUr
         })}
         </div>
         
-        <div className="Detail-Project">
-          {slug ? (
-            <Link to={`/projeler/${slug}`} className='Detail-Project-button' style={{ textDecoration: 'none' }}>
-              <img className='Project-icon' src="assets/images/img_linking.png" alt="detay" />
-              Projeyi İncele
-            </Link>
-          ) : (
-            <a href={liveUrl || '#'} className='Detail-Project-button' style={{ textDecoration: 'none' }}>
-              <img className='Project-icon' src="assets/images/img_linking.png" alt="detay" />
-              Projeyi İncele
-            </a>
-          )}
-        </div>
-        
-        <div className="Git-div">
-          {githubUrl ? (
-            <a href={githubUrl} target="_blank" rel="noreferrer" className="Git-button" style={{ textDecoration: 'none' }}>
-              <img src="assets/images/img_github_18x17.png" alt="Github" className="Git-img" />
-              <span className="Git-span">Git Hub</span>
-            </a>
-          ) : (
-            <div className="Git-button" style={{ opacity: 0.6 }}>
-              <img src="assets/images/img_github_18x17.png" alt="Github" className="Git-img" />
-              <span className="Git-span">Git Hub</span>
-            </div>
-          )}
+        <div className="button-container">
+          <div className="Detail-Project">
+            {slug ? (
+              <Link to={`/projeler/${slug}`} className='Detail-Project-button' style={{ textDecoration: 'none' }}>
+                <img className='Project-icon' src="assets/images/img_linking.png" alt="detay" />
+                Projeyi İncele
+              </Link>
+            ) : (
+              <a href={liveUrl || '#'} className='Detail-Project-button' style={{ textDecoration: 'none' }}>
+                <img className='Project-icon' src="assets/images/img_linking.png" alt="detay" />
+                Projeyi İncele
+              </a>
+            )}
+          </div>
+          
+          <div className="Git-div">
+            {githubUrl ? (
+              <a href={githubUrl} target="_blank" rel="noreferrer" className="Git-button" style={{ textDecoration: 'none' }}>
+                <img src="assets/images/img_github_18x17.png" alt="Github" className="Git-img" />
+                <span className="Git-span">Git Hub</span>
+              </a>
+            ) : (
+              <div className="Git-button" style={{ opacity: 0.6 }}>
+                <img src="assets/images/img_github_18x17.png" alt="Github" className="Git-img" />
+                <span className="Git-span">Git Hub</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

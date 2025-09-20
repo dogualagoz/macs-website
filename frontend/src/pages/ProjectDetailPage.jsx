@@ -5,7 +5,7 @@ import {
   ArrowLeft,
   CheckCircle2
 } from "lucide-react";
-import { useParams, Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { fetchProjectBySlug } from "../services/api";
 import { getImageUrl, handleImageError } from '../utils/imageUtils';
 import '../styles/pages/ProjectDetail.css';
@@ -75,93 +75,13 @@ if (loading)
   if (!project) return null;
 
 
-const team = project.team || [
-  { name: "Ali Veli", role: "Frontend Developer", avatar: "/assets/images/team1.jpg" },
-  { name: "Ayşe Yılmaz", role: "Backend Developer", avatar: "/assets/images/team2.jpg" },
-  { name: "Mehmet Kaya", role: "UI/UX Designer", avatar: "/assets/images/team3.jpg" },
-  { name: "Zeynep Demir", role: "Project Manager", avatar: "/assets/images/team4.jpg" },
-  { name: "Can Öztürk", role: "Mobile Developer", avatar: "/assets/images/team5.jpg" },
-  { name: "Elif Arslan", role: "QA Engineer", avatar: "/assets/images/team6.jpg" },
-  { name: "Murat Çelik", role: "DevOps Engineer", avatar: "/assets/images/team7.jpg" },
-  { name: "Selin Aksoy", role: "Content Strategist", avatar: "/assets/images/team8.jpg" }
-];
+// Parse team members from project.team_members string
+const teamMembers = project.team_members 
+  ? project.team_members.split(',').map(name => name.trim()).filter(name => name)
+  : [];
 
 
-  const örnekDescription = `📌 Proje Açıklaması: MACS Websitesi
 
-Proje Adı: MACS Official Website
-Amaç: MACS kulübünü tanıtmak, etkinlikleri duyurmak ve üyeler arasında iletişimi kolaylaştırmak için modern, kullanıcı dostu ve dinamik bir web sitesi geliştirmek.
-
-🎯 Hedefler
-
-Kulüp hakkında genel bilgileri paylaşmak (vizyon, misyon, ekip).
-
-Etkinlikleri ve duyuruları kolayca yayınlamak.
-
-Üyeler için özel giriş sistemi sunmak.
-
-Hava durumu, spor karşılaşmaları ve kripto para gibi ilgi çekici dinamik içerikler eklemek.
-
-Modern, mobil uyumlu ve hızlı çalışan bir arayüz oluşturmak.
-
-🛠️ Kullanılacak Teknolojiler
-
-Frontend: React.js, TailwindCSS, Framer Motion (animasyonlar için)
-
-Backend: Django veya Node.js (API servisleri için)
-
-Veritabanı: PostgreSQL veya MongoDB
-
-Diğer: GitHub (versiyon kontrolü), Figma (UI/UX tasarımı)
-
-📑 Özellikler
-
-Ana Sayfa: Kulübün kısa tanıtımı, son duyurular, öne çıkan etkinlikler.
-
-Etkinlikler Sayfası: Takvim, geçmiş ve gelecek etkinlikler.
-
-Üyelik Sistemi: Kullanıcı girişi, profil oluşturma, özel görev listesi.
-
-Dinamik İçerikler: Hava durumu, kripto fiyatları, spor skorları.
-
-İletişim: İletişim formu, sosyal medya bağlantıları.
-
-👥 Ekip ve Roller
-
-Frontend Geliştirici: Kullanıcı arayüzünü tasarlayıp geliştirecek.
-
-Backend Geliştirici: API’leri ve veritabanı bağlantısını sağlayacak.
-
-UI/UX Tasarımcı: Kullanıcı deneyimi ve tasarımı yönetecek.
-
-Proje Yöneticisi: Görev dağılımı ve zaman yönetiminden sorumlu olacak.
-
-📅 Zaman Çizelgesi
-
-1. Hafta: Tasarım & planlama
-
-2-3. Hafta: Frontend geliştirme
-
-4-5. Hafta: Backend geliştirme ve veritabanı entegrasyonu
-
-6. Hafta: Testler ve hata düzeltmeleri
-
-7. Hafta: Yayına alma
-
-🚀 Beklenen Sonuç
-
-Kullanıcı dostu, hızlı, güvenli ve mobil uyumlu bir MACS web sitesi. Kulüp etkinliklerini dijital ortama taşıyarak üyeler ve takipçiler arasında daha güçlü bir iletişim kanalı sağlanacak.`;
-
-  const  örnekFeatures = [
-    {time: 1, title: "Planlama ve Analiz"},
-    {time: 2, title: "Tasarım (UI/UX)"},
-    {time: "3-4", title: "Frontend Geliştirme"},
-    {time: "5-6", title: "Backend Geliştirme"},
-    {time: 6, title: "Entegrasyon"},
-    {time: 7, title: "Test Süreci"},
-    {time: 8, title: "Yayına Alma (Deployment)"},
-    {time: "Sürekli", title: "Bakım ve Güncellemeler"}
-]
 
 
   return (
@@ -235,28 +155,17 @@ Kullanıcı dostu, hızlı, güvenli ve mobil uyumlu bir MACS web sitesi. Kulüp
               </div>
             </Section>
 
-            <Section title="Proje Aşamaları">
-              {(project.stages || örnekFeatures).map((s, i) => (
-                <div key={i} className="project-detail-stageItem">
-                  <span className="project-detail-time">{s.time || "-"}</span>
-                  <span>{s.title || "-"}</span>
-                </div>
-              ))}
-            </Section>
-
             <Section title="Proje Ekibi">
               <div className="project-detail-teamList">
-                {team.map((member, i) => (
-                  <div key={i} className="project-detail-teamCard">
-                    <img 
-                      src={getImageUrl(member.avatar) || "/assets/images/img_shape.png"} 
-                      alt={member.name}
-                      onError={(e) => handleImageError(e)}
-                    />
-                    <div className="project-detail-teamName">{member.name}</div>
-                    <div className="project-detail-teamRole">{member.role}</div>
-                  </div>
-                ))}
+                {teamMembers.length > 0 ? (
+                  teamMembers.map((memberName, i) => (
+                    <div key={i} className="project-detail-teamCard">
+                      <div className="project-detail-teamName">{memberName}</div>
+                    </div>
+                  ))
+                ) : (
+                  <p>Proje ekibi bilgisi mevcut değil.</p>
+                )}
               </div>
             </Section>
 

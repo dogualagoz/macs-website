@@ -1,5 +1,111 @@
+/* Team Section */
+.team-section {
+  background-color: #ffffff;
+  padding: 68px 0 36px;
+  border-bottom: 1px solid #e3e3e3;
+}
+
+.team-section .section-title {
+  font-size: 32px;
+  margin-bottom: 17px;
+  font-weight: 700;
+  color: #1e1e1e;
+  text-align: center;
+}
+
+.team-section .section-subtitle {
+  color: #454851;
+  margin-bottom: 72px;
+  white-space: pre-line;
+  text-align: center;
+  font-size: 16px;
+  line-height: 22px;
+}
+
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 27px;
+  margin-bottom: 35px;
+}
+
+.team-member {
+  background-color: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.22);
+  border-radius: 12px 8px 8px 12px;
+  padding: 24px;
+  text-align: center;
+}
+
+.member-avatar {
+  width: 96px;
+  height: 96px;
+  background-color: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.11);
+  border-radius: 50%;
+  margin: 0 auto 16px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.member-name {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 25px;
+  color: #101827;
+  margin-bottom: 5px;
+  font-family: "Roboto", sans-serif;
+}
+
+.member-role {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 16px;
+  color: #6b7280;
+  margin-bottom: 8px;
+  font-family: "Roboto", sans-serif;
+}
+
+.member-department {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 15px;
+  color: #9ca3af;
+  margin-bottom: 10px;
+  font-family: "Roboto", sans-serif;
+}
+
+.member-bio {
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 14px;
+  color: #6b7280;
+  margin-bottom: 12px;
+  font-family: "Roboto", sans-serif;
+}
+
+.member-social {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.member-social img {
+  width: 15px;
+  height: 15px;
+}
+
 .text-center {
   cursor: pointer;
+  text-align: center;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .team-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .view-more-team {

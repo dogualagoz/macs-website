@@ -7,10 +7,9 @@
  * - Technology tags
  * - GitHub links
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ProjectCard, FeaturedProjectCard } from '../projects';
-import { fetchProjects, fetchFeaturedProject, fetchProjectCategories } from '../../services/api';
 import '../../styles/components/projects.css';
 
 const ProjectsSection = ({ projects, categories, featuredProject }) => {

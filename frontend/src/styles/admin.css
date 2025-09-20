@@ -235,6 +235,9 @@ body, html {
   color: #374151;
   background-color: #f9fafb;
   border-bottom: 1px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .users-table-body .users-table-row {
@@ -281,6 +284,9 @@ body, html {
   font-weight: 600;
   color: #374151;
   background-color: #f9fafb;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .dashboard-table-body .dashboard-table-row:hover {
@@ -423,6 +429,9 @@ body, html {
   font-weight: 600;
   color: #374151;
   background-color: #f9fafb;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .logs-table-body .logs-table-row:hover {

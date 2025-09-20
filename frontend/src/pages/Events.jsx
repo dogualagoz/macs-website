@@ -15,7 +15,7 @@ export default function Events() {
   const [activeFilter, setActiveFilter] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [featuredEvent, setFeaturedEvent] = useState(null);
+  const [featuredEvent] = useState(null);
 
   useEffect(() => {
     const load = async () => {

@@ -6,10 +6,9 @@
  * - Category filter buttons
  * - Event cards grid
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { EventCard, FeaturedEventCard } from '../events';
-import { fetchEvents, fetchCategories, fetchFeaturedEvent } from '../../services/api';
 import '../../styles/components/events.css';
 
 const EventsSection = ({events,categories,featuredEvent}) => {
