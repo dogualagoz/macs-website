@@ -48,7 +48,7 @@ const demoEvent = {
 
 function formatDate(dt) {
   try {
-    const d = new Date(dt);
+    const d = new Date(dt + 'Z');
     return new Intl.DateTimeFormat("tr-TR", {
       dateStyle: "full",
       timeStyle: "short",
@@ -191,7 +191,7 @@ function EventPageView({ event }) {
               {/* Meta chips */}
               <div className="mt-6 flex flex-wrap items-center gap-3 text-sm">
                 <MetaChip icon={CalendarDays} label={formatDate(event.start_time)} />
-                <MetaChip icon={Clock} label={new Date(event.start_time).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Istanbul" })} />
+                <MetaChip icon={Clock} label={new Date(event.start_time + 'Z').toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Istanbul" })} />
                 <MetaChip icon={MapPin} label={event.location} />
               </div>
 
@@ -219,7 +219,7 @@ function EventPageView({ event }) {
               <div className="sticky top-6 rounded-2xl bg-white p-5 shadow-lg ring-1 ring-slate-200">
                 <h3 className="mb-3 text-sm font-semibold text-slate-800">Etkinlik Bilgileri</h3>
                 <DetailRow icon={CalendarDays} title="Tarih" value={formatDate(event.start_time)} />
-                <DetailRow icon={Clock} title="Saat" value={new Date(event.start_time).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Istanbul" })} />
+                <DetailRow icon={Clock} title="Saat" value={new Date(event.start_time + 'Z').toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Istanbul" })} />
                 <DetailRow icon={MapPin} title="Konum" value={event.location} />
                 <div className="mt-4 flex gap-2">
                   <SmallButton>Yol Tarifi</SmallButton>
