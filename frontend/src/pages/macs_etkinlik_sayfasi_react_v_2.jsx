@@ -52,6 +52,7 @@ function formatDate(dt) {
     return new Intl.DateTimeFormat("tr-TR", {
       dateStyle: "full",
       timeStyle: "short",
+      timeZone: "Europe/Istanbul",
     }).format(d);
   } catch (e) {
     return dt;
@@ -190,7 +191,7 @@ function EventPageView({ event }) {
               {/* Meta chips */}
               <div className="mt-6 flex flex-wrap items-center gap-3 text-sm">
                 <MetaChip icon={CalendarDays} label={formatDate(event.start_time)} />
-                <MetaChip icon={Clock} label={`${new Date(event.start_time).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })} – ${new Date(event.end_time).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })}`} />
+                <MetaChip icon={Clock} label={new Date(event.start_time).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Istanbul" })} />
                 <MetaChip icon={MapPin} label={event.location} />
               </div>
 
@@ -218,7 +219,7 @@ function EventPageView({ event }) {
               <div className="sticky top-6 rounded-2xl bg-white p-5 shadow-lg ring-1 ring-slate-200">
                 <h3 className="mb-3 text-sm font-semibold text-slate-800">Etkinlik Bilgileri</h3>
                 <DetailRow icon={CalendarDays} title="Tarih" value={formatDate(event.start_time)} />
-                <DetailRow icon={Clock} title="Saat" value={`${new Date(event.start_time).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })} – ${new Date(event.end_time).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })}`} />
+                <DetailRow icon={Clock} title="Saat" value={new Date(event.start_time).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Istanbul" })} />
                 <DetailRow icon={MapPin} title="Konum" value={event.location} />
                 <div className="mt-4 flex gap-2">
                   <SmallButton>Yol Tarifi</SmallButton>
@@ -457,7 +458,7 @@ function Timeline({ start, end, contentProgramLines }) {
         >
           <span className="absolute -left-[7px] mt-1 h-3 w-3 rounded-full bg-[#07132b]"></span>
           <div className="text-xs text-slate-500">
-            {new Intl.DateTimeFormat("tr-TR", { hour: "2-digit", minute: "2-digit" }).format(it.t)}
+            {new Intl.DateTimeFormat("tr-TR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Istanbul" }).format(it.t)}
           </div>
           <div className="text-sm font-medium text-slate-800">{it.title}</div>
         </motion.li>
