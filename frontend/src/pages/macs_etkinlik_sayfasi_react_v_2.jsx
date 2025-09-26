@@ -197,9 +197,11 @@ function EventPageView({ event }) {
 
               {/* CTA */}
               <div className="mt-8 flex flex-wrap gap-3">
-                <PrimaryButton>
-                  Kayıt Ol
-                </PrimaryButton>
+                <a href="https://forms.gle/UQbYprXaLtE2wc1N8" target="_blank" rel="noopener noreferrer">
+                  <PrimaryButton>
+                    Kayıt Ol
+                  </PrimaryButton>
+                </a>
                 <GhostButton>
                   <Share2 className="h-4 w-4" /> Paylaş
                 </GhostButton>
