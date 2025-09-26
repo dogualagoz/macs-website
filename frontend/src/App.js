@@ -2,7 +2,7 @@
  * Main App component that serves as the root of the application.
  * Handles the overall layout and navigation state.
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef} from 'react';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import Home from './pages/Home';
@@ -23,6 +23,8 @@ function App() {
   // State to track whether the page has been scrolled
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
+  const { pathname, search } = location; 
+  const firstRender = useRef(true);
 
   // Effect to handle scroll events and update header styling
   useEffect(() => {
@@ -47,6 +49,16 @@ function App() {
       }
     }
   }, [location]);
+
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false; // ilk render'ı atla (script zaten saydı)
+      return;
+    }
+    if (typeof window !== "undefined" && typeof window.va === "function") {
+      window.va("pageview", { path: pathname + search });
+    }
+  }, [pathname, search]);
 
   return (
     <AuthProvider>
