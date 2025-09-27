@@ -39,7 +39,7 @@ const people_data = {
     role: "Denetim Koordinatörlüğü",
     graduate: "Matematik ve Bilgisayar Bilimleri 3. Sınıf",
     bio: "Oyun geliştirme odaklı",
-    pic: "/assets/images/profiles/hirapp.png"
+    pic: "/assets/images/profiles/hirapp.jpg"
   },
   ErenAlpaslan: {member: "Eren Alpaslan",
     role: "Denetim Koordinatörlüğü",
