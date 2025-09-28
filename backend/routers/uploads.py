@@ -10,8 +10,15 @@ from models.users import User
 
 router = APIRouter()
 
-# Dosyaların kaydedileceği klasör
-UPLOAD_DIR = "static/uploads"
+# Railway volume path'ini kontrol et
+UPLOAD_VOLUME_PATH = "/app/uploads"  # Railway volume mount path
+if os.path.exists(UPLOAD_VOLUME_PATH):
+    UPLOAD_DIR = UPLOAD_VOLUME_PATH
+    STATIC_URL_PREFIX = "/uploads"
+else:
+    # Local development için
+    UPLOAD_DIR = "static/uploads"
+    STATIC_URL_PREFIX = "/static/uploads"
 
 # Klasör yoksa oluştur
 os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -42,7 +49,7 @@ async def upload_file(
         content = await file.read()
         buffer.write(content)
     
-    # Dosya URL'ini döndür
-    file_url = f"/static/uploads/{unique_filename}"
+    # Dosya URL'ini döndür - environment'a göre
+    file_url = f"{STATIC_URL_PREFIX}/{unique_filename}"
     
     return {"url": file_url}

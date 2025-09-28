@@ -42,6 +42,11 @@ os.makedirs("static/uploads", exist_ok=True)
 # Statik dosyaları sunmak için middleware ekle
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+# Railway volume varsa uploads klasörünü de mount et
+UPLOAD_VOLUME_PATH = "/app/uploads"
+if os.path.exists(UPLOAD_VOLUME_PATH):
+    app.mount("/uploads", StaticFiles(directory=UPLOAD_VOLUME_PATH), name="uploads")
+
 # Routerları ekle
 app.include_router(events_router)
 app.include_router(projects_router)
