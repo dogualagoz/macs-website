@@ -16,8 +16,8 @@ export const getImageUrl = (imageUrl, fallbackImage = '/assets/images/img_innova
   // Eğer URL zaten http ile başlıyorsa olduğu gibi kullan
   if (imageUrl.startsWith('http')) return imageUrl;
   
-  // Backend'den gelen /static ile başlayan URL'leri backend base URL'i ile birleştir
-  if (imageUrl.startsWith('/static')) {
+  // Backend'den gelen /static veya /uploads ile başlayan URL'leri backend base URL'i ile birleştir
+  if (imageUrl.startsWith('/static') || imageUrl.startsWith('/uploads')) {
     try {
       const RAW_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
       const BASE_URL = RAW_BASE_URL.replace(/\/+$/, '');
