@@ -197,7 +197,7 @@ function EventPageView({ event }) {
 
               {/* CTA */}
               <div className="mt-8 flex flex-wrap gap-3">
-                <a href="https://forms.gle/UQbYprXaLtE2wc1N8" target="_blank" rel="noopener noreferrer">
+                <a href="https://docs.google.com/forms/d/e/1FAIpQLSep6K_L9Vj-w74lDbidODITSerC_3LCfX5kfrhZvUyKFppViw/viewform" target="_blank" rel="noopener noreferrer">
                   <PrimaryButton>
                     Kayıt Ol
                   </PrimaryButton>
