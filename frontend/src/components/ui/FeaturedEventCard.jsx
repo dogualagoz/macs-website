@@ -52,10 +52,7 @@ const FeaturedEventCard = ({ title, date, location, description, image, startTim
       <div className="First-hour">
         <img className='First-hour-img' src="assets/images/img_clock.png" alt="saat" />
         <span className="First-hour-span">
-          {startTime && endTime 
-            ? `${formatTime(startTime)}-${formatTime(endTime)}`
-            : "14:00-18:00"
-          }
+          {startTime}
         </span>
       </div>
       <div className="First-location">
@@ -64,7 +61,7 @@ const FeaturedEventCard = ({ title, date, location, description, image, startTim
       </div>
       <div className="First-persons">
         <img className='First-persons-img' src="assets/images/img_people.png" alt="Katılımcı" />
-        <span className="First-persons-span">{maxParticipants || 25} Katılımcı</span>
+        <span className="First-persons-span">{maxParticipants || 100} Katılımcı</span>
       </div>
       <div className="First-button">
         <button className="First-button-sign">Kayıt Ol</button>
