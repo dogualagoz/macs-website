@@ -23,6 +23,9 @@ const EventCard = ({ title, date, location, description, image, slug }) => {
       minute: 'numeric'
     }).format(date);
   };
+  
+  // Tarihi geçmiş mi kontrol et
+  const isPast = new Date(date) < new Date();
   // formatDate fonksiyonu korundu, getImageUrl artık import edildi
 
   return (
@@ -40,7 +43,7 @@ const EventCard = ({ title, date, location, description, image, slug }) => {
       {/* Event content section */}
       <div className="event-content">
         <h3 className="event-title">{title}</h3>
-        <div className="come">Yaklaşan</div>
+        <div className={isPast ? "come-past" : "come"}>{isPast ? "Geçmiş" : "Yaklaşan"}</div>
         
         {/* Event details (date and location) */}
         <div className="event-details-1">

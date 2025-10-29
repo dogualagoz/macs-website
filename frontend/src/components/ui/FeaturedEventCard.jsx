@@ -27,6 +27,9 @@ const FeaturedEventCard = ({ title, date, location, description, image, startTim
     });
   };
 
+  // Tarihi geçmiş mi kontrol et
+  const isPast = new Date(endTime || startTime) < new Date();
+
   // formatDate ve formatTime fonksiyonları korundu, getImageUrl artık import edildi
 
   return (
@@ -38,7 +41,7 @@ const FeaturedEventCard = ({ title, date, location, description, image, startTim
         alt={title}
         onError={(e) => handleImageError(e)}
       />
-      <div className="First-div">Öne Çıkan</div>
+      <div className={isPast ? "First-div-past" : "First-div"}>{isPast ? "Geçmiş" : "Öne Çıkan"}</div>
       <div className="date">
         <img src="assets/images/img_calender.png" alt="tarih" />
         <span className='date-span'>{formatDate(date)}</span>
@@ -63,9 +66,11 @@ const FeaturedEventCard = ({ title, date, location, description, image, startTim
         <img className='First-persons-img' src="assets/images/img_people.png" alt="Katılımcı" />
         <span className="First-persons-span">{maxParticipants || 100} Katılımcı</span>
       </div>
-      <div className="First-button">
-        <button className="First-button-sign">Kayıt Ol</button>
-      </div>
+      {!isPast && (
+        <div className="First-button">
+          <button className="First-button-sign">Kayıt Ol</button>
+        </div>
+      )}
     </div>
     </Link>
   );

@@ -140,16 +140,21 @@ async def register_admin(
         
         return db_user
         
+    except HTTPException as he:
+        raise he
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
     except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"Admin kayıt hatası detayları: {error_details}")
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Admin kullanıcı kaydı sırasında bir hata oluştu"
+            detail=f"Admin kullanıcı kaydı sırasında bir hata oluştu: {str(e)}"
         )
 
 @router.post("/login", response_model=Token)

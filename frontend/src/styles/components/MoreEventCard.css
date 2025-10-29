@@ -86,7 +86,17 @@
   border-radius: 5px;
 }
 
-.İnComing-Container span{
+.İnComing-Container-Past{
+  height: 1.7rem;
+  width: 5rem;
+  background-color: #FEE2E2;
+  color: #DC2626;
+  text-align: center;
+  border-radius: 5px;
+}
+
+.İnComing-Container span,
+.İnComing-Container-Past span{
   font-size: 15px;
   font-style: bold;
   font-weight: 600;

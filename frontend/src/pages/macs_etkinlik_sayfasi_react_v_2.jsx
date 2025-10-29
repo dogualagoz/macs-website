@@ -125,7 +125,7 @@ function combineDateTime(date, hhmm) {
 }
 
 function EventPageView({ event }) {
-  const isPast = new Date(event.end_time) < new Date();
+  const isPast = new Date(event.end_time || event.start_time) < new Date();
   const { aboutHtml, programLines } = splitContent(event.content);
 
   return (
@@ -166,7 +166,11 @@ function EventPageView({ event }) {
                   {event.is_featured ? <Star className="h-3.5 w-3.5" /> : <BadgeCheck className="h-3.5 w-3.5" />}
                   {event.is_featured ? "Öne Çıkan" : event.category?.name || "Etkinlik"}
                 </motion.span>
-                {event.is_active ? (
+                {isPast ? (
+                  <span className="inline-flex items-center gap-2 rounded-full bg-red-500/20 px-3 py-1 text-xs text-red-200 ring-1 ring-red-400/40">
+                    <Clock className="h-3.5 w-3.5" /> Kayıt Kapalı
+                  </span>
+                ) : event.is_active ? (
                   <span className="inline-flex items-center gap-2 rounded-full bg-emerald-500/20 px-3 py-1 text-xs text-white-900 ring-1 ring-white-400/40">
                     <CheckCircle2 className="h-3.5 w-3.5" /> Kayıt Açık
                   </span>
@@ -197,11 +201,19 @@ function EventPageView({ event }) {
 
               {/* CTA */}
               <div className="mt-8 flex flex-wrap gap-3">
-                <a href="https://docs.google.com/forms/d/e/1FAIpQLSep6K_L9Vj-w74lDbidODITSerC_3LCfX5kfrhZvUyKFppViw/viewform" target="_blank" rel="noopener noreferrer">
-                  <PrimaryButton>
-                    Kayıt Ol
-                  </PrimaryButton>
-                </a>
+                {!isPast && (
+                  event.registration_link ? (
+                    <a href={event.registration_link} target="_blank" rel="noopener noreferrer">
+                      <PrimaryButton>
+                        Kayıt Ol
+                      </PrimaryButton>
+                    </a>
+                  ) : (
+                    <PrimaryButton disabled>
+                      Kayıt Ol
+                    </PrimaryButton>
+                  )
+                )}
                 <GhostButton>
                   <Share2 className="h-4 w-4" /> Paylaş
                 </GhostButton>
@@ -224,9 +236,24 @@ function EventPageView({ event }) {
                 <DetailRow icon={Clock} title="Saat" value={new Date(event.start_time + 'Z').toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Istanbul" })} />
                 <DetailRow icon={MapPin} title="Konum" value={event.location} />
                 <div className="mt-4 flex gap-2">
-                  <SmallButton>Yol Tarifi</SmallButton>
-                  <SmallButton variant="ghost"><Link2 className="h-3.5 w-3.5" />
-                    Bağlantı</SmallButton>
+                  {event.directions_link && (
+                    <a href={event.directions_link} target="_blank" rel="noopener noreferrer">
+                      <SmallButton>Yol Tarifi</SmallButton>
+                    </a>
+                  )}
+                  {!isPast && (
+                    event.registration_link ? (
+                      <a href={event.registration_link} target="_blank" rel="noopener noreferrer">
+                        <SmallButton variant="ghost">
+                          <Link2 className="h-3.5 w-3.5" /> Bağlantı
+                        </SmallButton>
+                      </a>
+                    ) : (
+                      <SmallButton variant="ghost" disabled>
+                        <Link2 className="h-3.5 w-3.5" /> Bağlantı
+                      </SmallButton>
+                    )
+                  )}
                 </div>
               </div>
             </motion.aside>
@@ -349,12 +376,18 @@ function MetaChip({ icon: Icon, label }) {
   );
 }
 
-function PrimaryButton({ children }) {
+function PrimaryButton({ children, disabled = false }) {
   return (
     <motion.button
-      whileHover={{ y: -1 }}
-      whileTap={{ y: 0 }}
-      className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2 font-medium text-[#07132b] shadow hover:shadow-lg"
+      whileHover={disabled ? {} : { y: -2, scale: 1.02 }}
+      whileTap={disabled ? {} : { y: 0, scale: 0.98 }}
+      transition={{ duration: 0.2 }}
+      disabled={disabled}
+      className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 font-medium shadow-md ${
+        disabled 
+          ? 'bg-white/50 text-[#07132b]/50 cursor-not-allowed' 
+          : 'bg-white text-[#07132b] hover:shadow-xl transition-shadow duration-200'
+      }`}
     >
       {children}
     </motion.button>
@@ -364,21 +397,24 @@ function PrimaryButton({ children }) {
 function GhostButton({ children }) {
   return (
     <motion.button
-      whileHover={{ y: -1 }}
-      whileTap={{ y: 0 }}
-      className="inline-flex items-center gap-2 rounded-xl border border-white/30 bg-transparent px-4 py-2 text-white hover:bg-white/10"
+      whileHover={{ y: -2, scale: 1.02 }}
+      whileTap={{ y: 0, scale: 0.98 }}
+      transition={{ duration: 0.2 }}
+      className="inline-flex items-center gap-2 rounded-xl border border-white/30 bg-transparent px-4 py-2 text-white hover:bg-white/10 transition-all duration-200"
     >
       {children}
     </motion.button>
   );
 }
 
-function SmallButton({ children, variant }) {
-  const base = "inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs";
-  const styles = variant === "ghost"
-    ? "border border-slate-300 bg-transparent text-slate-700 hover:bg-slate-100"
-    : "bg-[#07132b] text-white";
-  return <button className={`${base} ${styles}`}>{children}</button>;
+function SmallButton({ children, variant, disabled = false }) {
+  const base = "inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs transition-all duration-200";
+  const styles = disabled
+    ? "border border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed"
+    : variant === "ghost"
+    ? "border border-slate-300 bg-transparent text-slate-700 hover:bg-slate-100 hover:scale-105"
+    : "bg-[#07132b] text-white hover:bg-[#0a1a3a] hover:scale-105";
+  return <button className={`${base} ${styles}`} disabled={disabled}>{children}</button>;
 }
 
 function DetailRow({ icon: Icon, title, value }) {

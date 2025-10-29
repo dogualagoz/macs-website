@@ -13,7 +13,7 @@ alembic==1.16.2         # Database migrations
 # Auth & Security
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
-bcrypt==4.3.0           # Şifre hash'leme için
+bcrypt==4.0.1           # Şifre hash'leme için (passlib ile uyumlu versiyon)
 slowapi==0.1.9          # Rate limit
 cryptography==45.0.5    # Şifreleme işlemleri için
 

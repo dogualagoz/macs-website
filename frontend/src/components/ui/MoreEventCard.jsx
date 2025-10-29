@@ -13,6 +13,9 @@ const MoreEventCard = ({ title, date, location, description, image, startTime, e
     }).format(date);
   };
 
+  // Tarihi geçmiş mi kontrol et
+  const isPast = new Date(endTime || startTime) < new Date();
+
   // // Saatleri formatla
   // const formatTime = (time) => {
   //   return new Date(time).toLocaleTimeString('tr-TR', {
@@ -56,8 +59,8 @@ const MoreEventCard = ({ title, date, location, description, image, startTime, e
             </span>
           </div>
           <div className='İnComing'>
-          <div className='İnComing-Container'>
-            <span>Yaklaşan</span>
+          <div className={isPast ? 'İnComing-Container-Past' : 'İnComing-Container'}>
+            <span>{isPast ? 'Geçmiş' : 'Yaklaşan'}</span>
             </div>
           </div>
           <div className="Card-Location">

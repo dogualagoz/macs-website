@@ -15,6 +15,8 @@ class Event(Base):
         content: Detaylı içerik
         image_url: Etkinlik görseli URL'i
         location: Etkinlik konumu
+        registration_link: Kayıt ol linki
+        directions_link: Yol tarifi linki
         start_time: Başlangıç zamanı
         end_time: Bitiş zamanı
         category_id: Kategori ID'si
@@ -23,6 +25,7 @@ class Event(Base):
         creator: Kullanıcı ilişkisi
         is_active: Etkinlik aktif mi?
         is_deleted: Etkinlik silindi mi?
+        is_featured: Öne çıkan etkinlik mi?
     """
     __tablename__ = "events"
 
@@ -34,6 +37,10 @@ class Event(Base):
     content = Column(Text)
     image_url = Column(String)
     location = Column(String)
+    
+    # Link bilgileri
+    registration_link = Column(String)  # Kayıt ol linki
+    directions_link = Column(String)    # Yol tarifi linki
 
     # Zaman bilgileri
     start_time = Column(DateTime, nullable=False)

@@ -115,6 +115,19 @@
   text-align: center;
 }
 
+.First-div-past{
+  grid-column: 14/18;
+  grid-row: 2/3;
+  align-self: flex-start;
+  justify-self: center;
+  width: 90px;
+  height: 30px;
+  border-radius: 40px ;
+  background-color: #FEE2E2;
+  color: #DC2626;
+  text-align: center;
+}
+
 .date{
   grid-column: 18/23;
   grid-row: 2/3;
@@ -301,6 +314,19 @@
   width: 90px;
   background-color: #F3F4F6;
   color: #384252;
+  font-size: medium;
+  border-radius: 5px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.come-past{
+  grid-column: 1/2;
+  grid-row: 1/2;
+  height: 30px;
+  width: 90px;
+  background-color: #FEE2E2;
+  color: #DC2626;
   font-size: medium;
   border-radius: 5px;
   text-align: center;

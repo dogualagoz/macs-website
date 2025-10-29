@@ -27,6 +27,8 @@ class EventBase(BaseModel):
     content: Optional[str] = None
     image_url: Optional[str] = None
     location: Optional[str] = None
+    registration_link: Optional[str] = None
+    directions_link: Optional[str] = None
     start_time: datetime
     end_time: Optional[datetime] = None
     category_id: Optional[int] = None
@@ -44,6 +46,8 @@ class EventUpdate(BaseModel):
     content: Optional[str] = None
     image_url: Optional[str] = None
     location: Optional[str] = None
+    registration_link: Optional[str] = None
+    directions_link: Optional[str] = None
     start_time: Optional[datetime] = None
     end_time: Optional[datetime] = None
     category_id: Optional[int] = None

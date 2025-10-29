@@ -26,6 +26,8 @@ const Content = () => {
   const [eventContent, setEventContent] = useState('');
   const [eventImage, setEventImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [eventRegistrationLink, setEventRegistrationLink] = useState('');
+  const [eventDirectionsLink, setEventDirectionsLink] = useState('');
   const [isFeatured, setIsFeatured] = useState(false);
   const [isActive, setIsActive] = useState(true);
   
@@ -115,6 +117,8 @@ const Content = () => {
         title: eventTitle,
         description: eventDescription,
         location: eventLocation,
+        registration_link: eventRegistrationLink || null,
+        directions_link: eventDirectionsLink || null,
         start_time: new Date(eventDate).toISOString(),
         category_id: eventCategory !== '' ? parseInt(eventCategory) : null,
         content: eventContent,
@@ -202,6 +206,8 @@ const Content = () => {
     setEventContent('');
     setEventImage(null);
     setImagePreview(null);
+    setEventRegistrationLink('');
+    setEventDirectionsLink('');
     setIsFeatured(false);
     setIsActive(true);
   };
@@ -321,6 +327,26 @@ const Content = () => {
                       value={eventDate}
                       onChange={(e) => setEventDate(e.target.value)}
                       required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Kayıt Formu Linki</label>
+                    <input 
+                      type="url" 
+                      placeholder="https://forms.google.com/..." 
+                      className="form-input"
+                      value={eventRegistrationLink}
+                      onChange={(e) => setEventRegistrationLink(e.target.value)}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Yol Tarifi Linki</label>
+                    <input 
+                      type="url" 
+                      placeholder="https://maps.google.com/..." 
+                      className="form-input"
+                      value={eventDirectionsLink}
+                      onChange={(e) => setEventDirectionsLink(e.target.value)}
                     />
                   </div>
                   <div className="form-group">
