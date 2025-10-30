@@ -180,9 +180,12 @@ function FeaturedEventCardModern({ event }) {
   };
 
   const formatTime = (time) => {
-    return new Date(time).toLocaleTimeString('tr-TR', {
+    // Backend'den UTC geldiği için 'Z' ekleyerek parse et
+    const date = new Date(time + 'Z');
+    return date.toLocaleTimeString('tr-TR', {
       hour: '2-digit',
       minute: '2-digit',
+      timeZone: 'Europe/Istanbul',
     });
   };
 

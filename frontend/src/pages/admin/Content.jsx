@@ -113,13 +113,16 @@ const Content = () => {
       }
       
       // 2. Etkinlik verilerini hazırla
+      // Datetime-local input'undan gelen değere Türkiye timezone'unu ekle
+      const startTimeWithTZ = eventDate + ':00+03:00'; // Türkiye GMT+3
+      
       const eventData = {
         title: eventTitle,
         description: eventDescription,
         location: eventLocation,
         registration_link: eventRegistrationLink || null,
         directions_link: eventDirectionsLink || null,
-        start_time: new Date(eventDate).toISOString(),
+        start_time: startTimeWithTZ,
         category_id: eventCategory !== '' ? parseInt(eventCategory) : null,
         content: eventContent,
         image_url: imageUrl,
