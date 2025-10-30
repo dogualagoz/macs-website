@@ -21,9 +21,10 @@ const FeaturedEventCard = ({ title, date, location, description, image, startTim
 
   // Saatleri formatla
   const formatTime = (time) => {
-    return new Date(time).toLocaleTimeString('tr-TR', {
+    return new Date(time + 'Z').toLocaleTimeString('tr-TR', {
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
+      timeZone: 'Europe/Istanbul'
     });
   };
 
