@@ -37,6 +37,7 @@ const EventCard = ({ title, date, location, description, image, slug }) => {
           src={getImageUrl(image)} 
           alt={title}
           onError={(e) => handleImageError(e)}
+          style={isPast ? { filter: 'grayscale(100%)' } : {}}
         />
       </div>
 
