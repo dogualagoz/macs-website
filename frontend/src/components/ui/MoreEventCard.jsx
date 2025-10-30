@@ -50,7 +50,9 @@ const MoreEventCard = ({ title, date, location, description, image, startTime, e
             onError={(e) => {
           e.target.onerror = null;
           e.target.src = '/assets/images/img_innovation.png';
-        }}/>
+        }}
+        style={isPast ? { filter: 'grayscale(100%)' } : {}}
+        />
         </div>
           <div className='Card-Date'>
             <img src="../../assets/images/img_calender.png" alt="Tarih" />

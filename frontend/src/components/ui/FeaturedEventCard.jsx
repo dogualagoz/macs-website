@@ -40,6 +40,7 @@ const FeaturedEventCard = ({ title, date, location, description, image, startTim
         src={getImageUrl(image)} 
         alt={title}
         onError={(e) => handleImageError(e)}
+        style={isPast ? { filter: 'grayscale(100%)' } : {}}
       />
       <div className={isPast ? "First-div-past" : "First-div"}>{isPast ? "Geçmiş" : "Öne Çıkan"}</div>
       <div className="date">
