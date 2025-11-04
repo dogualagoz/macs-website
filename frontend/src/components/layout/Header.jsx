@@ -21,9 +21,9 @@ const Header = ({ isScrolled }) => {
         </div>
         <nav className="nav-menu">
           <ul>
-            <li><Link to="/">Ana Sayfa</Link></li>
-            <li><a href="/#events">Etkinlikler</a></li>
-            <li><a href="/#projects">Projeler</a></li>
+            <li><a href="/#home">Ana Sayfa</a></li>
+            <li><Link to="/etkinlikler">Etkinlikler</Link></li>
+            <li><Link to="/projeler">Projeler</Link></li>
             {/* <li><a href="#BlogMakale">Blog/Makaleler</a></li>
             <li><a href="#soruces">Kaynaklar</a></li> */}
             <li><a href="/#about">Hakkımızda</a></li>
@@ -45,9 +45,9 @@ const Header = ({ isScrolled }) => {
           <nav className= {`r-navbar${menuOpen ? " active" : ""}`}>
             <img className='close-icon' src="/assets/images/img_close.png" alt="kapat" onClick={toggleMenu} />
             <ul>
-              <li><Link to="/" onClick={() => setMenuOpen(false)}>Ana Sayfa</Link></li>
-              <li><a href="/#events" onClick={() => setMenuOpen(false)}>Etkinlikler</a></li>
-              <li><a href="/#projects" onClick={() => setMenuOpen(false)}>Projeler</a></li>
+              <li><a href="/#home" onClick={() => setMenuOpen(false)}>Ana Sayfa</a></li>
+              <li><Link to="/etkinlikler" onClick={() => setMenuOpen(false)}>Etkinlikler</Link></li>
+              <li><Link to="/projeler" onClick={() => setMenuOpen(false)}>Projeler</Link></li>
               {/* <li><a href="#BlogMakale" onClick={() => setMenuOpen(false)}>Blog/Makaleler</a></li>
               <li><a href="#soruces" onClick={() => setMenuOpen(false)}>Kaynaklar</a></li> */}
               <li><a href="/#about" onClick={() => setMenuOpen(false)}>Hakkımızda</a></li>
