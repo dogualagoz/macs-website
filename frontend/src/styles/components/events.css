@@ -100,6 +100,12 @@
   width: 350px;
   border-radius: 5px;
   object-fit: cover;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.first-img:hover{
+  transform: scale(1.03);
 }
 
 .First-div{
@@ -109,10 +115,18 @@
   justify-self: center;
   width: 90px;
   height: 30px;
-  border-radius: 40px ;
-  background-color: #161A2B;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
   color: #FFFFFF;
   text-align: center;
+  font-weight: 600;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .First-div-past{

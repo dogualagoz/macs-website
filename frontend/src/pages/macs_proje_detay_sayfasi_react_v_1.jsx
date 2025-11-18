@@ -164,14 +164,14 @@ export default function ProjectDetailPage() {
               transition={{ duration: 0.4 }}
               className="md:col-span-2"
             >
-              <div className="relative h-64 w-full overflow-hidden md:h-full">
+              <div className="relative h-64 w-full overflow-hidden md:h-full md:rounded-l-3xl">
                 <img 
                   src={getImageUrl(project.image_url, '/assets/images/img_source_code.png')} 
                   alt={project.title} 
-                  className="h-full w-full object-cover"
+                  className="h-full w-full object-cover md:rounded-l-3xl"
                   onError={(e) => handleImageError(e, '/assets/images/img_source_code.png')}
                 />
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 to-transparent md:rounded-l-3xl" />
               </div>
             </motion.div>
 

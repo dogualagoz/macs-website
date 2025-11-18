@@ -98,6 +98,7 @@ const ProjectsSection = ({ projects, categories, featuredProject }) => {
             technologies={featuredProject.technologies}
             githubUrl={featuredProject.github_url}
             liveUrl={featuredProject.live_url}
+            slug={featuredProject.slug}
           />
         )}
 

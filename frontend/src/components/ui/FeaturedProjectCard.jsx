@@ -16,20 +16,20 @@ const FeaturedProjectCard = ({ title, description, image, technologies, githubUr
   // getImageUrl artık import edildi
 
   return (
-    <div className="First-2">
-      <div className="Image-container">
-        <img 
-          className='First-img' 
-          src={getImageUrl(image, '/assets/images/img_source_code.png')} 
-          alt={title}
-          onError={(e) => handleImageError(e, '/assets/images/img_source_code.png')}
-        />
-      </div>
-      <div className="Details-Container">
-        <div className="First-come">
-          <img src="assets/images/img_star.png" alt="" className="First-come-img" />
-          <span className="First-come-span">Öne Çıkan</span>
+    <Link to={`/projeler/${slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+      <div className="First-2">
+        <div className="Image-container">
+          <img 
+            className='First-img' 
+            src={getImageUrl(image, '/assets/images/img_source_code.png')} 
+            alt={title}
+            onError={(e) => handleImageError(e, '/assets/images/img_source_code.png')}
+          />
         </div>
+        <div className="Details-Container">
+          <div className="First-come">
+            <span className="First-come-span">⭐ Öne Çıkan</span>
+          </div>
         
         <div className="Details-tittle">
           {title}
@@ -90,7 +90,8 @@ const FeaturedProjectCard = ({ title, description, image, technologies, githubUr
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </Link>
   );
 };
 
@@ -100,7 +101,8 @@ FeaturedProjectCard.propTypes = {
   image: PropTypes.string,
   technologies: PropTypes.string,
   githubUrl: PropTypes.string,
-  liveUrl: PropTypes.string
+  liveUrl: PropTypes.string,
+  slug: PropTypes.string
 };
 
 export default FeaturedProjectCard; 
