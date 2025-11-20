@@ -70,12 +70,18 @@ const people_data = {
     pic: "/assets/images/profiles/erdempp.jpeg"
   },
  
-  BerkeZerelgil2: {member: "Berke Zerelgil",
+  AhsenAslan: {member: "Ahsen Aslan",
     role: "Tasarım ve Sosyal Medya Koordinatörlüğü",
-    graduate: "Matematik ve Bilgisayar Bilimleri 4. Sınıf",
-    bio: "Canva ve Figma tasarımcısı",
-    pic: "/assets/images/profiles/berkepp.jpeg"
+    graduate: "Matematik ve Bilgisayar Bilimleri 2. Sınıf",
+    bio: "Python Geliştirme odaklı",
+    pic: "/assets/images/profiles/ahsenpp.JPG"
   },
+  CagriAri: {member: "Çağrı Arı",
+    role: "Tasarım ve Sosyal Medya Koordinatörlüğü",
+    graduate: "Matematik ve Bilgisayar Bilimleri 3. Sınıf",
+    bio: "Oyun Geliştirme odaklı",
+    pic: "/assets/images/profiles/cagripp.JPG"
+  }
  
  }
  
