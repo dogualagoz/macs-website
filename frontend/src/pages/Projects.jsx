@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { FeaturedProjectCard, ProjectCard } from '../components/projects';
 import { fetchProjects, fetchFeaturedProject, fetchProjectCategories } from '../services/api';
 import '../styles/components/projects.css';
-import '../styles/components/events.css';
 import { Link } from 'react-router-dom';
 
 export default function Projects() {
@@ -73,11 +72,11 @@ if (loading)
         <h2 className="section-title">Projeler</h2>
         <p className="section-description">Matematik ve bilgisayar bilimleri alanında geliştirdiğimiz yenilikçi projeler ve araştırmalarımız.</p>
 
-        <div className="events-filters">
-          <div className="buttons">
-            <button className={`filter-button ${!activeFilter ? 'active' : ''}`} onClick={() => setActiveFilter(null)}>Tümü</button>
+        <div className="Buttonss">
+          <div className="Buttons">
+            <button className={`button ${!activeFilter ? 'active' : ''}`} onClick={() => setActiveFilter(null)}>Tümü</button>
             {categories.map(c => (
-              <button key={c.id} className={`filter-button ${activeFilter === c.id ? 'active' : ''}`} onClick={() => setActiveFilter(c.id)}>{c.name}</button>
+              <button key={c.id} className={`button ${activeFilter === c.id ? 'active' : ''}`} onClick={() => setActiveFilter(c.id)}>{c.name}</button>
             ))}
           </div>
         </div>
@@ -94,7 +93,7 @@ if (loading)
           />
         )}
 
-        <div className="events-grid">
+        <div className="projects-grid">
           {filtered
             .filter(p => p.id !== (featured || filtered[0])?.id)
             .map(p => (
