@@ -49,7 +49,6 @@ const ProjectCard = ({ title, description, image, technologies, teamMembers, cat
         </div>
         
         <div className="AyseYildiz">
-          <img src="assets/images/img_shape_36x38.png" alt="team member" />
           <span>{firstTeamMember}</span>
         </div>
         
