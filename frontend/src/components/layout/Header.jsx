@@ -52,7 +52,7 @@ const Header = ({ isScrolled }) => {
               <li><a href="#soruces" onClick={() => setMenuOpen(false)}>Kaynaklar</a></li> */}
               <li><a href="/#about" onClick={() => setMenuOpen(false)}>Hakkımızda</a></li>
               <li><a href="/#contact" onClick={() => setMenuOpen(false)}>İletişim</a></li>
-              <li><button type="button" onClick={() => setMenuOpen(false)}>Bize Katıl</button></li>
+              <li><button href="https://docs.google.com/forms/d/1mUxd_yzCIy36LWmN3_RHUBH-nEmHCGbc1181mv5xBmA/edit" type="button" onClick={() => setMenuOpen(false)}>Bize Katıl</button></li>
           </ul>
           </nav>
         </div>
