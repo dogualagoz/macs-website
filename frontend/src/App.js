@@ -7,6 +7,7 @@ import { Header, Footer } from './shared/components/layout';
 import { HomePage } from './features/home';
 import { EventsPage, EventDetailPage } from './features/events';
 import { ProjectsPage, ProjectDetailPage } from './features/projects';
+import { SponsorsPage } from './features/sponsors';
 import { LoginPage, ProtectedRoute, AuthProvider } from './features/auth';
 import { AdminPanel } from './features/admin';
 import Page404 from './shared/components/Page404';
@@ -72,6 +73,7 @@ function App() {
             <Route path="/etkinlikler/:slug" element={<EventDetailPage />} />
             <Route path="/projeler" element={<ProjectsPage />} />
             <Route path="/projeler/:slug" element={<ProjectDetailPage />} />
+            <Route path="/sponsorluk" element={<SponsorsPage />} />
             <Route path="/login" element={<LoginPage />} />
             
             {/* Protected routes */}
