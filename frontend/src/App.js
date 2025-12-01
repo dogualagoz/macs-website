@@ -3,21 +3,15 @@
  * Handles the overall layout and navigation state.
  */
 import React, { useState, useEffect, useRef} from 'react';
-import Header from './components/layout/Header';
-import Footer from './components/layout/Footer';
-import Home from './pages/Home';
-import Events from './pages/Events';
-import Projects from './pages/Projects';
-import ProjectDetailPageV1 from './pages/macs_proje_detay_sayfasi_react_v_1';
-import LoginPage from './pages/LoginPage';
-import AdminPanel from './pages/AdminPanel';
+import { Header, Footer } from './shared/components/layout';
+import { HomePage } from './features/home';
+import { EventsPage, EventDetailPage } from './features/events';
+import { ProjectsPage, ProjectDetailPage } from './features/projects';
+import { LoginPage, ProtectedRoute, AuthProvider } from './features/auth';
+import { AdminPanel } from './features/admin';
+import Page404 from './shared/components/Page404';
 import { Routes, Route, useLocation } from 'react-router-dom';
-import EventDetailPage from './pages/EventDetailPage';
-import ProtectedRoute from './components/ProtectedRoute';
-import { AuthProvider } from './contexts/AuthContext';
 import './styles/App.css';
-import Page404 from './pages/Page404';
-import EventPageV2 from './pages/macs_etkinlik_sayfasi_react_v_2';
 
 function App() {
   // State to track whether the page has been scrolled
@@ -73,13 +67,11 @@ function App() {
         <main>
           <Routes>
             {/* Public routes */}
-            <Route path="/" element={<Home />} />
-            <Route path="/etkinlikler" element={<Events />} />
-            {/* Use V2 detail page */}
-            <Route path="/etkinlikler/:slug" element={<EventPageV2 />} />
-            <Route path="/projeler" element={<Projects />} />
-            <Route path="/projeler/:slug" element={<ProjectDetailPageV1 />} />
-            {/* Legacy kept if needed: <Route path="/etkinlikler/:slug" element={<EventDetailPage />} /> */}
+            <Route path="/" element={<HomePage />} />
+            <Route path="/etkinlikler" element={<EventsPage />} />
+            <Route path="/etkinlikler/:slug" element={<EventDetailPage />} />
+            <Route path="/projeler" element={<ProjectsPage />} />
+            <Route path="/projeler/:slug" element={<ProjectDetailPage />} />
             <Route path="/login" element={<LoginPage />} />
             
             {/* Protected routes */}
