@@ -12,6 +12,7 @@ export default function SponsorsPage() {
       //! ileride backend'den veri çekilecek
       // const response = await sponsorService.getAll();
       // setSponsors(response);
+      //ekleme
       
       await new Promise(resolve => setTimeout(resolve, 500));
       setError('Veriler yüklenirken bir hata oluştu');
