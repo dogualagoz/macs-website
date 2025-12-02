@@ -70,3 +70,4 @@ ProjectCard.propTypes = {
 };
 
 export default ProjectCard; 
+//! deneme
