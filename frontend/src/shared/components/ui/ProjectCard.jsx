@@ -69,5 +69,4 @@ ProjectCard.propTypes = {
   category: PropTypes.string
 };
 
-export default ProjectCard; 
-//! deneme
+export default ProjectCard;

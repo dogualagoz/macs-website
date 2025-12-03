@@ -6,7 +6,7 @@ from database import engine, Base
 from fastapi.middleware.cors import CORSMiddleware
 
 # Router'ları import et
-from routers import auth_router, events_router, users_router, projects_router, uploads_router
+from routers import auth_router, events_router, users_router, projects_router, uploads_router, sponsors_router
 
 app = FastAPI(
     title = "MACS API",
@@ -23,6 +23,7 @@ origins = [
     "https://macs-website-dogualagoz.vercel.app",
     "https://macsclub.com.tr",
     "https://www.macsclub.com.tr",  # Vercel preview URL
+    "http://localhost:5173"
 ]
 
 app.add_middleware(
@@ -53,6 +54,7 @@ app.include_router(projects_router)
 app.include_router(auth_router)
 app.include_router(users_router)
 app.include_router(uploads_router)
+app.include_router(sponsors_router)
 
 
 @app.get("/")

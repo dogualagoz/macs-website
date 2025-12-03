@@ -17,6 +17,15 @@ from .projects import (
     ProjectStatus
 )
 
+from .sponsors import (
+    Sponsor,
+    SponsorCreate,
+    SponsorUpdate,
+    GeocodeRequest,
+    GeocodeResponse
+)
+
+
 # Dışa açılan şemalar
 __all__ = [
     # User şemaları
@@ -30,5 +39,9 @@ __all__ = [
     # Project şemaları
     "ProjectBase", "ProjectCreate", "ProjectUpdate", "ProjectResponse", "ProjectListResponse",
     "ProjectCategoryBase", "ProjectCategoryCreate", "ProjectCategoryUpdate", "ProjectCategoryResponse",
-    "ProjectStatus"
+    "ProjectStatus",
+
+    # Sponsor Şemaları
+    "Sponsor", "SponsorCreate", "SponsorUpdate", "GeocodeRequest", "GeocodeResponse",
+
 ]
