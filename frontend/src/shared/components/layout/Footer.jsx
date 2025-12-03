@@ -14,8 +14,9 @@ const Footer = () => {
           <div className="footer-section">
             <h3>Hızlı Linkler</h3>
             <ul className="footer-links">
-              <li><a href="#events">Etkinlikler</a></li>
-              <li><a href="#projects">Projeler</a></li>
+              <li><a href="/etkinlikler">Etkinlikler</a></li>
+              <li><a href="/projeler">Projeler</a></li>
+              <li><a href="/sponsorluk">Sponsorlarımız</a></li>
               <li><a href="#blog">Blog</a></li>
               <li><a href="#resources">Kaynaklar</a></li>
             </ul>

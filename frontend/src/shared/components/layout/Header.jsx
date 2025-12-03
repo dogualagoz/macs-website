@@ -1,8 +1,7 @@
-import React, {} from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
-import '../../../styles/components/header.css'
-import { useState } from 'react';
+import '../../../styles/components/header.css';
 
 const Header = ({ isScrolled }) => {
   const [menuOpen, setMenuOpen] = useState(false); // Menü açık/kapalı durumu
@@ -24,6 +23,7 @@ const Header = ({ isScrolled }) => {
             <li><a href="/#home">Ana Sayfa</a></li>
             <li><Link to="/etkinlikler">Etkinlikler</Link></li>
             <li><Link to="/projeler">Projeler</Link></li>
+            <li><Link to="/sponsorluk">Sponsorlarımız</Link></li>
             {/* <li><a href="#BlogMakale">Blog/Makaleler</a></li>
             <li><a href="#soruces">Kaynaklar</a></li> */}
             <li><a href="/#about">Hakkımızda</a></li>
@@ -39,15 +39,16 @@ const Header = ({ isScrolled }) => {
         <div className="r-logo">
               <a href="/"><img src="/assets/images/img_exclude.png" alt="" /></a>
         </div>
-        <div className='menu-icon'  onClick={toggleMenu}>
-            <img src= "/assets/images/img_menu.png"alt="Menu"  />
+        <div className='menu-icon' onClick={toggleMenu}>
+            <img src="/assets/images/img_menu.png" alt="Menu" />
         </div>
-          <nav className= {`r-navbar${menuOpen ? " active" : ""}`}>
+          <nav className={`r-navbar${menuOpen ? " active" : ""}`}>
             <img className='close-icon' src="/assets/images/img_close.png" alt="kapat" onClick={toggleMenu} />
             <ul>
               <li><a href="/#home" onClick={() => setMenuOpen(false)}>Ana Sayfa</a></li>
               <li><Link to="/etkinlikler" onClick={() => setMenuOpen(false)}>Etkinlikler</Link></li>
               <li><Link to="/projeler" onClick={() => setMenuOpen(false)}>Projeler</Link></li>
+              <li><Link to="/sponsorluk" onClick={() => setMenuOpen(false)}>Sponsorlarımız</Link></li>
               {/* <li><a href="#BlogMakale" onClick={() => setMenuOpen(false)}>Blog/Makaleler</a></li>
               <li><a href="#soruces" onClick={() => setMenuOpen(false)}>Kaynaklar</a></li> */}
               <li><a href="/#about" onClick={() => setMenuOpen(false)}>Hakkımızda</a></li>
