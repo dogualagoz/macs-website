@@ -8,6 +8,7 @@ from .events import router as events_router
 from .users import router as users_router
 from .projects import router as projects_router
 from .uploads import router as uploads_router
+from .sponsors import router as sponsors_router
 
 # Dışa açılan router'lar
-__all__ = ["auth_router", "events_router", "users_router", "projects_router", "uploads_router"]
+__all__ = ["auth_router", "events_router", "users_router", "projects_router", "uploads_router", "sponsors_router"]
