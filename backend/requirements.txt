@@ -35,6 +35,7 @@ httptools==0.6.4
 watchfiles==1.1.0
 websockets==15.0.1
 uvloop==0.21.0
+requests==2.31.0
 
 # Optional - Future features
 # pillow==10.1.0  # Image processing
