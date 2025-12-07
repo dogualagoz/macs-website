@@ -5,13 +5,21 @@ const AuthContext = createContext();
 
 export const useAuth = () => useContext(AuthContext);
 
+const DEV_BYPASS_AUTH = true;
+
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(DEV_BYPASS_AUTH ? {
+    id: 1,
+    email: 'admin@macs.com',
+    full_name: 'Dev Admin',
+    role: 'admin',
+    isAuthenticated: true,
+    token: 'dev-bypass-token'
+  } : null);
+  const [loading, setLoading] = useState(DEV_BYPASS_AUTH ? false : true);
   const [error, setError] = useState(null);
   const logoutTimerRef = useRef(null);
 
-  // Decode JWT (base64url) and return payload or null
   const decodeJwt = (token) => {
     try {
       const base64Url = token.split('.')[1];
@@ -36,7 +44,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Logout function
   const logout = useCallback(() => {
     clearLogoutTimer();
     localStorage.removeItem('token');
@@ -47,30 +54,31 @@ export const AuthProvider = ({ children }) => {
   const scheduleAutoLogout = useCallback((token) => {
     clearLogoutTimer();
     const payload = decodeJwt(token);
-    const expSeconds = payload?.exp; // seconds since epoch
+    const expSeconds = payload?.exp;
     if (!expSeconds) return;
     const expMs = expSeconds * 1000;
     const delay = expMs - Date.now();
-    // Persist for reloads
     localStorage.setItem('token_exp', String(expMs));
     if (delay <= 0) {
-      // already expired
       logout();
       return;
     }
     logoutTimerRef.current = setTimeout(() => {
       logout();
-      // Opsiyonel: login sayfasına yönlendirme
       try {
         if (window.location.pathname.startsWith('/admin')) {
           window.location.href = '/login?expired=1';
         }
       } catch (_e) {}
-    }, Math.min(delay, 2 ** 31 - 1)); // setTimeout sınırı guard
+    }, Math.min(delay, 2 ** 31 - 1));
   }, [logout]);
 
-  // Check if user is authenticated on initial load
   useEffect(() => {
+    if (DEV_BYPASS_AUTH) {
+      setLoading(false);
+      return;
+    }
+
     const checkAuthStatus = async () => {
       const token = localStorage.getItem('token');
       
@@ -78,7 +86,6 @@ export const AuthProvider = ({ children }) => {
         setLoading(false);
         return;
       }
-      // Token süresi kontrolü (exp)
       const payload = decodeJwt(token);
       const exp = payload?.exp ? payload.exp * 1000 : Number(localStorage.getItem('token_exp')) || null;
       if (exp && exp <= Date.now()) {
@@ -89,7 +96,6 @@ export const AuthProvider = ({ children }) => {
       }
 
       try {
-        // Try to get user info with token
         const userData = await authService.getCurrentUser(token).catch(() => null);
         
         if (userData) {
@@ -99,7 +105,6 @@ export const AuthProvider = ({ children }) => {
             token
           });
         } else {
-          // If we can't get user info, just set basic auth state
           setUser({
             isAuthenticated: true,
             token
@@ -118,7 +123,6 @@ export const AuthProvider = ({ children }) => {
     checkAuthStatus();
   }, [scheduleAutoLogout]);
 
-  // Login function
   const login = async (email, password) => {
     setError(null);
     
@@ -126,16 +130,13 @@ export const AuthProvider = ({ children }) => {
       const data = await authService.login(email, password);
       const { access_token } = data;
 
-      // Save token to localStorage
       localStorage.setItem('token', access_token);
 
-      // Update user state
       setUser({
         isAuthenticated: true,
         token: access_token
       });
 
-      // Schedule auto logout based on token exp
       scheduleAutoLogout(access_token);
 
       return true;
@@ -145,13 +146,13 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Check if user is authenticated
   const isAuthenticated = () => {
+    if (DEV_BYPASS_AUTH) return true;
+    
     const token = localStorage.getItem('token');
     if (!token) return false;
     const expMs = Number(localStorage.getItem('token_exp')) || (decodeJwt(token)?.exp ? decodeJwt(token).exp * 1000 : null);
     if (expMs && expMs <= Date.now()) {
-      // Expired: temizle
       localStorage.removeItem('token');
       localStorage.removeItem('token_exp');
       return false;
@@ -159,7 +160,6 @@ export const AuthProvider = ({ children }) => {
     return true;
   };
 
-  // Get auth header for API requests
   const getAuthHeader = () => {
     const token = localStorage.getItem('token');
     return token ? { Authorization: `Bearer ${token}` } : {};

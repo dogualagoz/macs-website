@@ -86,16 +86,31 @@ export default function SponsorsPage() {
       </section>
 
       <div className="sponsors-main">
+        {error && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="sponsors-error"
+          >
+            <p className="sponsors-error__text">
+              Sponsorlar yüklenirken bir hata oluştu. Örnek veriler gösteriliyor.
+            </p>
+          </motion.div>
+        )}
+
         <motion.div 
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.2 }}
           className="sponsors-view-toggle"
         >
-          <div className="sponsors-view-toggle__buttons">
+          <div className="sponsors-view-toggle__buttons" role="tablist" aria-label="Görünüm seçenekleri">
             <button
               onClick={() => setActiveView('grid')}
               className={`sponsors-view-toggle__btn ${activeView === 'grid' ? 'sponsors-view-toggle__btn--active' : ''}`}
+              role="tab"
+              aria-selected={activeView === 'grid'}
+              aria-controls="sponsors-content"
             >
               <GridIcon />
               Grid Görünüm
@@ -103,6 +118,9 @@ export default function SponsorsPage() {
             <button
               onClick={() => setActiveView('map')}
               className={`sponsors-view-toggle__btn ${activeView === 'map' ? 'sponsors-view-toggle__btn--active' : ''}`}
+              role="tab"
+              aria-selected={activeView === 'map'}
+              aria-controls="sponsors-content"
             >
               <MapIcon />
               Harita Görünüm
@@ -111,20 +129,22 @@ export default function SponsorsPage() {
         </motion.div>
 
         {/* Content */}
-        <AnimatePresence mode="wait">
-          {activeView === 'grid' ? (
-            <SponsorsGrid 
-              key="grid"
-              sponsors={sponsors} 
-              onSponsorClick={setSelectedSponsor}
-            />
-          ) : (
-            <SponsorsMap 
-              key="map"
-              sponsors={sponsors}
-            />
-          )}
-        </AnimatePresence>
+        <div id="sponsors-content" role="tabpanel">
+          <AnimatePresence mode="wait">
+            {activeView === 'grid' ? (
+              <SponsorsGrid 
+                key="grid"
+                sponsors={sponsors} 
+                onSponsorClick={setSelectedSponsor}
+              />
+            ) : (
+              <SponsorsMap 
+                key="map"
+                sponsors={sponsors}
+              />
+            )}
+          </AnimatePresence>
+        </div>
 
         {sponsors.length === 0 && !loading && (
           <motion.div
@@ -187,7 +207,11 @@ function SponsorsGrid({ sponsors, onSponsorClick }) {
           whileHover={{ y: -4 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => onSponsorClick(sponsor)}
+          onKeyDown={(e) => e.key === 'Enter' && onSponsorClick(sponsor)}
           className="sponsor-card"
+          role="button"
+          tabIndex={0}
+          aria-label={`${sponsor.name} sponsor detaylarını görüntüle`}
         >
           <div className="sponsor-card__header">
             <div className="sponsor-card__circle sponsor-card__circle--top" />
@@ -208,7 +232,7 @@ function SponsorsGrid({ sponsors, onSponsorClick }) {
                 />
               ) : (
                 <div className="sponsor-card__avatar sponsor-card__avatar--placeholder">
-                  {sponsor.name.charAt(0).toUpperCase()}
+                  {(sponsor.name || 'S').charAt(0).toUpperCase()}
                 </div>
               )}
             </div>
@@ -229,10 +253,12 @@ function SponsorsGrid({ sponsors, onSponsorClick }) {
               </div>
             )}
             
-            <div className="sponsor-card__location">
-              <LocationIcon />
-              <span>{sponsor.location.address}</span>
-            </div>
+            {sponsor.location?.address && (
+              <div className="sponsor-card__location">
+                <LocationIcon />
+                <span>{sponsor.location.address}</span>
+              </div>
+            )}
           </div>
         </motion.div>
       ))}
@@ -242,25 +268,44 @@ function SponsorsGrid({ sponsors, onSponsorClick }) {
 
 function SponsorsMap({ sponsors }) {
   const [popupInfo, setPopupInfo] = useState(null);
+  const [isClosing, setIsClosing] = useState(false);
   const [viewState, setViewState] = useState({
     longitude: eskisehirCenter.lng,
     latitude: eskisehirCenter.lat,
     zoom: 12
   });
 
+  const handleClosePopup = () => {
+    if (popupInfo && !isClosing) {
+      setIsClosing(true);
+      setTimeout(() => {
+        setPopupInfo(null);
+        setIsClosing(false);
+      }, 200); // Animasyon süresiyle eşleşmeli
+    }
+  };
+
   const handleMarkerClick = (sponsor, e) => {
     e.originalEvent.stopPropagation();
-    setPopupInfo(popupInfo?.id === sponsor.id ? null : sponsor);
+    if (popupInfo?.id === sponsor.id) {
+      handleClosePopup();
+    } else {
+      setIsClosing(false);
+      setPopupInfo(sponsor);
+    }
   };
 
   const handleSidebarClick = (sponsor) => {
+    setIsClosing(false);
     setPopupInfo(sponsor);
-    setViewState(prev => ({
-      ...prev,
-      longitude: sponsor.location.lng,
-      latitude: sponsor.location.lat,
-      zoom: 14
-    }));
+    if (sponsor.location?.lng && sponsor.location?.lat) {
+      setViewState(prev => ({
+        ...prev,
+        longitude: sponsor.location.lng,
+        latitude: sponsor.location.lat,
+        zoom: 14
+      }));
+    }
   };
 
   return (
@@ -277,12 +322,12 @@ function SponsorsMap({ sponsors }) {
           style={{ width: '100%', height: '100%' }}
           mapStyle="mapbox://styles/mapbox/streets-v12"
           mapboxAccessToken={MAPBOX_TOKEN}
-          onClick={() => setPopupInfo(null)}
+          onClick={handleClosePopup}
           reuseMaps
         >
           <NavigationControl position="top-right" />
           
-          {sponsors.map((sponsor) => (
+          {sponsors.filter(s => s.location?.lat && s.location?.lng).map((sponsor) => (
             <Marker
               key={sponsor.id}
               longitude={sponsor.location.lng}
@@ -290,32 +335,31 @@ function SponsorsMap({ sponsors }) {
               anchor="bottom"
               onClick={(e) => handleMarkerClick(sponsor, e)}
             >
-              <div className={`sponsors-map__marker ${popupInfo?.id === sponsor.id ? 'sponsors-map__marker--active' : ''}`}>
-                {sponsor.name.charAt(0)}
+              <div 
+                className={`sponsors-map__marker ${popupInfo?.id === sponsor.id ? 'sponsors-map__marker--active' : ''}`}
+                role="button"
+                aria-label={`${sponsor.name} konumunu göster`}
+                tabIndex={0}
+                onKeyDown={(e) => e.key === 'Enter' && handleMarkerClick(sponsor, e)}
+              >
+                {(sponsor.name || 'S').charAt(0)}
               </div>
             </Marker>
           ))}
 
-          <AnimatePresence>
-            {popupInfo && (
-              <Popup
-                anchor="top"
-                longitude={popupInfo.location.lng}
-                latitude={popupInfo.location.lat}
-                onClose={() => setPopupInfo(null)}
-                closeButton={false}
-                closeOnClick={false}
-                className="sponsor-popup"
-                maxWidth="300px"
-                offset={15}
-              >
-                <motion.div 
-                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                  transition={{ duration: 0.2, ease: "easeOut" }}
-                  className="sponsor-popup__content"
-                >
+          {popupInfo && popupInfo.location?.lat && popupInfo.location?.lng && (
+            <Popup
+              anchor="top"
+              longitude={popupInfo.location.lng}
+              latitude={popupInfo.location.lat}
+              onClose={handleClosePopup}
+              closeButton={false}
+              closeOnClick={false}
+              className={`sponsor-popup ${isClosing ? 'popup-closing' : ''}`}
+              maxWidth="300px"
+              offset={15}
+            >
+              <div className="sponsor-popup__content">
                   <div className="sponsor-popup__header">
                     {popupInfo.imageUrl ? (
                       <img 
@@ -344,24 +388,27 @@ function SponsorsMap({ sponsors }) {
                     </div>
                   )}
                   
-                  <p className="sponsor-popup__location">
-                    <LocationIcon />
-                    {popupInfo.location.address}
-                  </p>
+                  {popupInfo.location?.address && (
+                    <p className="sponsor-popup__location">
+                      <LocationIcon />
+                      {popupInfo.location.address}
+                    </p>
+                  )}
                   
-                  <a 
-                    href={`https://www.google.com/maps?q=${popupInfo.location.lat},${popupInfo.location.lng}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="sponsor-popup__btn"
-                  >
-                    <GoogleMapsIcon />
-                    Haritalarda Aç
-                  </a>
-                </motion.div>
+                  {popupInfo.location?.lat && popupInfo.location?.lng && (
+                    <a 
+                      href={`https://www.google.com/maps?q=${popupInfo.location.lat},${popupInfo.location.lng}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="sponsor-popup__btn"
+                    >
+                      <GoogleMapsIcon />
+                      Haritalarda Aç
+                    </a>
+                  )}
+                </div>
               </Popup>
             )}
-          </AnimatePresence>
         </Map>
       </div>
 
@@ -381,15 +428,17 @@ function SponsorsMap({ sponsors }) {
             >
               <div className="sponsors-sidebar__item-content">
                 <div className={`sponsors-sidebar__item-avatar ${popupInfo?.id === sponsor.id ? 'sponsors-sidebar__item-avatar--active' : ''}`}>
-                  {sponsor.name.charAt(0)}
+                  {(sponsor.name || 'S').charAt(0)}
                 </div>
                 <div className="sponsors-sidebar__item-info">
                   <p className="sponsors-sidebar__item-name">
                     {sponsor.name}
                   </p>
-                  <p className="sponsors-sidebar__item-address">
-                    {sponsor.location.address}
-                  </p>
+                  {sponsor.location?.address && (
+                    <p className="sponsors-sidebar__item-address">
+                      {sponsor.location.address}
+                    </p>
+                  )}
                 </div>
               </div>
             </motion.div>
@@ -401,7 +450,18 @@ function SponsorsMap({ sponsors }) {
 }
 
 function SponsorModal({ sponsor, onClose }) {
-  const googleMapsLink = `https://www.google.com/maps?q=${sponsor.location.lat},${sponsor.location.lng}`;
+  const googleMapsLink = sponsor.location?.lat && sponsor.location?.lng 
+    ? `https://www.google.com/maps?q=${sponsor.location.lat},${sponsor.location.lng}`
+    : null;
+
+  // Escape tuşu ile kapatma
+  React.useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [onClose]);
   
   return (
     <motion.div
@@ -410,6 +470,9 @@ function SponsorModal({ sponsor, onClose }) {
       exit={{ opacity: 0 }}
       className="sponsor-modal__overlay"
       onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="sponsor-modal-title"
     >
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -422,6 +485,7 @@ function SponsorModal({ sponsor, onClose }) {
           <button 
             onClick={onClose}
             className="sponsor-modal__close"
+            aria-label="Modalı kapat"
           >
             <CloseIcon />
           </button>
@@ -433,7 +497,7 @@ function SponsorModal({ sponsor, onClose }) {
             />
           ) : (
             <div className="sponsor-modal__avatar sponsor-modal__avatar--placeholder">
-              {sponsor.name.charAt(0)}
+              {(sponsor.name || 'S').charAt(0)}
             </div>
           )}
           {sponsor.category && (
@@ -444,7 +508,7 @@ function SponsorModal({ sponsor, onClose }) {
         </div>
 
         <div className="sponsor-modal__body">
-          <h2 className="sponsor-modal__name">{sponsor.name}</h2>
+          <h2 id="sponsor-modal-title" className="sponsor-modal__name">{sponsor.name}</h2>
           {sponsor.description && (
             <p className="sponsor-modal__desc">{sponsor.description}</p>
           )}
@@ -455,22 +519,26 @@ function SponsorModal({ sponsor, onClose }) {
             </div>
           )}
           
-          <div className="sponsor-modal__location-wrapper">
-            <div className="sponsor-modal__location">
-              <LocationIcon />
-              <span>{sponsor.location.address}</span>
+          {sponsor.location?.address && (
+            <div className="sponsor-modal__location-wrapper">
+              <div className="sponsor-modal__location">
+                <LocationIcon />
+                <span>{sponsor.location.address}</span>
+              </div>
             </div>
-          </div>
+          )}
 
-          <a 
-            href={googleMapsLink}
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="sponsor-modal__btn"
-          >
-            <GoogleMapsIcon />
-            Haritalarda Aç
-          </a>
+          {googleMapsLink && (
+            <a 
+              href={googleMapsLink}
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="sponsor-modal__btn"
+            >
+              <GoogleMapsIcon />
+              Haritalarda Aç
+            </a>
+          )}
         </div>
       </motion.div>
     </motion.div>
@@ -520,16 +588,6 @@ function GoogleMapsIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className="flex-shrink-0">
       <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-    </svg>
-  );
-}
-
-function WebIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="flex-shrink-0">
-      <circle cx="12" cy="12" r="10" />
-      <line x1="2" y1="12" x2="22" y2="12" />
-      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
     </svg>
   );
 }
