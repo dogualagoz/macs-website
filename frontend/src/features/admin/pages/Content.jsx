@@ -1,11 +1,7 @@
 import React, { useState } from 'react';
 import Sidebar from '../components/Sidebar';
-import { EventForm, ProjectForm } from '../components/ContentManagement';
+import { EventForm, ProjectForm, SponsorForm } from '../components/ContentManagement';
 
-/**
- * İçerik Yönetimi Sayfası
- * Event ve Project ekleme formlarını yönetir
- */
 const Content = () => {
   const [activeTab, setActiveTab] = useState('event');
 
@@ -32,6 +28,12 @@ const Content = () => {
                 >
                   Proje Ekle
                 </button>
+                <button 
+                  onClick={() => setActiveTab('sponsor')} 
+                  className={`tab-btn ${activeTab === 'sponsor' ? 'active' : ''}`}
+                >
+                  Sponsor Ekle
+                </button>
               </div>
             </div>
           </div>
@@ -39,6 +41,7 @@ const Content = () => {
           <div className="admin-card-body">
             {activeTab === 'event' && <EventForm />}
             {activeTab === 'project' && <ProjectForm />}
+            {activeTab === 'sponsor' && <SponsorForm />}
           </div>
         </div>
       </main>
