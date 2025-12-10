@@ -8,6 +8,7 @@ import { HomePage } from './features/home';
 import { EventsPage, EventDetailPage } from './features/events';
 import { ProjectsPage, ProjectDetailPage } from './features/projects';
 import { SponsorsPage } from './features/sponsors';
+import ComingSoon from './shared/components/pages/ComingSoon';
 import { LoginPage, ProtectedRoute, AuthProvider } from './features/auth';
 import { AdminPanel } from './features/admin';
 import Page404 from './shared/components/Page404';
@@ -73,7 +74,8 @@ function App() {
             <Route path="/etkinlikler/:slug" element={<EventDetailPage />} />
             <Route path="/projeler" element={<ProjectsPage />} />
             <Route path="/projeler/:slug" element={<ProjectDetailPage />} />
-            <Route path="/sponsorluk" element={<SponsorsPage />} />
+            {/* Sponsorluklar geçici olarak ComingSoon sayfasına yönlendirildi. Sadece bu satırı değiştirerek eski haline dönebilir. */}
+            <Route path="/sponsorluk" element={<ComingSoon />} />
             <Route path="/login" element={<LoginPage />} />
             
             {/* Protected routes */}
