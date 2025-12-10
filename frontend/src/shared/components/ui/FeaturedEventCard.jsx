@@ -55,6 +55,7 @@ const FeaturedEventCard = ({ title, date, location, description, image, startTim
         <span className='First-subtittle-span'>{description}</span>
       </div>
       <div className="First-hour">
+        <img className='First-hour-img' src="assets/images/img_clock.png" alt="saat" />
         <span className="First-hour-span">
           {formatTime(startTime) }
         </span>
