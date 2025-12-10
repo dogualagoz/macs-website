@@ -1,8 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { projectService } from '../services/contentService';
 import { handleApiError } from '../../../shared/utils/errorHandler';
+import env from '../../../shared/config/env';
 
-export const useProjectForm = () => {
+// Backend URL'den /api kısmını çıkar ve image URL ile birleştir
+const getImageUrl = (imageUrl) => {
+  if (!imageUrl) return null;
+  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+    return imageUrl;
+  }
+  const apiUrl = env.apiUrl || 'http://localhost:8000';
+  const baseUrl = apiUrl.replace(/\/api$/, '');
+  return `${baseUrl}${imageUrl}`;
+};
+
+export const useProjectForm = (editData = null, onUpdateSuccess = null) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -22,6 +34,39 @@ export const useProjectForm = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editId, setEditId] = useState(null);
+
+  // Edit data geldiğinde formu doldur
+  useEffect(() => {
+    if (editData) {
+      setIsEditMode(true);
+      setEditId(editData.id);
+      
+      setFormData({
+        title: editData.title || '',
+        description: editData.description || '',
+        content: editData.content || '',
+        category: editData.category_id?.toString() || editData.category?.id?.toString() || '',
+        technologies: editData.technologies || '',
+        githubUrl: editData.github_url || '',
+        liveUrl: editData.live_url || '',
+        teamMembers: editData.team_members || '',
+        status: editData.status || 'PLANNING',
+        isFeatured: editData.is_featured || false,
+        isActive: editData.is_active ?? true
+      });
+      
+      // Mevcut resmi önizlemeye ekle
+      if (editData.image_url) {
+        setImagePreview(getImageUrl(editData.image_url));
+      }
+    } else {
+      setIsEditMode(false);
+      setEditId(null);
+      reset();
+    }
+  }, [editData]);
 
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -45,18 +90,17 @@ export const useProjectForm = () => {
     setSubmitSuccess(false);
     
     try {
-      // 1. Görsel yükle
+      // 1. Görsel yükle (yeni resim seçildiyse)
       let imageUrl = null;
       if (image) {
         imageUrl = await projectService.uploadImage(image);
       }
       
-      // 2. Proje oluştur
+      // 2. Proje verisi hazırla
       const projectData = {
         title: formData.title,
         description: formData.description,
         content: formData.content,
-        image_url: imageUrl,
         technologies: formData.technologies,
         github_url: formData.githubUrl,
         live_url: formData.liveUrl,
@@ -67,11 +111,27 @@ export const useProjectForm = () => {
         is_active: formData.isActive
       };
       
-      await projectService.create(projectData);
+      // Sadece yeni resim yüklendiyse image_url ekle
+      if (imageUrl) {
+        projectData.image_url = imageUrl;
+      }
       
-      // 3. Başarılı
-      setSubmitSuccess(true);
-      reset();
+      if (isEditMode && editId) {
+        // Güncelleme
+        await projectService.update(editId, projectData);
+        setSubmitSuccess(true);
+        
+        if (onUpdateSuccess) {
+          setTimeout(() => {
+            onUpdateSuccess();
+          }, 1500);
+        }
+      } else {
+        // Yeni oluşturma
+        await projectService.create(projectData);
+        setSubmitSuccess(true);
+        reset();
+      }
       
       setTimeout(() => {
         setSubmitSuccess(false);
@@ -109,8 +169,10 @@ export const useProjectForm = () => {
     loading,
     error,
     submitSuccess,
+    isEditMode,
     handleChange,
     handleImageChange,
-    handleSubmit
+    handleSubmit,
+    reset
   };
 };

@@ -6,6 +6,11 @@ export const Alert = ({
   message,
   onClose 
 }) => {
+  // Mesaj yoksa hiçbir şey render etme
+  if (!message) {
+    return null;
+  }
+
   const alertStyles = {
     success: 'bg-green-100 text-green-800 border-green-300',
     error: 'bg-red-100 text-red-800 border-red-300',
@@ -31,6 +36,6 @@ export const Alert = ({
 
 Alert.propTypes = {
   type: PropTypes.oneOf(['success', 'error', 'warning', 'info']),
-  message: PropTypes.string.isRequired,
+  message: PropTypes.string,
   onClose: PropTypes.func,
 };

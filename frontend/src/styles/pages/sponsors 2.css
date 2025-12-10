@@ -333,14 +333,6 @@
   cursor: pointer;
   transition: all 0.3s;
   background: #07132b;
-  overflow: hidden;
-}
-
-.sponsors-map__marker-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 50%;
 }
 
 .sponsors-map__marker:hover {
@@ -560,13 +552,6 @@
   background: #07132b;
   color: #ffffff;
   transition: all 0.2s;
-  overflow: hidden;
-}
-
-.sponsors-sidebar__item-avatar-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
 }
 
 .sponsors-sidebar__item-avatar--active {

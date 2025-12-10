@@ -8,7 +8,7 @@ import {
   Alert 
 } from '../../../../shared/components/ui';
 
-export const SponsorForm = ({ editData = null, onUpdateSuccess = null, onCancelEdit = null }) => {
+export const SponsorForm = () => {
   const {
     formData,
     imagePreview,
@@ -16,12 +16,11 @@ export const SponsorForm = ({ editData = null, onUpdateSuccess = null, onCancelE
     geocoding,
     error,
     submitSuccess,
-    isEditMode,
     handleChange,
     handleImageChange,
     handleGeocode,
     handleSubmit
-  } = useSponsorForm(editData, onUpdateSuccess);
+  } = useSponsorForm();
 
   const [copied, setCopied] = useState(false);
 
@@ -55,23 +54,8 @@ export const SponsorForm = ({ editData = null, onUpdateSuccess = null, onCancelE
 
   return (
     <div className="form-container">
-      <Alert type="success" message={submitSuccess ? (isEditMode ? 'Sponsor başarıyla güncellendi!' : 'Sponsor başarıyla eklendi!') : null} />
+      <Alert type="success" message={submitSuccess ? 'Sponsor başarıyla eklendi!' : null} />
       <Alert type="error" message={error} />
-      
-      {isEditMode && onCancelEdit && (
-        <div className="edit-mode-header" style={{ marginBottom: '1rem', padding: '0.75rem', backgroundColor: '#fef3c7', borderRadius: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ color: '#92400e', fontWeight: '500' }}>
-            ✏️ Düzenleme Modu: {formData.name}
-          </span>
-          <button 
-            type="button" 
-            onClick={onCancelEdit}
-            style={{ padding: '0.25rem 0.75rem', backgroundColor: '#fbbf24', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontWeight: '500' }}
-          >
-            İptal
-          </button>
-        </div>
-      )}
       
       <form onSubmit={handleSubmit}>
         <ImageUploader
@@ -203,7 +187,7 @@ export const SponsorForm = ({ editData = null, onUpdateSuccess = null, onCancelE
           className="btn btn-primary"
           disabled={loading}
         >
-          {loading ? (isEditMode ? "Güncelleniyor..." : "Ekleniyor...") : (isEditMode ? "Sponsoru Güncelle" : "Sponsor Ekle")}
+          {loading ? "Ekleniyor..." : "Sponsor Ekle"}
         </button>
       </form>
     </div>

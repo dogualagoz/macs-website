@@ -9,17 +9,18 @@ import {
   Alert 
 } from '../../../../shared/components/ui';
 
-export const ProjectForm = () => {
+export const ProjectForm = ({ editData = null, onUpdateSuccess = null, onCancelEdit = null }) => {
   const {
     formData,
     imagePreview,
     loading,
     error,
     submitSuccess,
+    isEditMode,
     handleChange,
     handleImageChange,
     handleSubmit
-  } = useProjectForm();
+  } = useProjectForm(editData, onUpdateSuccess);
 
   const { categories } = useCategories('project');
 
@@ -33,8 +34,23 @@ export const ProjectForm = () => {
 
   return (
     <div className="form-container">
-      <Alert type="success" message={submitSuccess ? 'Proje başarıyla eklendi!' : null} />
+      <Alert type="success" message={submitSuccess ? (isEditMode ? 'Proje başarıyla güncellendi!' : 'Proje başarıyla eklendi!') : null} />
       <Alert type="error" message={error} />
+      
+      {isEditMode && onCancelEdit && (
+        <div className="edit-mode-header" style={{ marginBottom: '1rem', padding: '0.75rem', backgroundColor: '#fef3c7', borderRadius: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ color: '#92400e', fontWeight: '500' }}>
+            ✏️ Düzenleme Modu: {formData.title}
+          </span>
+          <button 
+            type="button" 
+            onClick={onCancelEdit}
+            style={{ padding: '0.25rem 0.75rem', backgroundColor: '#fbbf24', border: 'none', borderRadius: '0.25rem', cursor: 'pointer', fontWeight: '500' }}
+          >
+            İptal
+          </button>
+        </div>
+      )}
       
       <form onSubmit={handleSubmit}>
         <ImageUploader
@@ -135,7 +151,7 @@ export const ProjectForm = () => {
           className="btn btn-primary"
           disabled={loading}
         >
-          {loading ? "Ekleniyor..." : "Proje Ekle"}
+          {loading ? (isEditMode ? "Güncelleniyor..." : "Ekleniyor...") : (isEditMode ? "Projeyi Güncelle" : "Proje Ekle")}
         </button>
       </form>
     </div>

@@ -109,7 +109,7 @@ const eventService = {
     const formData = new FormData();
     formData.append('file', file);
     
-    const response = await apiClient.post('/upload/', formData, {
+    const response = await apiClient.post('/uploads/image', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },

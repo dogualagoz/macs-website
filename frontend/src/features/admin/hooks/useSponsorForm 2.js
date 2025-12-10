@@ -1,20 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import sponsorService from '../../../shared/services/api/sponsorService';
 import { handleApiError } from '../../../shared/utils/errorHandler';
-import env from '../../../shared/config/env';
 
-// Backend URL'den /api kısmını çıkar ve image URL ile birleştir
-const getImageUrl = (imageUrl) => {
-  if (!imageUrl) return null;
-  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-    return imageUrl;
-  }
-  const apiUrl = env.apiUrl || 'http://localhost:8000';
-  const baseUrl = apiUrl.replace(/\/api$/, '');
-  return `${baseUrl}${imageUrl}`;
-};
-
-export const useSponsorForm = (editData = null, onUpdateSuccess = null) => {
+export const useSponsorForm = () => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -32,36 +20,6 @@ export const useSponsorForm = (editData = null, onUpdateSuccess = null) => {
   const [geocoding, setGeocoding] = useState(false);
   const [error, setError] = useState(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [editId, setEditId] = useState(null);
-
-  // Edit data geldiğinde formu doldur
-  useEffect(() => {
-    if (editData) {
-      setIsEditMode(true);
-      setEditId(editData.id);
-      
-      setFormData({
-        name: editData.name || '',
-        description: editData.description || '',
-        category: editData.category || '',
-        discountInfo: editData.discount_info || '',
-        address: editData.address || '',
-        latitude: editData.latitude?.toString() || '',
-        longitude: editData.longitude?.toString() || '',
-        isActive: editData.is_active ?? true
-      });
-      
-      // Mevcut resmi önizlemeye ekle
-      if (editData.image_url) {
-        setImagePreview(getImageUrl(editData.image_url));
-      }
-    } else {
-      setIsEditMode(false);
-      setEditId(null);
-      reset();
-    }
-  }, [editData]);
 
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -118,16 +76,17 @@ export const useSponsorForm = (editData = null, onUpdateSuccess = null) => {
         throw new Error('Koordinat bilgisi gerekli. Adres girin ve "Koordinat Al" butonuna tıklayın veya manuel girin.');
       }
 
-      // görsel yükle (yeni resim seçildiyse)
+      // görsel yükle
       let imageUrl = null;
       if (image) {
         imageUrl = await sponsorService.uploadImage(image);
       }
       
-      // sponsor verisi hazırla
+      // sponsor oluştur
       const sponsorData = {
         name: formData.name,
         description: formData.description || null,
+        image_url: imageUrl,
         category: formData.category,
         discount_info: formData.discountInfo,
         address: formData.address || null,
@@ -136,27 +95,11 @@ export const useSponsorForm = (editData = null, onUpdateSuccess = null) => {
         is_active: formData.isActive
       };
       
-      // Sadece yeni resim yüklendiyse image_url ekle
-      if (imageUrl) {
-        sponsorData.image_url = imageUrl;
-      }
+      await sponsorService.create(sponsorData);
       
-      if (isEditMode && editId) {
-        // Güncelleme
-        await sponsorService.update(editId, sponsorData);
-        setSubmitSuccess(true);
-        
-        if (onUpdateSuccess) {
-          setTimeout(() => {
-            onUpdateSuccess();
-          }, 1500);
-        }
-      } else {
-        // Yeni oluşturma
-        await sponsorService.create(sponsorData);
-        setSubmitSuccess(true);
-        reset();
-      }
+      // başarılı
+      setSubmitSuccess(true);
+      reset();
       
       setTimeout(() => {
         setSubmitSuccess(false);
@@ -192,7 +135,6 @@ export const useSponsorForm = (editData = null, onUpdateSuccess = null) => {
     geocoding,
     error,
     submitSuccess,
-    isEditMode,
     handleChange,
     handleImageChange,
     handleGeocode,

@@ -5,18 +5,9 @@ const AuthContext = createContext();
 
 export const useAuth = () => useContext(AuthContext);
 
-const DEV_BYPASS_AUTH = true;
-
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(DEV_BYPASS_AUTH ? {
-    id: 1,
-    email: 'admin@macs.com',
-    full_name: 'Dev Admin',
-    role: 'admin',
-    isAuthenticated: true,
-    token: 'dev-bypass-token'
-  } : null);
-  const [loading, setLoading] = useState(DEV_BYPASS_AUTH ? false : true);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const logoutTimerRef = useRef(null);
 
@@ -74,11 +65,6 @@ export const AuthProvider = ({ children }) => {
   }, [logout]);
 
   useEffect(() => {
-    if (DEV_BYPASS_AUTH) {
-      setLoading(false);
-      return;
-    }
-
     const checkAuthStatus = async () => {
       const token = localStorage.getItem('token');
       
@@ -147,8 +133,6 @@ export const AuthProvider = ({ children }) => {
   };
 
   const isAuthenticated = () => {
-    if (DEV_BYPASS_AUTH) return true;
-    
     const token = localStorage.getItem('token');
     if (!token) return false;
     const expMs = Number(localStorage.getItem('token_exp')) || (decodeJwt(token)?.exp ? decodeJwt(token).exp * 1000 : null);
