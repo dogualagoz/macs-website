@@ -53,7 +53,7 @@ app.include_router(events_router)
 app.include_router(projects_router)
 app.include_router(auth_router)
 app.include_router(users_router)
-app.include_router(uploads.router, prefix="/api")
+app.include_router(uploads_router, prefix="/api")
 app.include_router(sponsors_router)
 
 
