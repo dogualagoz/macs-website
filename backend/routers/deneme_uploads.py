@@ -8,8 +8,7 @@ from database import get_db
 from .auth import get_current_user
 from models.users import User
 
-# API router'ı /api altına alıyoruz
-router = APIRouter(prefix="/api", tags=["uploads"])
+router = APIRouter(prefix="/uploads", tags=["uploads"])
 
 # Railway volume path'ini kontrol et
 UPLOAD_VOLUME_PATH = "/app/uploads"  # Railway volume mount path
@@ -24,8 +23,8 @@ else:
 # Klasör yoksa oluştur
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-@router.post("/upload")
-@router.post("/upload/")  # slash'lı ve slahsız iki yolu da kabul et
+@router.post("/image")
+@router.post("/upload/")
 async def upload_file(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
@@ -34,9 +33,6 @@ async def upload_file(
     """
     Dosya yükleme endpoint'i.
     Sadece resim dosyalarını kabul eder.
-    Endpoint:
-      - POST /api/upload
-      - POST /api/upload/
     """
     # Dosya uzantısını kontrol et
     file_ext = os.path.splitext(file.filename)[1].lower()
@@ -57,4 +53,4 @@ async def upload_file(
     # Dosya URL'ini döndür - environment'a göre
     file_url = f"{STATIC_URL_PREFIX}/{unique_filename}"
     
-    return {"url": file_url, "filename": unique_filename}
+    return {"url": file_url}
