@@ -42,5 +42,5 @@ class Sponsor(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
-def __repr__(self):
-    return f"<Sponsor {self.name}"
+    def __repr__(self):
+        return f"<Sponsor {self.name}"

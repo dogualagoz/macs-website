@@ -273,7 +273,7 @@ body, html {
 
 .dashboard-table-row {
   display: grid;
-  grid-template-columns: 0.3fr 1.5fr 1fr 1fr 0.7fr 0.7fr 1.5fr;
+  grid-template-columns: 0.3fr 0.5fr 1.2fr 0.8fr 1fr 0.6fr 0.6fr 2fr;
   gap: 0.5rem;
   padding: 0.75rem 1rem;
   align-items: center;
@@ -297,6 +297,13 @@ body, html {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.dashboard-table-cell.actions {
+  white-space: normal;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
 }
 
 .dashboard-table-cell.actions {
@@ -329,13 +336,22 @@ body, html {
 }
 
 /* Action butonları */
-.status-btn, .featured-btn, .delete-btn {
+.status-btn, .featured-btn, .delete-btn, .edit-btn {
   padding: 5px 10px;
   border-radius: 4px;
   font-size: 0.8rem;
   cursor: pointer;
   border: none;
   margin-left: 5px;
+}
+
+.edit-btn {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.edit-btn:hover {
+  background-color: #bfdbfe;
 }
 
 .status-btn.activate {

@@ -11,10 +11,12 @@
     "axios": "^1.13.2",
     "framer-motion": "^12.23.12",
     "lucide-react": "^0.544.0",
+    "mapbox-gl": "^2.15.0",
     "postcss-preset-env": "^9.3.0",
     "prop-types": "^15.8.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-map-gl": "^7.1.7",
     "react-router-dom": "^6.30.1",
     "react-scripts": "^5.0.1",
     "web-vitals": "^2.1.4"

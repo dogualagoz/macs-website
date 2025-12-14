@@ -9,13 +9,26 @@ import '../../../styles/pages/sponsors.css';
 
 const MAPBOX_TOKEN = env.mapboxToken;
 
+// Backend URL'den /api kısmını çıkar ve image URL ile birleştir
+const getImageUrl = (imageUrl) => {
+  if (!imageUrl) return null;
+  // Eğer zaten tam URL ise direkt döndür
+  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+    return imageUrl;
+  }
+  // Backend base URL'ini al (API URL'den /api kısmını çıkar)
+  const apiUrl = env.apiUrl || 'http://localhost:8000';
+  const baseUrl = apiUrl.replace(/\/api$/, '');
+  return `${baseUrl}${imageUrl}`;
+};
+
 const transformSponsorData = (sponsor) => ({
   id: sponsor.id,
   name: sponsor.name,
   description: sponsor.description || '',
   category: sponsor.category,
   discountInfo: sponsor.discount_info,
-  imageUrl: sponsor.image_url,
+  imageUrl: getImageUrl(sponsor.image_url),
   location: {
     address: sponsor.address || '',
     lat: sponsor.latitude,
@@ -342,7 +355,15 @@ function SponsorsMap({ sponsors }) {
                 tabIndex={0}
                 onKeyDown={(e) => e.key === 'Enter' && handleMarkerClick(sponsor, e)}
               >
-                {(sponsor.name || 'S').charAt(0)}
+                {sponsor.imageUrl ? (
+                  <img 
+                    src={sponsor.imageUrl} 
+                    alt={sponsor.name}
+                    className="sponsors-map__marker-image"
+                  />
+                ) : (
+                  (sponsor.name || 'S').charAt(0)
+                )}
               </div>
             </Marker>
           ))}
@@ -428,7 +449,15 @@ function SponsorsMap({ sponsors }) {
             >
               <div className="sponsors-sidebar__item-content">
                 <div className={`sponsors-sidebar__item-avatar ${popupInfo?.id === sponsor.id ? 'sponsors-sidebar__item-avatar--active' : ''}`}>
-                  {(sponsor.name || 'S').charAt(0)}
+                  {sponsor.imageUrl ? (
+                    <img 
+                      src={sponsor.imageUrl} 
+                      alt={sponsor.name}
+                      className="sponsors-sidebar__item-avatar-image"
+                    />
+                  ) : (
+                    (sponsor.name || 'S').charAt(0)
+                  )}
                 </div>
                 <div className="sponsors-sidebar__item-info">
                   <p className="sponsors-sidebar__item-name">

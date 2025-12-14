@@ -8,7 +8,7 @@ from database import get_db
 from .auth import get_current_user
 from models.users import User
 
-router = APIRouter()
+router = APIRouter(prefix="/uploads", tags=["uploads"])
 
 # Railway volume path'ini kontrol et
 UPLOAD_VOLUME_PATH = "/app/uploads"  # Railway volume mount path
@@ -23,6 +23,7 @@ else:
 # Klasör yoksa oluştur
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
+@router.post("/image")
 @router.post("/upload/")
 async def upload_file(
     file: UploadFile = File(...),
