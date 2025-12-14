@@ -214,3 +214,70 @@
   }
 }
 /* .spinner.center { ... }  --> BUNU KULLANMA veya tamamen sil */
+
+@media (max-width: 768px) {
+  .dashboard-status {
+    margin: 24px auto;
+    padding: 24px 12px;
+    min-height: 120px;
+  }
+  
+  .error-card {
+    max-width: 90%;
+    padding: 1.5rem;
+    gap: 1rem;
+    margin: 1.5rem auto;
+  }
+  
+  .error-icon {
+    font-size: 1.8rem;
+  }
+  
+  .error-content h2 {
+    font-size: 1.2rem;
+  }
+  
+  .error-content p {
+    font-size: 0.9rem;
+  }
+  
+  .retry-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-status {
+    margin: 16px auto;
+    padding: 20px 10px;
+    min-height: 100px;
+  }
+  
+  .error-card {
+    max-width: 95%;
+    padding: 1.25rem;
+    gap: 0.8rem;
+    border-left-width: 4px;
+    border-radius: 12px;
+  }
+  
+  .error-icon {
+    font-size: 1.6rem;
+  }
+  
+  .error-content h2 {
+    font-size: 1.1rem;
+  }
+  
+  .error-content p {
+    font-size: 0.85rem;
+    margin: 0.4rem 0 0.8rem;
+  }
+  
+  .retry-btn {
+    padding: 0.45rem 0.9rem;
+    font-size: 0.85rem;
+    border-radius: 6px;
+  }
+}

@@ -79,4 +79,40 @@ body {
 
 .mapboxgl-popup-close-button {
   display: none;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 16px;
+  }
+  
+  .section-title {
+    font-size: 1.5rem;
+  }
+  
+  .section-description {
+    font-size: 0.9rem;
+    padding: 0 0.5rem;
+  }
+  
+  .button {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0 12px;
+  }
+  
+  .section-title {
+    font-size: 1.35rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .section-description {
+    font-size: 0.85rem;
+    margin-bottom: 1.5rem;
+  }
 } 

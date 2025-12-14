@@ -252,3 +252,39 @@
 .nav-menu a,
 .r-navbar a,
 .menu-icon { cursor: pointer; }
+
+@media only screen and (max-width: 480px) {
+  .header {
+    padding: 0.5rem 0.75rem;
+  }
+  
+  .responsive-navbar {
+    height: 45px;
+    padding: 0 0.5rem;
+  }
+  
+  .r-logo img {
+    height: 2.8rem;
+    width: 2.8rem;
+  }
+  
+  .menu-icon img {
+    width: 26px;
+    height: 26px;
+  }
+  
+  .r-navbar {
+    width: 85%;
+    padding: 1rem;
+  }
+  
+  .r-navbar ul li {
+    padding: 0.6rem;
+    font-size: 0.95rem;
+  }
+  
+  .close-icon {
+    height: 24px;
+    width: 24px;
+  }
+}

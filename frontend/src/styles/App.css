@@ -61,4 +61,28 @@ img {
 /* Global section styles */
 section {
   padding: 4rem 0;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 0 1rem;
+  }
+  
+  section {
+    padding: 2.5rem 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0 0.75rem;
+  }
+  
+  section {
+    padding: 2rem 0;
+  }
+  
+  body {
+    font-size: 14px;
+  }
 } 
