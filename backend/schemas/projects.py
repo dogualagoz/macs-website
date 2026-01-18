@@ -1,15 +1,8 @@
 from pydantic import BaseModel, HttpUrl
 from typing import Optional, List
 from datetime import datetime
-from enum import Enum
-
-class ProjectStatus(str, Enum):
-    """Proje durumları"""
-    PLANNING = "PLANNING"
-    IN_PROGRESS = "IN_PROGRESS"
-    COMPLETED = "COMPLETED"
-    ON_HOLD = "ON_HOLD"
-    CANCELLED = "CANCELLED"
+from models.projects import ProjectStatus, ProjectType
+from .members import MemberResponse
 
 class ProjectCategoryBase(BaseModel):
     """Proje kategorisi temel şeması"""
@@ -40,12 +33,13 @@ class ProjectBase(BaseModel):
     description: Optional[str] = None
     content: Optional[str] = None
     image_url: Optional[str] = None
-    technologies: Optional[str] = None  # JSON string olarak teknolojiler
+    technologies: Optional[str] = None
     github_url: Optional[str] = None
     live_url: Optional[str] = None
     status: ProjectStatus = ProjectStatus.PLANNING
+    project_type: ProjectType = ProjectType.DEVELOPED_BY_MACS  # YENİ
     category_id: Optional[int] = None
-    team_members: Optional[str] = None
+    team_members: Optional[str] = None  # DEPRECATED
     started_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
     is_active: Optional[bool] = True
@@ -53,7 +47,7 @@ class ProjectBase(BaseModel):
 
 class ProjectCreate(ProjectBase):
     """Proje oluşturma şeması"""
-    pass
+    member_ids: Optional[List[dict]] = []  # YENİ: [{"id": 1, "role": "...", "contribution_count": 0}]
 
 class ProjectUpdate(BaseModel):
     """Proje güncelleme şeması"""
@@ -61,12 +55,14 @@ class ProjectUpdate(BaseModel):
     description: Optional[str] = None
     content: Optional[str] = None
     image_url: Optional[str] = None
-    technologies: Optional[str] = None  # JSON string olarak teknolojiler
+    technologies: Optional[str] = None
     github_url: Optional[str] = None
     live_url: Optional[str] = None
     status: Optional[ProjectStatus] = None
+    project_type: Optional[ProjectType] = None  # YENİ
     category_id: Optional[int] = None
-    team_members: Optional[str] = None
+    member_ids: Optional[List[dict]] = None  # YENİ
+    team_members: Optional[str] = None  # DEPRECATED
     started_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
     is_active: Optional[bool] = None
@@ -77,6 +73,7 @@ class ProjectResponse(ProjectBase):
     id: int
     slug: str
     created_by: int
+    members: List[MemberResponse] = []  # YENİ: Member listesi
     is_active: bool
     is_deleted: bool
     is_featured: bool

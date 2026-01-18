@@ -16,7 +16,10 @@ from .projects import (
     ProjectCategoryBase, ProjectCategoryCreate, ProjectCategoryUpdate, ProjectCategoryResponse,
     ProjectStatus
 )
-
+from .members import (
+    MemberBase, MemberCreate, MemberUpdate, MemberResponse, MemberWithStats,
+    ProjectMemberBase, ProjectMemberCreate, ProjectMemberResponse, MemberWithProjects
+)
 from .sponsors import (
     Sponsor,
     SponsorCreate,
@@ -40,6 +43,10 @@ __all__ = [
     "ProjectBase", "ProjectCreate", "ProjectUpdate", "ProjectResponse", "ProjectListResponse",
     "ProjectCategoryBase", "ProjectCategoryCreate", "ProjectCategoryUpdate", "ProjectCategoryResponse",
     "ProjectStatus",
+    
+    # Member şemaları
+    "MemberBase", "MemberCreate", "MemberUpdate", "MemberResponse", "MemberWithStats",
+    "ProjectMemberBase", "ProjectMemberCreate", "ProjectMemberResponse", "MemberWithProjects",
 
     # Sponsor Şemaları
     "Sponsor", "SponsorCreate", "SponsorUpdate", "GeocodeRequest", "GeocodeResponse",
