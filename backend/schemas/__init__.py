@@ -14,7 +14,7 @@ from .events import (
 from .projects import (
     ProjectBase, ProjectCreate, ProjectUpdate, ProjectResponse, ProjectListResponse,
     ProjectCategoryBase, ProjectCategoryCreate, ProjectCategoryUpdate, ProjectCategoryResponse,
-    ProjectStatus
+    ProjectStatus, ProjectMemberInput, ProjectMemberUpdate
 )
 from .members import (
     MemberBase, MemberCreate, MemberUpdate, MemberResponse, MemberWithStats,
@@ -42,7 +42,7 @@ __all__ = [
     # Project şemaları
     "ProjectBase", "ProjectCreate", "ProjectUpdate", "ProjectResponse", "ProjectListResponse",
     "ProjectCategoryBase", "ProjectCategoryCreate", "ProjectCategoryUpdate", "ProjectCategoryResponse",
-    "ProjectStatus",
+    "ProjectStatus", "ProjectMemberInput", "ProjectMemberUpdate",
     
     # Member şemaları
     "MemberBase", "MemberCreate", "MemberUpdate", "MemberResponse", "MemberWithStats",

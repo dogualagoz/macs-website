@@ -6,7 +6,7 @@ from database import engine, Base
 from fastapi.middleware.cors import CORSMiddleware
 
 # Router'ları import et
-from routers import auth_router, events_router, users_router, projects_router, uploads_router, sponsors_router
+from routers import auth_router, events_router, users_router, projects_router, uploads_router, sponsors_router, members_router
 
 app = FastAPI(
     title = "MACS API",
@@ -55,6 +55,7 @@ app.include_router(auth_router)
 app.include_router(users_router)
 app.include_router(uploads_router)
 app.include_router(sponsors_router)
+app.include_router(members_router)
 
 
 @app.get("/")

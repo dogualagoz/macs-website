@@ -4,6 +4,44 @@ from datetime import datetime
 from models.projects import ProjectStatus, ProjectType
 from .members import MemberResponse
 
+# ==================== PROJECT MEMBER INPUT ====================
+
+class ProjectMemberInput(BaseModel):
+    """
+    Projeye member eklerken kullanılan input schema.
+    
+    NOT: contribution_count otomatik olarak 1'den başlar ve backend tarafından yönetilir.
+    """
+    member_id: int
+    role: Optional[str] = None
+    
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "member_id": 1,
+                "role": "Lead Developer"
+            }
+        }
+    }
+
+
+class ProjectMemberUpdate(BaseModel):
+    """
+    Projedeki member'ı güncellerken kullanılan schema.
+    """
+    role: Optional[str] = None
+    contribution_count: Optional[int] = None
+    
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "role": "Senior Developer",
+                "contribution_count": 100
+            }
+        }
+    }
+
+
 class ProjectCategoryBase(BaseModel):
     """Proje kategorisi temel şeması"""
     name: str
@@ -47,7 +85,7 @@ class ProjectBase(BaseModel):
 
 class ProjectCreate(ProjectBase):
     """Proje oluşturma şeması"""
-    member_ids: Optional[List[dict]] = []  # YENİ: [{"id": 1, "role": "...", "contribution_count": 0}]
+    member_ids: Optional[List[ProjectMemberInput]] = []  # Projeye eklenecek member'lar
 
 class ProjectUpdate(BaseModel):
     """Proje güncelleme şeması"""
@@ -61,7 +99,7 @@ class ProjectUpdate(BaseModel):
     status: Optional[ProjectStatus] = None
     project_type: Optional[ProjectType] = None  # YENİ
     category_id: Optional[int] = None
-    member_ids: Optional[List[dict]] = None  # YENİ
+    member_ids: Optional[List[ProjectMemberInput]] = None  # Proje member'larını güncelle
     team_members: Optional[str] = None  # DEPRECATED
     started_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
