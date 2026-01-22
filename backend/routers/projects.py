@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session, joinedload
-from typing import List, Optional
+from typing import List, Optional, Union
 from datetime import datetime
 from unidecode import unidecode
 import re
@@ -14,7 +14,91 @@ from schemas import (
 )
 from routers.auth import get_current_user
 
-router = APIRouter(prefix="/projects", tags=["Proje İşlemleri"])
+router = APIRouter(prefix="/projects", tags=["projects"])
+
+# ==================== HELPER FUNCTIONS ====================
+
+def create_slug(title: str) -> str:
+    """
+    Başlıktan URL-uyumlu slug oluşturur.
+    
+    Args:
+        title: Proje başlığı
+        
+    Returns:
+        URL-uyumlu slug
+    """
+    # Türkçe karakterleri İngilizce karakterlere çevir
+    slug = unidecode(title).lower()
+    # Sadece harf, rakam ve tire bırak, diğerlerini tire ile değiştir
+    slug = re.sub(r'[^a-z0-9]+', '-', slug)
+    # Başındaki ve sonundaki tireleri kaldır
+    slug = slug.strip('-')
+    return slug
+
+
+def get_project_query_with_members(db: Session):
+    """
+    Project query'sine eager loading ekler (member'ları da yükler).
+    
+    Args:
+        db: Database session
+        
+    Returns:
+        Query object with joinedload
+    """
+    return db.query(Project).options(
+        joinedload(Project.member_relationships).joinedload(ProjectMember.member)
+    )
+
+
+def populate_project_members(project: Union[Project, List[Project]]) -> None:
+    """
+    Project veya project listesine members attribute'u ekler.
+    
+    Args:
+        project: Tek bir Project veya Project listesi
+    """
+    if isinstance(project, list):
+        for p in project:
+            p.members = [pm.member for pm in p.member_relationships if pm.member]
+    else:
+        project.members = [pm.member for pm in project.member_relationships if pm.member]
+
+
+def handle_member_ids(db: Session, project_id: int, member_ids: List[ProjectMemberInput]) -> None:
+    """
+    Projeye member'ları ekler veya günceller.
+    
+    Args:
+        db: Database session
+        project_id: Proje ID'si
+        member_ids: Eklenecek member'ların listesi
+    """
+    # Mevcut member ilişkilerini sil
+    db.query(ProjectMember).filter(ProjectMember.project_id == project_id).delete()
+    
+    # Yeni member ilişkilerini ekle
+    for member_input in member_ids:
+        member_id = member_input.member_id
+        
+        # Member'ın var olduğunu kontrol et
+        member = db.query(Member).filter(Member.id == member_id).first()
+        if not member:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Member ID {member_id} bulunamadı"
+            )
+        
+        # ProjectMember ilişkisi oluştur
+        project_member = ProjectMember(
+            project_id=project_id,
+            member_id=member_id,
+            role=member_input.role,
+            contribution_count=1  # Otomatik olarak 1'den başlar
+        )
+        db.add(project_member)
+
 
 # ==================== PROJE KATEGORİLERİ ====================
 
@@ -132,10 +216,8 @@ def get_projects(
     - Sıralama: created_at (en yeni önce)
     - Sayfalama: skip, limit
     """
-    # Base query - member'ları da yükle (eager loading)
-    query = db.query(Project).options(
-        joinedload(Project.member_relationships).joinedload(ProjectMember.member)
-    ).filter(
+    # Base query with eager loading
+    query = get_project_query_with_members(db).filter(
         Project.is_deleted == False,
         Project.is_active == True
     )
@@ -161,9 +243,8 @@ def get_projects(
     # Pagination
     projects = query.offset(skip).limit(limit).all()
     
-    # Her proje için members listesini oluştur
-    for project in projects:
-        project.members = [pm.member for pm in project.member_relationships if pm.member]
+    # Members listesini doldur
+    populate_project_members(projects)
 
     return ProjectListResponse(
         projects=projects,

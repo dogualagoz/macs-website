@@ -11,7 +11,7 @@ from schemas import (
 )
 from routers.auth import get_current_user
 
-router = APIRouter(prefix="/members", tags=["Üye İşlemleri"])
+router = APIRouter(prefix="/members", tags=["members"])
 
 # ==================== MEMBER CRUD ====================
 

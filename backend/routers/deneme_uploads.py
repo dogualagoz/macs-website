@@ -8,7 +8,7 @@ from database import get_db
 from .auth import get_current_user
 from models.users import User
 
-router = APIRouter(prefix="/uploads", tags=["uploads"])
+router = APIRouter(prefix="/uploads", tags=["system"])
 
 # Railway volume path'ini kontrol et
 UPLOAD_VOLUME_PATH = "/app/uploads"  # Railway volume mount path

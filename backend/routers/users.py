@@ -15,7 +15,7 @@ from routers.auth import get_current_user
 limiter = Limiter(key_func=get_remote_address)
 router = APIRouter(
     prefix="/users",
-    tags=["Kullanıcı İşlemleri"]
+    tags=["users"]
         )
 
 async def get_current_admin(current_user: User = Depends(get_current_user)):

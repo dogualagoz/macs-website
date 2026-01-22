@@ -8,10 +8,45 @@ from fastapi.middleware.cors import CORSMiddleware
 # Router'ları import et
 from routers import auth_router, events_router, users_router, projects_router, uploads_router, sponsors_router, members_router
 
+# OpenAPI Tag Metadata (Swagger grupları için)
+tags_metadata = [
+    {
+        "name": "authentication",
+        "description": "User authentication and authorization. Includes login, registration, and token management.",
+    },
+    {
+        "name": "events",
+        "description": "Event management operations. Create, update, delete events and manage event categories.",
+    },
+    {
+        "name": "members",
+        "description": "Club member management. View members, leaderboard, and project contributions.",
+    },
+    {
+        "name": "projects",
+        "description": "Project management and CRUD operations. Includes project categories and team member management.",
+    },
+    {
+        "name": "sponsors",
+        "description": "Sponsor management. Create, update sponsors and manage sponsor categories.",
+    },
+    {
+        "name": "users",
+        "description": "User account management. Profile updates, password changes, and user administration.",
+    },
+    {
+        "name": "system",
+        "description": "System utilities. File uploads, health checks, and system information.",
+    },
+]
+
 app = FastAPI(
-    title = "MACS API",
-    description = "MACS Kulübü Web Sitesi Backend API",
-    version = "1.0.0",
+    title="MACS API",
+    description="MACS Kulübü Web Sitesi Backend API - RESTful API for managing club events, projects, members, and sponsors.",
+    version="1.0.0",
+    openapi_tags=tags_metadata,
+    docs_url="/docs",
+    redoc_url="/redoc",
 )
 
 # CORS ayarları
@@ -58,11 +93,11 @@ app.include_router(sponsors_router)
 app.include_router(members_router)
 
 
-@app.get("/")
+@app.get("/", tags=["system"])
 def root():
     return {"message": "MACS Kulubu Web Sitesine hosgeldiniz!"}
 
-@app.get("/health")
+@app.get("/health", tags=["system"])
 def health_check():
     return {"status": "ok"}
 

@@ -17,7 +17,7 @@ limiter = Limiter(key_func=get_remote_address)
 
 router = APIRouter(
     prefix="/auth",
-    tags=["Kimlik Doğrulama"]
+    tags=["authentication"]
 )
 
 # OAuth2 şeması tanımı

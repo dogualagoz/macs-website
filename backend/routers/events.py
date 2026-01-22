@@ -19,7 +19,7 @@ from routers.auth import get_current_user
 
 router = APIRouter(
     prefix="/events",
-    tags=["Etkinlik İşlemleri"]
+    tags=["events"]
 )
 
 # Etkinlik durumu için enum sınıfı
