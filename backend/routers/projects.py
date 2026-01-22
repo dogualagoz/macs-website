@@ -54,16 +54,24 @@ def get_project_query_with_members(db: Session):
 
 def populate_project_members(project: Union[Project, List[Project]]) -> None:
     """
-    Project veya project listesine members attribute'u ekler.
-    
-    Args:
-        project: Tek bir Project veya Project listesi
+    Project veya project listesine members attribute'u ekler (rol bilgisiyle beraber).
     """
     if isinstance(project, list):
         for p in project:
-            p.members = [pm.member for pm in p.member_relationships if pm.member]
+            p.members = []
+            for pm in p.member_relationships:
+                if pm.member:
+                    # Member nesnesine geçici olarak rölü ekliyoruz (şemada karşılığı var)
+                    m = pm.member
+                    m.project_role = pm.role
+                    p.members.append(m)
     else:
-        project.members = [pm.member for pm in project.member_relationships if pm.member]
+        project.members = []
+        for pm in project.member_relationships:
+            if pm.member:
+                m = pm.member
+                m.project_role = pm.role
+                project.members.append(m)
 
 
 def handle_member_ids(db: Session, project_id: int, member_ids: List[ProjectMemberInput]) -> None:
@@ -287,8 +295,7 @@ def get_projects_admin(
     projects = query.offset(skip).limit(limit).all()
     
     # Her proje için members listesini oluştur
-    for project in projects:
-        project.members = [pm.member for pm in project.member_relationships if pm.member]
+    populate_project_members(projects)
 
     return ProjectListResponse(
         projects=projects,
@@ -318,6 +325,9 @@ def create_project(
     # Proje verilerini hazırla
     project_data = project.dict()
     
+    # Member IDs'i ayrı işle
+    member_ids = project_data.pop("member_ids", [])
+    
     # Basit slug oluştur
     base_slug = create_slug(project.title)
     
@@ -338,6 +348,13 @@ def create_project(
     db.add(db_project)
     db.commit()
     db.refresh(db_project)
+    
+    # Member'ları ekle
+    if member_ids:
+        handle_member_ids(db, db_project.id, member_ids)
+        db.commit()
+        db.refresh(db_project)
+        
     return db_project
 
 # Spesifik route'lar - genel route'lardan önce
@@ -372,7 +389,7 @@ def get_featured_project(db: Session = Depends(get_db)):
         )
     
     # Members listesini oluştur
-    featured_project.members = [pm.member for pm in featured_project.member_relationships if pm.member]
+    populate_project_members(featured_project)
     
     return featured_project
 
@@ -391,7 +408,7 @@ def get_project_by_slug(slug: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Proje bulunamadı")
     
     # Members listesini oluştur
-    db_project.members = [pm.member for pm in db_project.member_relationships if pm.member]
+    populate_project_members(db_project)
     
     return db_project
 
@@ -421,7 +438,7 @@ def get_project(project_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Proje bulunamadı")
     
     # Members listesini oluştur
-    db_project.members = [pm.member for pm in db_project.member_relationships if pm.member]
+    populate_project_members(db_project)
     
     return db_project
 

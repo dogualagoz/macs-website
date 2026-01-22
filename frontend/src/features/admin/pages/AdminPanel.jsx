@@ -5,6 +5,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Dashboard from './Dashboard';
 import Content from './Content';
 import Users from './Users';
+import Members from './Members';
 import Logs from './Logs';
 
 // CSS stilleri
@@ -33,6 +34,7 @@ const AdminPanel = () => {
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/content" element={<Content />} />
       <Route path="/users" element={<Users />} />
+      <Route path="/members" element={<Members />} />
       <Route path="/logs" element={<Logs />} />
       <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
     </Routes>

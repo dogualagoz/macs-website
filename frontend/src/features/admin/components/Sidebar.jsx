@@ -42,6 +42,13 @@ const Sidebar = () => {
         </NavLink>
         
         <NavLink 
+          to="/admin/members" 
+          className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`}
+        >
+          Üyeler
+        </NavLink>
+        
+        <NavLink 
           to="/admin/logs" 
           className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`}
         >

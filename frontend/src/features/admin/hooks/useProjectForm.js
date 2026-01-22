@@ -24,6 +24,7 @@ export const useProjectForm = (editData = null, onUpdateSuccess = null) => {
     githubUrl: '',
     liveUrl: '',
     teamMembers: '',
+    memberIds: [],
     status: 'PLANNING',
     isFeatured: false,
     isActive: true
@@ -52,6 +53,12 @@ export const useProjectForm = (editData = null, onUpdateSuccess = null) => {
         githubUrl: editData.github_url || '',
         liveUrl: editData.live_url || '',
         teamMembers: editData.team_members || '',
+        memberIds: editData.members ? editData.members.map(m => ({
+          member_id: m.id,
+          full_name: m.full_name,
+          profile_image: m.profile_image,
+          role: m.project_role || '' // Backend role bilgisini döndürmeli
+        })) : [],
         status: editData.status || 'PLANNING',
         isFeatured: editData.is_featured || false,
         isActive: editData.is_active ?? true
@@ -107,6 +114,10 @@ export const useProjectForm = (editData = null, onUpdateSuccess = null) => {
         status: formData.status,
         category_id: formData.category !== '' ? parseInt(formData.category) : null,
         team_members: formData.teamMembers,
+        member_ids: formData.memberIds.map(m => ({
+          member_id: m.member_id,
+          role: m.role
+        })),
         is_featured: formData.isFeatured,
         is_active: formData.isActive
       };
@@ -154,6 +165,7 @@ export const useProjectForm = (editData = null, onUpdateSuccess = null) => {
       githubUrl: '',
       liveUrl: '',
       teamMembers: '',
+      memberIds: [],
       status: 'PLANNING',
       isFeatured: false,
       isActive: true

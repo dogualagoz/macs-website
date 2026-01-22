@@ -4,6 +4,13 @@ from datetime import datetime
 from models.projects import ProjectStatus, ProjectType
 from .members import MemberResponse
 
+class MemberInProjectResponse(MemberResponse):
+    """
+    Project response içinde dönen member bilgisi.
+    Projedeki rolünü de içerir.
+    """
+    project_role: Optional[str] = None
+
 # ==================== PROJECT MEMBER INPUT ====================
 
 class ProjectMemberInput(BaseModel):
@@ -111,7 +118,7 @@ class ProjectResponse(ProjectBase):
     id: int
     slug: str
     created_by: int
-    members: List[MemberResponse] = []  # YENİ: Member listesi
+    members: List[MemberInProjectResponse] = []  # YENİ: Member listesi
     is_active: bool
     is_deleted: bool
     is_featured: bool

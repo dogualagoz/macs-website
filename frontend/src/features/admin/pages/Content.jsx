@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
-import { EventForm, ProjectForm, SponsorForm } from '../components/ContentManagement';
+import { EventForm, ProjectForm, SponsorForm, MemberForm } from '../components/ContentManagement';
 
 const Content = () => {
   const location = useLocation();
@@ -21,12 +21,17 @@ const Content = () => {
         setActiveTab('project');
       } else if (editMode === 'sponsor') {
         setActiveTab('sponsor');
+      } else if (editMode === 'member') {
+        setActiveTab('member');
       }
       
       // Edit data'yı ayarla
       setEditData(data);
       
       // State'i temizle (geri gelince tekrar yüklenmemesi için)
+      window.history.replaceState({}, document.title);
+    } else if (location.state?.activeTab) {
+      setActiveTab(location.state.activeTab);
       window.history.replaceState({}, document.title);
     }
   }, [location.state]);
@@ -39,8 +44,13 @@ const Content = () => {
 
   // Güncelleme başarılı olduğunda
   const handleUpdateSuccess = () => {
+    const prevTab = activeTab;
     setEditData(null);
-    navigate('/admin/dashboard');
+    if (prevTab === 'member') {
+      navigate('/admin/members');
+    } else {
+      navigate('/admin/dashboard');
+    }
   };
 
   // Edit modunu iptal et
@@ -79,6 +89,12 @@ const Content = () => {
                 >
                   {editData && activeTab === 'sponsor' ? 'Sponsor Güncelle' : 'Sponsor Ekle'}
                 </button>
+                <button 
+                  onClick={() => handleTabChange('member')} 
+                  className={`tab-btn ${activeTab === 'member' ? 'active' : ''}`}
+                >
+                  {editData && activeTab === 'member' ? 'Üye Güncelle' : 'Üye Ekle'}
+                </button>
               </div>
             </div>
           </div>
@@ -101,6 +117,13 @@ const Content = () => {
             {activeTab === 'sponsor' && (
               <SponsorForm 
                 editData={activeTab === 'sponsor' ? editData : null}
+                onUpdateSuccess={handleUpdateSuccess}
+                onCancelEdit={handleCancelEdit}
+              />
+            )}
+            {activeTab === 'member' && (
+              <MemberForm 
+                editData={activeTab === 'member' ? editData : null}
                 onUpdateSuccess={handleUpdateSuccess}
                 onCancelEdit={handleCancelEdit}
               />

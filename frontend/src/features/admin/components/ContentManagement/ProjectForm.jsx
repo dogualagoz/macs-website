@@ -8,6 +8,7 @@ import {
   ImageUploader,
   Alert 
 } from '../../../../shared/components/ui';
+import MemberSelector from '../MemberSelector';
 
 export const ProjectForm = ({ editData = null, onUpdateSuccess = null, onCancelEdit = null }) => {
   const {
@@ -108,11 +109,9 @@ export const ProjectForm = ({ editData = null, onUpdateSuccess = null, onCancelE
           />
         </div>
 
-        <FormInput
-          label="Takım Üyeleri"
-          placeholder="Ayşe Yıldız, Mehmet Demir..."
-          value={formData.teamMembers}
-          onChange={(e) => handleChange('teamMembers', e.target.value)}
+        <MemberSelector
+          selectedMembers={formData.memberIds}
+          onChange={(members) => handleChange('memberIds', members)}
         />
 
         <FormSelect
