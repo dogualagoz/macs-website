@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { eventService } from '../../../shared/services/api';
+import { mockEvents, mockEventCategories } from '../data/mockEvents';
 
 /**
  * Custom hook for fetching and managing events data
@@ -19,12 +20,21 @@ export const useEventsData = () => {
           eventService.getAll(),
           eventService.getCategories()
         ]);
-        setEvents(eventsData || []);
-        setCategories(categoriesData || []);
+        
+        // Backend'den veri geldiyse onu kullan, yoksa mock data kullan
+        const finalEvents = (eventsData && eventsData.length > 0) ? eventsData : mockEvents;
+        const finalCategories = (categoriesData && categoriesData.length > 0) ? categoriesData : mockEventCategories;
+        
+        setEvents(finalEvents);
+        setCategories(finalCategories);
         setError(null);
       } catch (err) {
         console.error('Error loading events:', err);
-        setError('Veriler yüklenirken bir hata oluştu');
+        // API hatası durumunda mock data kullan
+        console.log('Using mock data for events');
+        setEvents(mockEvents);
+        setCategories(mockEventCategories);
+        setError(null);
       } finally {
         setLoading(false);
       }

@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useParams } from 'react-router-dom';
 import { eventService } from '../../../shared/services/api';
+import { mockEvents } from '../data/mockEvents';
 import { getImageUrl } from '../../../utils/imageUtils';
 import '../../../styles/pages/events2.css'
 
@@ -48,7 +49,10 @@ const demoEvent = {
 
 function formatDate(dt) {
   try {
-    const d = new Date(dt + 'Z');
+    // Eğer zaten Z ile bitiyorsa tekrar ekleme
+    const dateStr = dt && !dt.endsWith('Z') ? dt + 'Z' : dt;
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dt;
     return new Intl.DateTimeFormat("tr-TR", {
       dateStyle: "full",
       timeStyle: "short",
@@ -56,6 +60,38 @@ function formatDate(dt) {
     }).format(d);
   } catch (e) {
     return dt;
+  }
+}
+
+function formatDateOnly(dt) {
+  try {
+    const dateStr = dt && !dt.endsWith('Z') ? dt + 'Z' : dt;
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dt;
+    return new Intl.DateTimeFormat("tr-TR", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      timeZone: "Europe/Istanbul",
+    }).format(d);
+  } catch (e) {
+    return dt;
+  }
+}
+
+function formatTimeOnly(dt) {
+  try {
+    const dateStr = dt && !dt.endsWith('Z') ? dt + 'Z' : dt;
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return '';
+    return new Intl.DateTimeFormat("tr-TR", {
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: "Europe/Istanbul",
+    }).format(d);
+  } catch (e) {
+    return '';
   }
 }
 
@@ -141,17 +177,17 @@ function EventPageView({ event }) {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="relative mx-auto max-w-7xl px-4 pt-20 pb-16 lg:pt-28 lg:pb-24 text-white"
+          className="relative mx-auto max-w-7xl px-4 sm:px-6 pt-16 pb-12 sm:pt-20 sm:pb-16 lg:pt-28 lg:pb-24 text-white"
         >
-          <div className="mb-6 flex items-center gap-3 text-sm text-white/80">
-            <ArrowLeft className="h-4 w-4" />
+          <div className="mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-white/80">
+            <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             <a href="/etkinlikler" className="hover:underline">Etkinliklere dön</a>
           </div>
 
-          <div className="flex flex-col-reverse items-start gap-8 lg:grid lg:grid-cols-5 lg:gap-12">
+          <div className="flex flex-col-reverse items-start gap-6 sm:gap-8 lg:grid lg:grid-cols-5 lg:gap-12">
             {/* Left: Title & Meta */}
-            <div className="col-span-3">
-              <div className="mb-4 flex flex-wrap items-center gap-3">
+            <div className="col-span-3 w-full">
+              <div className="mb-3 sm:mb-4 flex flex-wrap items-center gap-2 sm:gap-3">
                 <motion.span
                   variants={badgeVariants}
                   initial="initial"
@@ -185,22 +221,22 @@ function EventPageView({ event }) {
                 initial={{ y: 12, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.4 }}
-                className="text-3xl font-bold leading-tight tracking-tight md:text-5xl"
+                className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight tracking-tight"
               >
                 {event.title}
               </motion.h1>
 
-              <p className="mt-4 max-w-2xl text-white/90">{event.description}</p>
+              <p className="mt-3 sm:mt-4 max-w-2xl text-sm sm:text-base text-white/90">{event.description}</p>
 
               {/* Meta chips */}
-              <div className="mt-6 flex flex-wrap items-center gap-3 text-sm">
-                <MetaChip icon={CalendarDays} label={formatDate(event.start_time)} />
-                <MetaChip icon={Clock} label={new Date(event.start_time + 'Z').toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Istanbul" })} />
+              <div className="mt-4 sm:mt-6 flex flex-wrap items-center gap-2 sm:gap-3 text-xs sm:text-sm">
+                <MetaChip icon={CalendarDays} label={formatDateOnly(event.start_time)} />
+                <MetaChip icon={Clock} label={formatTimeOnly(event.start_time)} />
                 <MetaChip icon={MapPin} label={event.location} />
               </div>
 
               {/* CTA */}
-              <div className="mt-8 flex flex-wrap gap-3">
+              <div className="mt-6 sm:mt-8 flex flex-wrap gap-2 sm:gap-3">
                 {!isPast && (
                   event.registration_link ? (
                     <a href={event.registration_link} target="_blank" rel="noopener noreferrer">
@@ -228,12 +264,12 @@ function EventPageView({ event }) {
               variants={cardVariants}
               initial="initial"
               animate="animate"
-              className="col-span-2 w-full"
+              className="col-span-2 w-full lg:sticky lg:top-6 lg:self-start"
             >
-              <div className="sticky top-6 rounded-2xl bg-white p-5 shadow-lg ring-1 ring-slate-200">
+              <div className="rounded-2xl bg-white p-4 sm:p-5 shadow-lg ring-1 ring-slate-200">
                 <h3 className="mb-3 text-sm font-semibold text-slate-800">Etkinlik Bilgileri</h3>
-                <DetailRow icon={CalendarDays} title="Tarih" value={formatDate(event.start_time)} />
-                <DetailRow icon={Clock} title="Saat" value={new Date(event.start_time + 'Z').toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Istanbul" })} />
+                <DetailRow icon={CalendarDays} title="Tarih" value={formatDateOnly(event.start_time)} />
+                <DetailRow icon={Clock} title="Saat" value={formatTimeOnly(event.start_time)} />
                 <DetailRow icon={MapPin} title="Konum" value={event.location} />
                 <div className="mt-4 flex gap-2">
                   {event.directions_link && (
@@ -262,8 +298,8 @@ function EventPageView({ event }) {
       </section>
 
       {/* Content & Program */}
-      <main className="mx-auto max-w-7xl px-4 py-14">
-        <div className="grid gap-8 lg:grid-cols-3 lg:gap-12">
+      <main className="mx-auto max-w-7xl px-4 sm:px-6 py-8 sm:py-12 lg:py-14">
+        <div className="grid gap-6 sm:gap-8 lg:grid-cols-3 lg:gap-12">
           {/* Content */}
           <motion.section
             variants={cardVariants}
@@ -272,18 +308,18 @@ function EventPageView({ event }) {
             className="lg:col-span-2"
           >
             <Card>
-              <h2 className="mb-4 text-xl font-semibold">Hakkında</h2>
+              <h2 className="mb-3 sm:mb-4 text-lg sm:text-xl font-semibold">Hakkında</h2>
               <div
-                className="prose max-w-none prose-p:leading-relaxed prose-li:marker:text-slate-600 text-slate-700"
+                className="prose prose-sm sm:prose-base max-w-none prose-p:leading-relaxed prose-li:marker:text-slate-600 text-slate-700"
                 dangerouslySetInnerHTML={{ __html: aboutHtml }}
               />
             </Card>
 
             {/* Programı sadece content içinde mevcutsa göster */}
             {programLines.length > 0 && (
-              <Card className="mt-6">
-                <div className="mb-6 flex items-center justify-between">
-                  <h2 className="text-xl font-semibold">Program Akışı</h2>
+              <Card className="mt-4 sm:mt-6">
+                <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <h2 className="text-lg sm:text-xl font-semibold">Program Akışı</h2>
                   <div className="text-xs text-slate-500">* İçerikten parse edildi</div>
                 </div>
                 <Timeline start={event.start_time} end={event.end_time} contentProgramLines={programLines} />
@@ -300,16 +336,16 @@ function EventPageView({ event }) {
           >
             <Card>
               <h3 className="mb-3 text-sm font-semibold text-slate-800">Organizasyon</h3>
-              <div className="flex items-center gap-3">
-                <div className="grid h-10 w-10 place-items-center rounded-full bg-slate-200 text-lg font-semibold text-slate-800">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="grid h-8 w-8 sm:h-10 sm:w-10 place-items-center rounded-full bg-slate-200 text-base sm:text-lg font-semibold text-slate-800">
                   {(event.creator?.name || "M").slice(0, 1)}
                 </div>
                 <div>
-                  <div className="font-medium text-slate-800">{event.creator?.name || "MACS"}</div>
+                  <div className="text-sm sm:text-base font-medium text-slate-800">{event.creator?.name || "MACS"}</div>
                   <div className="text-xs text-slate-500">Oluşturan</div>
                 </div>
               </div>
-              <div className="mt-5 grid grid-cols-2 gap-2 text-xs text-slate-600">
+              <div className="mt-4 sm:mt-5 flex flex-wrap gap-2 text-xs text-slate-600">
                 <Tag>#{event.slug}</Tag>
                 <Tag>{event.category?.name || "Etkinlik"}</Tag>
                 {event.is_active && <Tag>Aktif</Tag>}
@@ -335,14 +371,14 @@ function EventPageView({ event }) {
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.4 }}
-          className="mt-12 overflow-hidden rounded-2xl bg-[#07132b] p-6 text-white"
+          className="mt-8 sm:mt-12 overflow-hidden rounded-2xl bg-[#07132b] p-4 sm:p-6 text-white"
         >
-          <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
+          <div className="flex flex-col items-start justify-between gap-4 sm:gap-6 md:flex-row md:items-center">
             <div>
-              <h3 className="text-2xl font-semibold">{isPast ? "Bir sonraki etkinliği kaçırma" : "Bizimle aynı gün buluşalım"}</h3>
-              <p className="mt-1 text-white/80">MACS topluluğuna katıl ve en yeni etkinliklerden haberdar ol.</p>
+              <h3 className="text-xl sm:text-2xl font-semibold">{isPast ? "Bir sonraki etkinliği kaçırma" : "Bizimle aynı gün buluşalım"}</h3>
+              <p className="mt-1 text-sm sm:text-base text-white/80">MACS topluluğuna katıl ve en yeni etkinliklerden haberdar ol.</p>
             </div>
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-2 sm:gap-3 w-full md:w-auto">
               <PrimaryButton>Bildirim Al</PrimaryButton>
               <GhostButton>
                 <ArrowRight className="h-4 w-4" /> Tüm Etkinlikler
@@ -352,7 +388,7 @@ function EventPageView({ event }) {
         </motion.div>
       </main>
 
-      <footer className="mx-auto max-w-7xl px-4 pb-16 pt-8 text-center text-sm text-slate-500">
+      <footer className="mx-auto max-w-7xl px-4 sm:px-6 pb-12 sm:pb-16 pt-6 sm:pt-8 text-center text-xs sm:text-sm text-slate-500">
         MACS • Matematik ve Bilgisayar Bilimleri Topluluğu
       </footer>
     </div>
@@ -370,8 +406,8 @@ function Card({ children, className }) {
 
 function MetaChip({ icon: Icon, label }) {
   return (
-    <span className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-slate-700">
-      <Icon className="h-4 w-4" /> {label}
+    <span className="inline-flex items-center gap-1.5 sm:gap-2 rounded-full border border-slate-200 bg-slate-50 px-2 sm:px-3 py-0.5 sm:py-1 text-xs sm:text-sm text-slate-700">
+      <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" /> <span className="truncate max-w-[200px] sm:max-w-none">{label}</span>
     </span>
   );
 }
@@ -383,11 +419,10 @@ function PrimaryButton({ children, disabled = false }) {
       whileTap={disabled ? {} : { y: 0, scale: 0.98 }}
       transition={{ duration: 0.2 }}
       disabled={disabled}
-      className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 font-medium shadow-md ${
-        disabled 
-          ? 'bg-white/50 text-[#07132b]/50 cursor-not-allowed' 
+      className={`inline-flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base font-medium shadow-md ${disabled
+          ? 'bg-white/50 text-[#07132b]/50 cursor-not-allowed'
           : 'bg-white text-[#07132b] hover:shadow-xl transition-shadow duration-200'
-      }`}
+        }`}
     >
       {children}
     </motion.button>
@@ -400,7 +435,7 @@ function GhostButton({ children }) {
       whileHover={{ y: -2, scale: 1.02 }}
       whileTap={{ y: 0, scale: 0.98 }}
       transition={{ duration: 0.2 }}
-      className="inline-flex items-center gap-2 rounded-xl border border-white/30 bg-transparent px-4 py-2 text-white hover:bg-white/10 transition-all duration-200"
+      className="inline-flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border border-white/30 bg-transparent px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base text-white hover:bg-white/10 transition-all duration-200"
     >
       {children}
     </motion.button>
@@ -412,8 +447,8 @@ function SmallButton({ children, variant, disabled = false }) {
   const styles = disabled
     ? "border border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed"
     : variant === "ghost"
-    ? "border border-slate-300 bg-transparent text-slate-700 hover:bg-slate-100 hover:scale-105"
-    : "bg-[#07132b] text-white hover:bg-[#0a1a3a] hover:scale-105";
+      ? "border border-slate-300 bg-transparent text-slate-700 hover:bg-slate-100 hover:scale-105"
+      : "bg-[#07132b] text-white hover:bg-[#0a1a3a] hover:scale-105";
   return <button className={`${base} ${styles}`} disabled={disabled}>{children}</button>;
 }
 
@@ -522,8 +557,25 @@ export default function EventPageContainer() {
     let mounted = true;
     setLoading(true);
     eventService.getBySlug(slug)
-      .then(data => { if (mounted) { setEvent(data); setError(null); }})
-      .catch(err => { if (mounted) setError(err.message || 'Bir hata oluştu'); })
+      .then(data => {
+        if (mounted) {
+          setEvent(data);
+          setError(null);
+        }
+      })
+      .catch(err => {
+        if (mounted) {
+          // API hatası durumunda mock data'dan bul
+          console.log('Using mock data for event detail');
+          const mockEvent = mockEvents.find(e => e.slug === slug);
+          if (mockEvent) {
+            setEvent(mockEvent);
+            setError(null);
+          } else {
+            setError(err.message || 'Etkinlik bulunamadı');
+          }
+        }
+      })
       .finally(() => { if (mounted) setLoading(false); });
     return () => { mounted = false; };
   }, [slug]);

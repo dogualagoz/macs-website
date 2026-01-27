@@ -48,6 +48,7 @@
     width: 100%;
     max-width: 320px;
     margin: 0 auto 0.3rem auto;
+    padding: 0;
     text-align: left;
     justify-content: flex-start;
     align-items: center;
@@ -338,7 +339,7 @@
 
 .First-hour-span{
   padding: 5px;
-  margin-bottom: 500px;
+  margin-bottom: 0;
   font-weight: 600;
   font-size: 15px;
   color: #515151;
