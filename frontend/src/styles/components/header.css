@@ -1,13 +1,33 @@
 .header {
+  --header-bg: rgba(255, 255, 255, 0.8); /* Saydam beyaz */
+  --header-text: #000000;
+  --header-border: rgba(233, 236, 239, 0.5); /* Daha hafif border */
+  --header-logo-filter: none;
+
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  padding: 1rem 2rem;
-  background-color: #FFFFFF;
+  padding: 0.75rem 2rem;
+  background-color: var(--header-bg);
+  backdrop-filter: blur(12px); /* Buzlu cam efekti */
+  -webkit-backdrop-filter: blur(12px);
   z-index: 1000;
-  border-bottom: 1px solid #E9ECEF;
+  border-bottom: 1px solid var(--header-border);
   cursor: default;
+  transition: all 0.4s ease-in-out;
+}
+
+/* Projeler Sayfası için Koyu Tema Ayarları */
+.header.header-dark {
+  --header-bg: rgba(5, 11, 20, 0.9);
+  --header-text: #ffffff;
+  --header-border: rgba(255, 255, 255, 0.1);
+  --header-logo-filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(0deg)
+    brightness(200%) contrast(100%);
+
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .header-container {
@@ -20,7 +40,7 @@
   overflow: visible;
 }
 
-.nav-menu{
+.nav-menu {
   display: flex;
   flex-direction: row;
   justify-content: space-evenly;
@@ -28,17 +48,18 @@
   flex: 1;
   margin-left: 2.4rem;
   /* margin: 0 auto; */
-  
 }
 
 .logo {
   justify-content: flex-end;
-  height: 70px;
+  height: 55px;
 }
 
 .logo img {
   height: 100%;
   width: auto;
+  filter: var(--header-logo-filter);
+  transition: filter 0.4s ease;
 }
 
 .nav-menu ul {
@@ -56,7 +77,7 @@
 
 .nav-menu a {
   text-decoration: none;
-  color: #000000 ;
+  color: var(--header-text);
   font-weight: 500;
   font-size: 0.95rem;
   transition: color 0.2s ease;
@@ -65,37 +86,57 @@
   cursor: pointer;
 }
 
-.nav-menu.active{
-  color:#495057;
-  background-color:  #F5F5F5 ;
+.nav-menu.active {
+  color: #495057;
+  background-color: #f5f5f5;
 }
 
 .nav-menu a:hover {
-  color:#1E1E1E;
-  background-color: #E9ECEF;
+  color: #1e1e1e;
+  background-color: #e9ecef;
 }
 
-.Button{
+.header.header-dark .nav-menu a:hover {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.header.header-dark .JoinUs {
+  background-color: transparent;
+  border-color: rgba(255, 255, 255, 0.5);
+  color: #ffffff;
+}
+
+.header.header-dark .JoinUs:hover {
+  background-color: #ffffff;
+  color: #000000;
+  border-color: #ffffff;
+}
+
+.Button {
   cursor: pointer;
 }
 
-.JoinUs{
+.JoinUs {
   position: relative;
-  justify-content: flex-end;
-  width: 110px;
-  height: 35px;
-  background-color: #FFFFFF;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  width: 130px;
+  height: 40px;
+  background-color: #ffffff;
   border: 2px solid black;
-  border-radius: 20px;
+  border-radius: 25px;
   transition: ease 0.5s;
-  color: #000000 ;
-  font-weight: 500;
+  color: #000000;
+  font-weight: 600;
   font-size: 0.95rem;
   overflow: hidden;
   z-index: 0;
 }
 
-.JoinUs span{
+.JoinUs span {
   cursor: pointer;
 }
 
@@ -122,11 +163,9 @@
   right: 0;
 } */
 
-
-
-.JoinUs:hover{
+.JoinUs:hover {
   background-color: #000000;
-  color: #FFFFFF;
+  color: #ffffff;
   transition: ease 0.5s;
 }
 
@@ -143,17 +182,17 @@
 
 /* Masaüstü menü - styles defined above */
 
-.responsive-navbar{
+.responsive-navbar {
   display: none;
 }
 
-.r-navbar{
- opacity: 0;
- visibility: hidden;
+.r-navbar {
+  opacity: 0;
+  visibility: hidden;
 }
 
-:root{
-  --color: #000000
+:root {
+  --color: #000000;
 }
 
 /* Mobil görünüm */
@@ -167,12 +206,11 @@
 }
 
 @media only screen and (max-width: 768px) {
-  .header-container{
+  .header-container {
     display: none;
-    
   }
 
-  .responsive-navbar{
+  .responsive-navbar {
     display: flex;
     align-items: center;
     width: 100%;
@@ -181,16 +219,16 @@
     padding: 0 1rem;
   }
 
-  .menu-icon{
+  .menu-icon {
     justify-self: flex-end;
     margin-left: auto;
   }
 
-  .menu-icon img{
+  .menu-icon img {
     filter: brightness(0);
   }
 
-  .r-logo img{
+  .r-logo img {
     position: relative;
     justify-self: flex-start;
     align-self: flex-start;
@@ -201,47 +239,48 @@
     background-repeat: no-repeat;
   }
 
-  .r-navbar{
+  .r-navbar {
     /* display: none;  */
-    position: fixed; 
-    top: 0; 
-    right: 0; 
-    width: 80%; 
-    height: 100%; 
-    background-color: #fff; 
-    z-index: 999; 
-    padding: 1.5rem; 
-    box-shadow: -2px 0 5px rgba(0,0,0,0.1); 
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 80%;
+    height: 100%;
+    background-color: #fff;
+    z-index: 999;
+    padding: 1.5rem;
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
     transform: translateX(100%);
 
     visibility: hidden;
-    transition: transform 0.4s ease, opacity .4s ease; 
-  } 
+    transition:
+      transform 0.4s ease,
+      opacity 0.4s ease;
+  }
 
-  .close-icon{
+  .close-icon {
     height: 28px;
     width: 28px;
     filter: brightness(0);
     margin-left: 0;
   }
 
-  .r-navbar ul li{
+  .r-navbar ul li {
     text-decoration: none;
     list-style: none;
     padding: 0.75rem;
     margin-top: 0.5rem;
-    font-family: 'Roboto', sans-serif;
+    font-family: "Roboto", sans-serif;
     transition: ease 0.3s;
   }
 
   /* Menü açık */
-  .r-navbar.active{ 
+  .r-navbar.active {
     /* display: block;  */
-    transform: translateX(0); 
+    transform: translateX(0);
     opacity: 1;
     visibility: visible;
-}
-
+  }
 }
 
 /* Clickable cursors */
@@ -251,38 +290,40 @@
 .r-logo img,
 .nav-menu a,
 .r-navbar a,
-.menu-icon { cursor: pointer; }
+.menu-icon {
+  cursor: pointer;
+}
 
 @media only screen and (max-width: 480px) {
   .header {
     padding: 0.5rem 0.75rem;
   }
-  
+
   .responsive-navbar {
     height: 45px;
     padding: 0 0.5rem;
   }
-  
+
   .r-logo img {
     height: 2.8rem;
     width: 2.8rem;
   }
-  
+
   .menu-icon img {
     width: 26px;
     height: 26px;
   }
-  
+
   .r-navbar {
     width: 85%;
     padding: 1rem;
   }
-  
+
   .r-navbar ul li {
     padding: 0.6rem;
     font-size: 0.95rem;
   }
-  
+
   .close-icon {
     height: 24px;
     width: 24px;

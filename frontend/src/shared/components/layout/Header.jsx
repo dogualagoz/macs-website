@@ -1,17 +1,22 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import '../../../styles/components/header.css';
 
 const Header = ({ isScrolled }) => {
   const [menuOpen, setMenuOpen] = useState(false); // Menü açık/kapalı durumu
+  const location = useLocation();
 
   const toggleMenu = () => {
     setMenuOpen(prev => !prev);
   }
 
+  // Projeler sayfasında mıyız kontrol et
+  const isProjectsPage = location.pathname.startsWith('/projeler');
+  console.log("Current Path:", location.pathname, "Is Projects Page:", isProjectsPage);
+
   return (
-    <header className={`header ${isScrolled ? 'header-scrolled' : ''}`}>
+    <header className={`header ${isScrolled ? 'header-scrolled' : ''} ${isProjectsPage ? 'header-dark' : ''}`}>
       <div className="header-container">
         <div className="logo">
           <a href="/">

@@ -6,7 +6,11 @@ import React, { useState, useEffect, useRef} from 'react';
 import { Header, Footer } from './shared/components/layout';
 import { HomePage } from './features/home';
 import { EventsPage, EventDetailPage } from './features/events';
-import { ProjectsPage, ProjectDetailPage } from './features/projects';
+// Old project pages (commented out)
+// import { ProjectsPage, ProjectDetailPage } from './features/projects';
+// New project pages
+import NewProjectsPage from './features/projects/pages/NewProjectsPage';
+import NewProjectDetailPage from './features/projects/pages/NewProjectDetailPage';
 import { SponsorsPage } from './features/sponsors';
 import ComingSoon from './shared/components/pages/ComingSoon';
 import { LoginPage, ProtectedRoute, AuthProvider } from './features/auth';
@@ -72,8 +76,9 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/etkinlikler" element={<EventsPage />} />
             <Route path="/etkinlikler/:slug" element={<EventDetailPage />} />
-            <Route path="/projeler" element={<ProjectsPage />} />
-            <Route path="/projeler/:slug" element={<ProjectDetailPage />} />
+            {/* NEW PROJECT PAGES */}
+            <Route path="/projeler" element={<NewProjectsPage />} />
+            <Route path="/projeler/:id" element={<NewProjectDetailPage />} />
             {/* Sponsorluklar geçici olarak ComingSoon sayfasına yönlendirildi. Sadece bu satırı değiştirerek eski haline dönebilir. */}
             <Route path="/sponsorluk" element={<ComingSoon />} />
             <Route path="/login" element={<LoginPage />} />
