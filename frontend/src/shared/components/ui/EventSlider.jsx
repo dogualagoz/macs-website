@@ -139,12 +139,11 @@ const EventSlider = ({ events = [] }) => {
                                                     </div>
                                                 )}
 
-                                                {event.max_participants && (
-                                                    <div className="slider-card-detail">
-                                                        <Users className="detail-icon" />
-                                                        <span>{event.max_participants} Katılımcı</span>
-                                                    </div>
-                                                )}
+                                                {/* Kapasite - Sabit değer */}
+                                                <div className="slider-card-detail">
+                                                    <Users className="detail-icon" />
+                                                    <span>100 Katılımcı</span>
+                                                </div>
                                             </div>
 
                                             {/* CTA Button */}
