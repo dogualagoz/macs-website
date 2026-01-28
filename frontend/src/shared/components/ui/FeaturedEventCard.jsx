@@ -87,12 +87,10 @@ const FeaturedEventCard = ({ title, date, location, description, image, startTim
                 </div>
               </div>
 
-              {/* Participants */}
-              {maxParticipants && (
-                <div className="text-sm text-gray-600 mb-6">
-                  Kapasite: <span className="font-semibold text-gray-700">{maxParticipants} Katılımcı</span>
-                </div>
-              )}
+              {/* Participants - Sabit değer */}
+              <div className="text-sm text-gray-600 mb-6">
+                Kapasite: <span className="font-semibold text-gray-700">100 Katılımcı</span>
+              </div>
             </div>
 
             {/* Action Buttons */}

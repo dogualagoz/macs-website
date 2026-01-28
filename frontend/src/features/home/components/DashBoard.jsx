@@ -38,13 +38,20 @@ const Dashboard = () => {
           eventService.getFeatured(),
         ]);
 
-        setProjects((projectsData && (projectsData.projects || projectsData).length > 0) ? (projectsData.projects || projectsData) : mockProjects);
+        // Projects
+        const finalProjects = (projectsData && (projectsData.projects || projectsData).length > 0) 
+          ? (projectsData.projects || projectsData) 
+          : mockProjects;
+        setProjects(finalProjects);
         setProjectCategories((projectCategoriesData && projectCategoriesData.length > 0) ? projectCategoriesData : mockProjectCategories);
-        setFeaturedProject(featuredProjectData || mockProjects.find(p => p.is_featured));
+        setFeaturedProject(featuredProjectData || finalProjects.find(p => p.is_featured) || finalProjects[0]);
 
-        setEvents((eventsData && eventsData.length > 0) ? eventsData : mockEvents);
+        // Events
+        const finalEvents = (eventsData && eventsData.length > 0) ? eventsData : mockEvents;
+        setEvents(finalEvents);
         setEventCategories((eventCategoriesData && eventCategoriesData.length > 0) ? eventCategoriesData : mockEventCategories);
-        setFeaturedEvent(featuredEventData || mockEvents.find(e => e.is_featured));
+        // Featured event: backend'den geldiyse onu kullan, yoksa listeden is_featured olanı veya ilk etkinliği al
+        setFeaturedEvent(featuredEventData || finalEvents.find(e => e.is_featured) || finalEvents[0]);
 
         setError(null);
       } catch (err) {
@@ -53,11 +60,11 @@ const Dashboard = () => {
         console.log('Using mock data for dashboard');
         setProjects(mockProjects);
         setProjectCategories(mockProjectCategories);
-        setFeaturedProject(mockProjects.find(p => p.is_featured));
+        setFeaturedProject(mockProjects.find(p => p.is_featured) || mockProjects[0]);
 
         setEvents(mockEvents);
         setEventCategories(mockEventCategories);
-        setFeaturedEvent(mockEvents.find(e => e.is_featured));
+        setFeaturedEvent(mockEvents.find(e => e.is_featured) || mockEvents[0]);
 
         setError(null);
       } finally {
