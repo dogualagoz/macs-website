@@ -17,6 +17,7 @@ import {
   Code2,
 } from "lucide-react";
 import { projectService } from "../../../shared/services/api";
+import { mockProjects } from '../data/mockProjects';
 import { getImageUrl, handleImageError } from '../../../utils/imageUtils';
 
 /**
@@ -104,7 +105,22 @@ export default function ProjectDetailPage() {
         setProject(processedProject);
       } catch (err) {
         console.error('Error loading project:', err);
-        setError("Proje yüklenirken bir hata oluştu");
+        // API hatası durumunda mock data'dan bul
+        console.log('Using mock data for project detail');
+        const mockProject = mockProjects.find(p => p.slug === slug);
+        if (mockProject) {
+          const processedProject = {
+            ...mockProject,
+            technologies: mockProject.technologies ? 
+              mockProject.technologies.split(',').map(tech => tech.trim()).filter(Boolean) : [],
+            team_members: mockProject.team_members ? 
+              mockProject.team_members.split(',').map(member => member.trim()).filter(Boolean) : []
+          };
+          setProject(processedProject);
+          setError(null);
+        } else {
+          setError("Proje yüklenirken bir hata oluştu");
+        }
       } finally {
         setLoading(false);
       }

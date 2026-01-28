@@ -1,116 +1,116 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, MapPin, Clock, Star, Users } from 'lucide-react';
+import { Calendar, MapPin, Star } from 'lucide-react';
 import { getImageUrl, handleImageError } from '../../../utils/imageUtils';
 
 /**
  * Featured Event Card Component
- * Displays a large, prominent card for the featured event
+ * Displays a featured event card with enhanced design
  */
 export default function FeaturedEventCard({ event }) {
-  const isPast = new Date(event.end_time || event.start_time) < new Date();
-  
-  const formatDate = (date) => {
-    return new Intl.DateTimeFormat('tr-TR', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    }).format(new Date(date));
+  const getDateObject = (dateStr) => {
+    if (!dateStr) return new Date();
+    if (typeof dateStr === 'string') {
+      const str = dateStr.endsWith('Z') ? dateStr : dateStr + 'Z';
+      return new Date(str);
+    }
+    return new Date(dateStr);
   };
 
-  const formatTime = (time) => {
-    // Backend'den UTC geldiği için 'Z' ekleyerek parse et
-    const date = new Date(time + 'Z');
-    return date.toLocaleTimeString('tr-TR', {
-      hour: '2-digit',
-      minute: '2-digit',
-      timeZone: 'Europe/Istanbul',
-    });
+  const isPast = getDateObject(event.end_time || event.start_time) < new Date();
+  
+  const formatDate = (date) => {
+    try {
+      const dateObj = getDateObject(date);
+      if (isNaN(dateObj.getTime())) return 'Tarih Yok';
+      return new Intl.DateTimeFormat('tr-TR', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      }).format(dateObj);
+    } catch (e) {
+      return 'Tarih Yok';
+    }
   };
 
   return (
-    <Link to={`/etkinlikler/${event.slug}`}>
-      <div className="relative overflow-hidden rounded-2xl bg-white shadow-xl hover:shadow-2xl transition-all duration-300 group">
-        <div className="grid md:grid-cols-2 gap-6 p-6">
-          {/* Image */}
-          <div className="relative h-64 md:h-full rounded-xl overflow-hidden">
+    <Link to={`/etkinlikler/${event.slug}`} style={{ textDecoration: 'none' }}>
+      <div className="group relative overflow-hidden rounded-2xl bg-white shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200 col-span-3">
+        <div className="grid grid-cols-3 gap-0 h-full">
+          {/* Image Container - Left Side */}
+          <div className="relative h-80 overflow-hidden bg-gray-100 col-span-1">
             <img
               src={getImageUrl(event.image_url)}
               alt={event.title}
               onError={handleImageError}
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             />
-            <div className="absolute top-4 left-4">
-              <span
-                className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold ${
-                  isPast
-                    ? 'bg-red-100 text-red-700'
-                    : 'bg-yellow-100 text-yellow-800'
-                }`}
-              >
-                <Star className="h-4 w-4" />
-                {isPast ? 'Geçmiş' : 'Öne Çıkan'}
-              </span>
-            </div>
+            {isPast && (
+              <div className="absolute inset-0 bg-black/40"></div>
+            )}
           </div>
 
-          {/* Content */}
-          <div className="flex flex-col justify-between">
+          {/* Content Container - Right Side */}
+          <div className="p-8 flex flex-col justify-between col-span-2">
+            {/* Featured Badge */}
             <div>
-              <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3 group-hover:text-[#07132b] transition">
+              <div className="mb-4">
+                <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold bg-blue-600 text-white">
+                  <Star className="h-4 w-4 fill-white" />
+                  ÖNE ÇIKAN
+                </span>
+              </div>
+
+              {/* Title */}
+              <h3 className="text-3xl font-bold text-gray-900 mb-4 line-clamp-2 group-hover:text-blue-700 transition">
                 {event.title}
               </h3>
-              <p className="text-gray-600 mb-6 line-clamp-3">{event.description}</p>
 
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 text-gray-700">
-                  <Calendar className="h-5 w-5 text-[#07132b]" />
+              {/* Description */}
+              <p className="text-gray-600 mb-6 line-clamp-3 text-base leading-relaxed">
+                {event.description}
+              </p>
+
+              {/* Date and Location */}
+              <div className="flex flex-wrap gap-6 text-sm text-gray-600 mb-6">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-blue-600" />
                   <span className="font-medium">{formatDate(event.start_time)}</span>
                 </div>
-                <div className="flex items-center gap-3 text-gray-700">
-                  <Clock className="h-5 w-5 text-[#07132b]" />
-                  <span>{formatTime(event.start_time)}</span>
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-5 w-5 text-blue-600" />
+                  <span className="font-medium">{event.location}</span>
                 </div>
-                <div className="flex items-center gap-3 text-gray-700">
-                  <MapPin className="h-5 w-5 text-[#07132b]" />
-                  <span>{event.location}</span>
-                </div>
-                {event.max_participants && (
-                  <div className="flex items-center gap-3 text-gray-700">
-                    <Users className="h-5 w-5 text-[#07132b]" />
-                    <span>{event.max_participants} Katılımcı</span>
-                  </div>
-                )}
               </div>
+
+              {/* Technologies/Tags */}
+              {event.technologies && event.technologies.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-6">
+                  {event.technologies.map((tech, idx) => (
+                    <span key={idx} className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-medium">
+                      {tech}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {!isPast && (
-              <div className="mt-6 flex gap-3">
-                {event.registration_link ? (
-                  <a 
-                    href={event.registration_link} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="w-full md:w-auto px-8 py-3 bg-[#07132b] text-white rounded-lg font-semibold hover:bg-[#07132b]/90 transition text-center"
-                  >
-                    Kayıt Ol
-                  </a>
-                ) : (
-                  <button
-                    disabled
-                    className="w-full md:w-auto px-8 py-3 bg-gray-300 text-gray-500 rounded-lg font-semibold cursor-not-allowed text-center"
-                  >
-                    Kayıt Ol
-                  </button>
-                )}
-                <Link 
-                  to={`/etkinlikler/${event.slug}`}
-                  className="w-full md:w-auto px-8 py-3 bg-gray-100 text-gray-900 rounded-lg font-semibold hover:bg-gray-200 transition text-center"
+            {/* Action Buttons */}
+            <div className="flex gap-3 pt-4 border-t border-gray-200">
+              <button className="flex-1 px-6 py-3 bg-gray-900 text-white rounded-lg font-semibold hover:bg-gray-800 transition text-center">
+                Detayları Gör
+              </button>
+              {event.registration_link && (
+                <a
+                  href={event.registration_link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 px-6 py-3 bg-blue-50 text-blue-700 rounded-lg font-semibold hover:bg-blue-100 transition text-center border border-blue-200"
                 >
-                  Detayları Gör
-                </Link>
-              </div>
-            )}
+                  Kayıt Ol
+                </a>
+              )}
+            </div>
           </div>
         </div>
       </div>

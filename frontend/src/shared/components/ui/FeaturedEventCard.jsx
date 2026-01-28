@@ -1,93 +1,123 @@
 /**
  * FeaturedEventCard Component
  * 
- * Displays a featured event card with larger size and prominent styling.
- * Similar to EventCard but with different CSS classes for featured appearance.
+ * Displays a featured event card with enhanced design
  */
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
+import { Calendar, MapPin, Star } from 'lucide-react';
 import { getImageUrl, handleImageError } from '../../../utils/imageUtils';
 
 const FeaturedEventCard = ({ title, date, location, description, image, startTime, endTime, maxParticipants, slug }) => {
-  // Tarihi formatla
-  const formatDate = (date) => {
-    return new Intl.DateTimeFormat('tr-TR', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    }).format(date);
+  const getDateObject = (dateStr) => {
+    if (!dateStr) return new Date();
+    if (typeof dateStr === 'string') {
+      return new Date(dateStr.endsWith('Z') ? dateStr : dateStr + 'Z');
+    }
+    return new Date(dateStr);
   };
 
-  // Saatleri formatla
-  const formatTime = (time) => {
-    return new Date(time + 'Z').toLocaleTimeString('tr-TR', {
-      hour: '2-digit',
-      minute: '2-digit',
-      timeZone: 'Europe/Istanbul'
-    });
+  // Tarihi formatla
+  const formatDate = (dateStr) => {
+    try {
+      const dateObj = getDateObject(dateStr);
+      if (isNaN(dateObj.getTime())) return 'Tarih Yok';
+      return new Intl.DateTimeFormat('tr-TR', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+      }).format(dateObj);
+    } catch (e) {
+      return 'Tarih Yok';
+    }
   };
 
   // Tarihi geçmiş mi kontrol et
-  const isPast = new Date(endTime || startTime) < new Date();
-
-  // formatDate ve formatTime fonksiyonları korundu, getImageUrl artık import edildi
+  const isPast = getDateObject(endTime || startTime) < new Date();
 
   return (
-    <Link to={`/etkinlikler/${slug || ''}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-    <div className='First'>
-      <img 
-        className='first-img' 
-        src={getImageUrl(image)} 
-        alt={title}
-        onError={(e) => handleImageError(e)}
-        style={isPast ? { filter: 'grayscale(100%)' } : {}}
-      />
-      <div className={isPast ? "First-div-past" : "First-div"}>{isPast ? "Geçmiş" : "Öne Çıkan"}</div>
-      <div className="date">
-        <img src="assets/images/img_calender.png" alt="tarih" />
-        <span className='date-span'>{formatDate(date)}</span>
-      </div>
-      <div className="First-tittle">
-        <span className='First-tittle-span'>{title}</span>
-      </div>
-      <div className="First-subtittle">
-        <span className='First-subtittle-span'>{description}</span>
-      </div>
-      <div className="First-hour">
-        <img className='First-hour-img' src="assets/images/img_clock.png" alt="saat" />
-        <span className="First-hour-span">
-          {formatTime(startTime) }
-        </span>
-      </div>
-      <div className="First-location">
-        <img src="assets/images/img_location.png" alt="konum" />
-        <span className="First-location-span">{location}</span>
-      </div>
-      <div className="First-persons">
-        <img className='First-persons-img' src="assets/images/img_people.png" alt="Katılımcı" />
-        <span className="First-persons-span">{maxParticipants || 100} Katılımcı</span>
-      </div>
-      {!isPast && (
-        <div className="First-button">
-          <button className="First-button-sign">Kayıt Ol</button>
+    <Link to={`/etkinlikler/${slug || ''}`} style={{ textDecoration: 'none' }}>
+      <div className="featured-event-card-wrapper group relative overflow-hidden rounded-2xl bg-white shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200">
+        <div className="featured-event-card-grid">
+          {/* Image Container - Left Side */}
+          <div className="featured-event-card-image relative overflow-hidden bg-gray-100">
+            <img
+              src={getImageUrl(image)}
+              alt={title}
+              onError={handleImageError}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              style={isPast ? { filter: 'grayscale(100%)' } : {}}
+            />
+            {isPast && (
+              <div className="absolute inset-0 bg-black/40"></div>
+            )}
+          </div>
+
+          {/* Content Container - Right Side */}
+          <div className="featured-event-card-content p-8 flex flex-col justify-between">
+            {/* Featured Badge */}
+            <div>
+              <div className="mb-4">
+                <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold bg-blue-600 text-white">
+                  <Star className="h-4 w-4 fill-white" />
+                  ÖNE ÇIKAN
+                </span>
+              </div>
+
+              {/* Title */}
+              <h3 className="text-3xl font-bold text-gray-900 mb-4 line-clamp-2 group-hover:text-blue-700 transition">
+                {title}
+              </h3>
+
+              {/* Description */}
+              <p className="text-gray-600 mb-6 line-clamp-3 text-base leading-relaxed">
+                {description}
+              </p>
+
+              {/* Date and Location */}
+              <div className="flex flex-wrap gap-6 text-sm text-gray-600 mb-6">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-blue-600" />
+                  <span className="font-medium">{formatDate(date)}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-5 w-5 text-blue-600" />
+                  <span className="font-medium">{location}</span>
+                </div>
+              </div>
+
+              {/* Participants */}
+              {maxParticipants && (
+                <div className="text-sm text-gray-600 mb-6">
+                  Kapasite: <span className="font-semibold text-gray-700">{maxParticipants} Katılımcı</span>
+                </div>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 pt-4 border-t border-gray-200">
+              <button className="flex-1 px-6 py-3 bg-gray-900 text-white rounded-lg font-semibold hover:bg-gray-800 transition text-center">
+                Detayları Gör
+              </button>
+            </div>
+          </div>
         </div>
-      )}
-    </div>
+      </div>
     </Link>
   );
 };
 
 FeaturedEventCard.propTypes = {
   title: PropTypes.string.isRequired,
-  date: PropTypes.instanceOf(Date).isRequired,
+  date: PropTypes.string,
   location: PropTypes.string.isRequired,
   description: PropTypes.string.isRequired,
   image: PropTypes.string,
   startTime: PropTypes.string,
   endTime: PropTypes.string,
-  maxParticipants: PropTypes.number
-  ,slug: PropTypes.string
+  maxParticipants: PropTypes.number,
+  slug: PropTypes.string
 };
 
 export default FeaturedEventCard; 

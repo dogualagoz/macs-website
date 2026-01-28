@@ -48,6 +48,7 @@
     width: 100%;
     max-width: 320px;
     margin: 0 auto 0.3rem auto;
+    padding: 0;
     text-align: left;
     justify-content: flex-start;
     align-items: center;
@@ -129,6 +130,19 @@
   opacity: 0;
   transform: translateY(20px); /* Hafif yukarıdan aşağı gelme efekti */
   animation: fadeIn 0.8s forwards;
+  overflow-x: hidden; /* Yatay taşmayı engelle */
+}
+
+@media (max-width: 768px) {
+  .events-section {
+    padding: 2.5rem 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .events-section {
+    padding: 2rem 0.75rem;
+  }
 }
 
 @keyframes fadeIn {
@@ -325,7 +339,7 @@
 
 .First-hour-span{
   padding: 5px;
-  margin-bottom: 500px;
+  margin-bottom: 0;
   font-weight: 600;
   font-size: 15px;
   color: #515151;

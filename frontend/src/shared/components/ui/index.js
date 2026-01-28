@@ -1,8 +1,9 @@
 export { default as EventCard } from './EventCard';
 export { default as FeaturedEventCard } from './FeaturedEventCard';
-export { default as MoreEventCard } from './MoreEventCard';
+export { default as EventSlider } from './EventSlider';
 export { default as ProjectCard } from './ProjectCard';
 export { default as FeaturedProjectCard } from './FeaturedProjectCard';
+export { default as ProjectSlider } from './ProjectSlider';
 export { FormInput } from './FormInput';
 export { FormTextarea } from './FormTextarea';
 export { FormSelect } from './FormSelect';

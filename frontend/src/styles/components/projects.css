@@ -2,6 +2,19 @@
   padding: 4rem 2rem;
   background-color: #FFFFFF;
   cursor: default;
+  overflow-x: hidden; /* Yatay taşmayı engelle */
+}
+
+@media (max-width: 768px) {
+  .projects-section {
+    padding: 2.5rem 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .projects-section {
+    padding: 2rem 0.75rem;
+  }
 }
 
 .projects-container {

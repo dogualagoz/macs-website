@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import ProjectsSection from "./ProjectsSection";
 import EventsSection from "./EventsSection";
 import { eventService, projectService } from "../../../shared/services/api";
+import { mockEvents, mockEventCategories } from "../../events/data/mockEvents";
+import { mockProjects, mockProjectCategories } from "../../projects/data/mockProjects";
 import '../../../styles/pages/DashBoard.css';
 
 const Dashboard = () => {
@@ -36,18 +38,28 @@ const Dashboard = () => {
           eventService.getFeatured(),
         ]);
 
-        setProjects(projectsData.projects || projectsData);
-        setProjectCategories(projectCategoriesData);
-        setFeaturedProject(featuredProjectData);
+        setProjects((projectsData && (projectsData.projects || projectsData).length > 0) ? (projectsData.projects || projectsData) : mockProjects);
+        setProjectCategories((projectCategoriesData && projectCategoriesData.length > 0) ? projectCategoriesData : mockProjectCategories);
+        setFeaturedProject(featuredProjectData || mockProjects.find(p => p.is_featured));
 
-        setEvents(eventsData);
-        setEventCategories(eventCategoriesData);
-        setFeaturedEvent(featuredEventData);
+        setEvents((eventsData && eventsData.length > 0) ? eventsData : mockEvents);
+        setEventCategories((eventCategoriesData && eventCategoriesData.length > 0) ? eventCategoriesData : mockEventCategories);
+        setFeaturedEvent(featuredEventData || mockEvents.find(e => e.is_featured));
 
         setError(null);
       } catch (err) {
-        console.error(err);
-        setError("Veriler yüklenirken bir hata oluştu");
+        console.error('Error loading dashboard data:', err);
+        // API hatası durumunda mock data kullan
+        console.log('Using mock data for dashboard');
+        setProjects(mockProjects);
+        setProjectCategories(mockProjectCategories);
+        setFeaturedProject(mockProjects.find(p => p.is_featured));
+
+        setEvents(mockEvents);
+        setEventCategories(mockEventCategories);
+        setFeaturedEvent(mockEvents.find(e => e.is_featured));
+
+        setError(null);
       } finally {
         setLoading(false);
       }

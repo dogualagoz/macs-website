@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { FeaturedProjectCard, ProjectCard } from '../../../shared/components/ui';
 import { projectService } from '../../../shared/services/api';
+import { mockProjects, mockProjectCategories } from '../data/mockProjects';
 import '../../../styles/components/projects.css';
-import { Link } from 'react-router-dom';
 
 export default function Projects() {
   const [projects, setProjects] = useState([]);
@@ -21,13 +21,24 @@ export default function Projects() {
           projectService.getCategories(),
           projectService.getFeatured()
         ]);
-        setProjects(list.projects || list || []);
-        setCategories(cats || []);
-        setFeatured(feat);
+        
+        // Backend'den veri geldiyse onu kullan, yoksa mock data kullan
+        const finalProjects = (list && (list.projects || list).length > 0) ? (list.projects || list) : mockProjects;
+        const finalCategories = (cats && cats.length > 0) ? cats : mockProjectCategories;
+        const finalFeatured = feat || mockProjects.find(p => p.is_featured);
+        
+        setProjects(finalProjects);
+        setCategories(finalCategories);
+        setFeatured(finalFeatured);
         setError(null);
       } catch (err) {
-        console.error(err);
-        setError('Veriler yüklenirken bir hata oluştu');
+        console.error('Error loading projects:', err);
+        // API hatası durumunda mock data kullan
+        console.log('Using mock data for projects');
+        setProjects(mockProjects);
+        setCategories(mockProjectCategories);
+        setFeatured(mockProjects.find(p => p.is_featured));
+        setError(null);
       } finally {
         setLoading(false);
       }
@@ -41,23 +52,23 @@ export default function Projects() {
 
 if (loading) 
   return (
-    <div class="spinner center">
-      <div class="spinner-blade"></div>
-      <div class="spinner-blade"></div>
-      <div class="spinner-blade"></div>
-      <div class="spinner-blade"></div>
-      <div class="spinner-blade"></div>
-      <div class="spinner-blade"></div>
-      <div class="spinner-blade"></div>
-      <div class="spinner-blade"></div>
-      <div class="spinner-blade"></div>
-      <div class="spinner-blade"></div>
-      <div class="spinner-blade"></div>
-      <div class="spinner-blade"></div>
+    <div className="spinner center">
+      <div className="spinner-blade"></div>
+      <div className="spinner-blade"></div>
+      <div className="spinner-blade"></div>
+      <div className="spinner-blade"></div>
+      <div className="spinner-blade"></div>
+      <div className="spinner-blade"></div>
+      <div className="spinner-blade"></div>
+      <div className="spinner-blade"></div>
+      <div className="spinner-blade"></div>
+      <div className="spinner-blade"></div>
+      <div className="spinner-blade"></div>
+      <div className="spinner-blade"></div>
 </div>
   );
 
- if (error) 
+ if (error && projects.length === 0) 
   return (
     <div className="error-container">
       <div className="error-icon">⚠️</div>
@@ -97,16 +108,17 @@ if (loading)
           {filtered
             .filter(p => p.id !== (featured || filtered[0])?.id)
             .map(p => (
-              <Link key={p.id} to={`/projeler/${p.slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                <ProjectCard 
-                  title={p.title}
-                  description={p.description}
-                  image={p.image_url}
-                  technologies={p.technologies}
-                  teamMembers={p.team_members}
-                  category={p.category?.name}
-                />
-              </Link>
+              <ProjectCard 
+                key={p.id}
+                slug={p.slug}
+                title={p.title}
+                description={p.description}
+                image={p.image_url}
+                technologies={p.technologies}
+                teamMembers={p.team_members}
+                category={p.category || { name: 'Proje' }}
+                status={p.status}
+              />
             ))}
         </div>
 

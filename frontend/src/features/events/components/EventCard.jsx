@@ -8,14 +8,28 @@ import { getImageUrl, handleImageError } from '../../../utils/imageUtils';
  * Displays a compact card for regular events in the grid
  */
 export default function EventCard({ event }) {
-  const isPast = new Date(event.end_time || event.start_time) < new Date();
+  const getDateObject = (dateStr) => {
+    if (!dateStr) return new Date();
+    if (typeof dateStr === 'string') {
+      return new Date(dateStr.endsWith('Z') ? dateStr : dateStr + 'Z');
+    }
+    return new Date(dateStr);
+  };
+
+  const isPast = getDateObject(event.end_time || event.start_time) < new Date();
   
   const formatDate = (date) => {
-    return new Intl.DateTimeFormat('tr-TR', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-    }).format(new Date(date));
+    try {
+      const dateObj = getDateObject(date);
+      if (isNaN(dateObj.getTime())) return 'Tarih Yok';
+      return new Intl.DateTimeFormat('tr-TR', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      }).format(dateObj);
+    } catch (e) {
+      return 'Tarih Yok';
+    }
   };
 
   return (
