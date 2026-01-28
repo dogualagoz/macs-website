@@ -31,7 +31,7 @@ const Header = ({ isScrolled }) => {
           </ul>
         </nav>
         <div className="Button">
-          <button className="JoinUs"><span>Bize Katıl!</span></button>
+          <a href="https://forms.gle/MXaCH1YG3qE4rsX36" target="_blank" rel="noopener noreferrer" className="JoinUs"><span>Bize Katıl!</span></a>
         </div>
       </div>
 
@@ -53,7 +53,7 @@ const Header = ({ isScrolled }) => {
               <li><a href="#soruces" onClick={() => setMenuOpen(false)}>Kaynaklar</a></li> */}
               <li><a href="/#about" onClick={() => setMenuOpen(false)}>Hakkımızda</a></li>
               <li><a href="/#contact" onClick={() => setMenuOpen(false)}>İletişim</a></li>
-              <li><button href="https://docs.google.com/forms/d/1mUxd_yzCIy36LWmN3_RHUBH-nEmHCGbc1181mv5xBmA/edit" type="button" onClick={() => setMenuOpen(false)}>Bize Katıl</button></li>
+              <li><a href="https://forms.gle/MXaCH1YG3qE4rsX36" target="_blank" rel="noopener noreferrer" onClick={() => setMenuOpen(false)}>Bize Katıl</a></li>
           </ul>
           </nav>
         </div>
