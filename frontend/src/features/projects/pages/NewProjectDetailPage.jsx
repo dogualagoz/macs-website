@@ -2,6 +2,7 @@ import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Github, ExternalLink, Calendar, Layers, Activity, Share2 } from 'lucide-react';
 import { MOCK_PROJECTS } from '../data/mockProjectsData';
+import { projectService } from '../../../shared/services/api';
 
 /**
  * New ProjectDetailPage Component
@@ -9,7 +10,40 @@ import { MOCK_PROJECTS } from '../data/mockProjectsData';
  */
 const NewProjectDetailPage = () => {
   const { id } = useParams();
-  const project = MOCK_PROJECTS.find(p => p.id === id);
+  const [project, setProject] = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const fetchProject = async () => {
+      try {
+        setLoading(true);
+        // Önce backend'den slug/id ile çekmeyi dene
+        const data = await projectService.getBySlug(id);
+        if (data) {
+          setProject(data);
+        } else {
+          // Bulunamazsa Mock'tan bak
+          const mock = MOCK_PROJECTS.find(p => p.id === id || p.slug === id);
+          setProject(mock ? projectService._mapProject(mock) : null);
+        }
+      } catch (error) {
+        console.error("Proje detayı çekilemedi:", error);
+        const mock = MOCK_PROJECTS.find(p => p.id === id || p.slug === id);
+        setProject(mock ? projectService._mapProject(mock) : null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProject();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#050B14] text-white">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
 
   if (!project) {
     return (
@@ -24,7 +58,7 @@ const NewProjectDetailPage = () => {
     <div className="min-h-screen bg-[#050B14] text-slate-200 pt-32">
       
       {/* Hero Section with Blur Backdrop */}
-      <div className="relative h-[60vh] w-full overflow-hidden -mt-32">
+      <div className="relative h-[60vh] w-full overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img src={project.imageUrl} alt={project.title} className="w-full h-full object-cover opacity-40 blur-sm" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#050B14] via-[#050B14]/80 to-transparent" />

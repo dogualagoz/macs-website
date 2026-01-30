@@ -26,6 +26,7 @@ export const useProjectForm = (editData = null, onUpdateSuccess = null) => {
     teamMembers: '',
     memberIds: [],
     status: 'PLANNING',
+    projectType: 'DEVELOPED_BY_MACS',
     isFeatured: false,
     isActive: true
   });
@@ -60,6 +61,7 @@ export const useProjectForm = (editData = null, onUpdateSuccess = null) => {
           role: m.project_role || '' // Backend role bilgisini döndürmeli
         })) : [],
         status: editData.status || 'PLANNING',
+        projectType: editData.project_type || 'DEVELOPED_BY_MACS',
         isFeatured: editData.is_featured || false,
         isActive: editData.is_active ?? true
       });
@@ -118,6 +120,7 @@ export const useProjectForm = (editData = null, onUpdateSuccess = null) => {
           member_id: m.member_id,
           role: m.role
         })),
+        project_type: formData.projectType,
         is_featured: formData.isFeatured,
         is_active: formData.isActive
       };
@@ -167,6 +170,7 @@ export const useProjectForm = (editData = null, onUpdateSuccess = null) => {
       teamMembers: '',
       memberIds: [],
       status: 'PLANNING',
+      projectType: 'DEVELOPED_BY_MACS',
       isFeatured: false,
       isActive: true
     });

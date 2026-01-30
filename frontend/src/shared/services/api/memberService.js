@@ -3,14 +3,27 @@
  * Handles all member-related API calls
  */
 import apiClient from './apiClient';
+import { getMediaUrl } from '../../utils/media';
 
 const memberService = {
+  /**
+   * Data Mapper
+   */
+  _mapMember: (m) => {
+    if (!m) return null;
+    const fullUrl = getMediaUrl(m.profile_image || m.avatar_url || m.avatar, m.full_name);
+    return {
+      ...m,
+      avatar_url: fullUrl,
+      avatar: fullUrl,
+    };
+  },
+
   /**
    * Get all members
    */
   getAll: async (params = {}) => {
     const queryParams = new URLSearchParams();
-    
     if (params.skip) queryParams.append('skip', params.skip);
     if (params.limit) queryParams.append('limit', params.limit);
     if (params.search) queryParams.append('search', params.search);
@@ -18,7 +31,8 @@ const memberService = {
     
     const queryString = queryParams.toString();
     const response = await apiClient.get(`/members${queryString ? `?${queryString}` : ''}`);
-    return response.data;
+    const members = response.data.members || response.data;
+    return Array.isArray(members) ? members.map(memberService._mapMember) : [];
   },
 
   /**
@@ -26,7 +40,7 @@ const memberService = {
    */
   getById: async (id) => {
     const response = await apiClient.get(`/members/${id}`);
-    return response.data;
+    return memberService._mapMember(response.data);
   },
 
   /**
@@ -58,7 +72,7 @@ const memberService = {
    */
   getLeaderboard: async (limit = 10) => {
     const response = await apiClient.get(`/members/leaderboard?limit=${limit}`);
-    return response.data;
+    return Array.isArray(response.data) ? response.data.map(memberService._mapMember) : [];
   },
 
   /**

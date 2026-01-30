@@ -4,37 +4,25 @@ import Map, { Marker, Popup, NavigationControl } from 'react-map-gl';
 import { mockSponsors, eskisehirCenter } from '../data/mockSponsors';
 import { sponsorService } from '../../../shared/services/api';
 import env from '../../../shared/config/env';
+import { getMediaUrl } from '../../../shared/utils/media';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import '../../../styles/pages/sponsors.css';
 
 const MAPBOX_TOKEN = env.mapboxToken;
 
-// Backend URL'den /api kısmını çıkar ve image URL ile birleştir
-const getImageUrl = (imageUrl) => {
-  if (!imageUrl) return null;
-  // Eğer zaten tam URL ise direkt döndür
-  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-    return imageUrl;
-  }
-  // Backend base URL'ini al (API URL'den /api kısmını çıkar)
-  const apiUrl = env.apiUrl || 'http://localhost:8000';
-  const baseUrl = apiUrl.replace(/\/api$/, '');
-  return `${baseUrl}${imageUrl}`;
-};
 
-const transformSponsorData = (sponsor) => ({
-  id: sponsor.id,
-  name: sponsor.name,
-  description: sponsor.description || '',
-  category: sponsor.category,
-  discountInfo: sponsor.discount_info,
-  imageUrl: getImageUrl(sponsor.image_url),
-  location: {
-    address: sponsor.address || '',
-    lat: sponsor.latitude,
-    lng: sponsor.longitude
-  }
-});
+const transformSponsorData = (sponsor) => {
+  const mapped = sponsorService._mapSponsor(sponsor);
+  return {
+    ...mapped,
+    imageUrl: mapped.logo_url, // UI'daImageUrl olarak kullanılıyor
+    location: {
+      address: sponsor.address || sponsor.location?.address || '',
+      lat: sponsor.latitude || sponsor.location?.lat,
+      lng: sponsor.longitude || sponsor.location?.lng
+    }
+  };
+};
 
 export default function SponsorsPage() {
   const [loading, setLoading] = useState(true);
@@ -56,13 +44,13 @@ export default function SponsorsPage() {
         } else {
           // Veri yoksa mock data kullan
           console.log('No sponsors from API, using mock data');
-          setSponsors(mockSponsors);
+          setSponsors(mockSponsors.map(transformSponsorData));
         }
       } catch (err) {
         console.error('Error fetching sponsors:', err);
         setError(err.message);
         // API hatası durumunda mock data kullan
-        setSponsors(mockSponsors);
+        setSponsors(mockSponsors.map(transformSponsorData));
       } finally {
         setLoading(false);
       }

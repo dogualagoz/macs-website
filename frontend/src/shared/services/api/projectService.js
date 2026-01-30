@@ -3,14 +3,61 @@
  * Handles all project-related API calls
  */
 import apiClient from './apiClient';
+import { getMediaUrl } from '../../utils/media';
 
 const projectService = {
+  /**
+   * Data Mapper: Backend verisini Frontend'in (NewProjectsPage) beklediği formata çevirir.
+   */
+  _mapProject: (p) => {
+    if (!p) return null;
+    return {
+      ...p,
+      // Backend -> Frontend Eşleşmeleri
+      id: p.id,
+      slug: p.slug,
+      shortDescription: p.description || '',
+      longDescription: p.content || '',
+      image_url: getMediaUrl(p.image_url || p.image || p.imageUrl, 'Project'),
+      imageUrl: getMediaUrl(p.image_url || p.image || p.imageUrl, 'Project'),
+      image: getMediaUrl(p.image_url || p.image || p.imageUrl, 'Project'),
+      tags: p.technologies ? p.technologies.split(',').map(t => t.trim()) : [],
+      
+      // Project Type -> Tab Eşleşmesi
+      tab: p.project_type === 'DEVELOPED_BY_MACS' ? 'developed' :
+           p.project_type === 'SUPPORTED_BY_MACS' ? 'supported' : 'showcase',
+      
+      // Team -> Members Eşleşmesi
+      team: p.members?.map(m => ({
+        id: m.id.toString(),
+        name: m.full_name,
+        avatar: getMediaUrl(m.profile_image || m.avatar_url, m.full_name),
+        role: m.project_role || 'Üye',
+        projectCount: m.project_count || 0
+      })) || [],
+
+      // Category Çevirisi (Object to String)
+      category: p.category?.name || p.category || 'Proje',
+      
+      // Status Çevirisi
+      status: p.status === 'COMPLETED' ? 'Tamamlandı' : 
+              p.status === 'IN_PROGRESS' ? 'Geliştirme Aşamasında' : 
+              p.status === 'PLANNING' ? 'Planlama Aşamasında' : 'Yayında',
+      
+      // Tarih Formatı
+      date: p.created_at ? new Date(p.created_at).toLocaleDateString('tr-TR', { 
+        day: 'numeric', 
+        month: 'long', 
+        year: 'numeric' 
+      }) : ''
+    };
+  },
+
   /**
    * Get all projects (public view)
    */
   getAll: async (params = {}) => {
     const queryParams = new URLSearchParams();
-    
     if (params.skip) queryParams.append('skip', params.skip);
     if (params.limit) queryParams.append('limit', params.limit);
     if (params.search) queryParams.append('search', params.search);
@@ -19,7 +66,11 @@ const projectService = {
     
     const queryString = queryParams.toString();
     const response = await apiClient.get(`/projects${queryString ? `?${queryString}` : ''}`);
-    return response.data;
+    
+    // Veriyi map'leyerek dön
+    const data = response.data;
+    const projects = data.projects || data;
+    return Array.isArray(projects) ? projects.map(projectService._mapProject) : [];
   },
 
   /**
@@ -27,16 +78,13 @@ const projectService = {
    */
   getAllAdmin: async (params = {}) => {
     const queryParams = new URLSearchParams();
-    
     if (params.skip) queryParams.append('skip', params.skip);
     if (params.limit) queryParams.append('limit', params.limit);
-    if (params.search) queryParams.append('search', params.search);
-    if (params.category_id) queryParams.append('category_id', params.category_id);
-    if (params.status) queryParams.append('status', params.status);
     
     const queryString = queryParams.toString();
     const response = await apiClient.get(`/projects/admin${queryString ? `?${queryString}` : ''}`);
-    return response.data;
+    const projects = response.data.projects || response.data;
+    return Array.isArray(projects) ? projects.map(projectService._mapProject) : [];
   },
 
   /**
@@ -45,7 +93,7 @@ const projectService = {
   getFeatured: async () => {
     try {
       const response = await apiClient.get('/projects/featured');
-      return response.data;
+      return projectService._mapProject(response.data);
     } catch (error) {
       if (error.response?.status === 404) return null;
       throw error;
@@ -57,7 +105,7 @@ const projectService = {
    */
   getBySlug: async (slug) => {
     const response = await apiClient.get(`/projects/by-slug/${slug}`);
-    return response.data;
+    return projectService._mapProject(response.data);
   },
 
   /**
@@ -65,7 +113,7 @@ const projectService = {
    */
   getById: async (id) => {
     const response = await apiClient.get(`/projects/${id}`);
-    return response.data;
+    return projectService._mapProject(response.data);
   },
 
   /**
@@ -105,16 +153,11 @@ const projectService = {
    */
   uploadImage: async (file) => {
     if (!file) return null;
-    
     const formData = new FormData();
     formData.append('file', file);
-    
     const response = await apiClient.post('/upload/', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+      headers: { 'Content-Type': 'multipart/form-data' },
     });
-    
     return response.data.url;
   },
 };

@@ -39,32 +39,34 @@ const Dashboard = () => {
         ]);
 
         // Projects
-        const finalProjects = (projectsData && (projectsData.projects || projectsData).length > 0) 
-          ? (projectsData.projects || projectsData) 
-          : mockProjects;
+        const projectsList = projectsData?.projects || projectsData;
+        const finalProjects = (projectsList && projectsList.length > 0) 
+          ? projectsList 
+          : mockProjects.map(projectService._mapProject);
         setProjects(finalProjects);
         setProjectCategories((projectCategoriesData && projectCategoriesData.length > 0) ? projectCategoriesData : mockProjectCategories);
         setFeaturedProject(featuredProjectData || finalProjects.find(p => p.is_featured) || finalProjects[0]);
 
         // Events
-        const finalEvents = (eventsData && eventsData.length > 0) ? eventsData : mockEvents;
+        const finalEvents = (eventsData && eventsData.length > 0) ? eventsData : mockEvents.map(eventService._mapEvent);
         setEvents(finalEvents);
         setEventCategories((eventCategoriesData && eventCategoriesData.length > 0) ? eventCategoriesData : mockEventCategories);
-        // Featured event: backend'den geldiyse onu kullan, yoksa listeden is_featured olanı veya ilk etkinliği al
         setFeaturedEvent(featuredEventData || finalEvents.find(e => e.is_featured) || finalEvents[0]);
 
         setError(null);
       } catch (err) {
         console.error('Error loading dashboard data:', err);
-        // API hatası durumunda mock data kullan
         console.log('Using mock data for dashboard');
-        setProjects(mockProjects);
+        const mappedMockProjects = mockProjects.map(projectService._mapProject);
+        const mappedMockEvents = mockEvents.map(eventService._mapEvent);
+        
+        setProjects(mappedMockProjects);
         setProjectCategories(mockProjectCategories);
-        setFeaturedProject(mockProjects.find(p => p.is_featured) || mockProjects[0]);
+        setFeaturedProject(mappedMockProjects.find(p => p.is_featured) || mappedMockProjects[0]);
 
-        setEvents(mockEvents);
+        setEvents(mappedMockEvents);
         setEventCategories(mockEventCategories);
-        setFeaturedEvent(mockEvents.find(e => e.is_featured) || mockEvents[0]);
+        setFeaturedEvent(mappedMockEvents.find(e => e.is_featured) || mappedMockEvents[0]);
 
         setError(null);
       } finally {

@@ -1,3 +1,5 @@
+import env from '../shared/config/env';
+
 /**
  * Resim URL'lerini işleyen merkezi utility fonksiyonları
  */
@@ -14,21 +16,23 @@ export const getImageUrl = (imageUrl, fallbackImage = '/assets/images/img_innova
   if (!imageUrl) return fallbackImage;
   
   // Eğer URL zaten http ile başlıyorsa olduğu gibi kullan
-  if (imageUrl.startsWith('http')) return imageUrl;
+  if (typeof imageUrl === 'string' && imageUrl.startsWith('http')) return imageUrl;
   
-  // Backend'den gelen /static veya /uploads ile başlayan URL'leri backend base URL'i ile birleştir
-  if (imageUrl.startsWith('/static') || imageUrl.startsWith('/uploads')) {
-    try {
-      const RAW_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
-      const BASE_URL = RAW_BASE_URL.replace(/\/+$/, '');
-      return BASE_URL + imageUrl;
-    } catch (_e) {
-      return imageUrl; // en kötü senaryo
-    }
+  // Frontend asset'leri (Public klasöründekiler)
+  const isFrontendAsset = typeof imageUrl === 'string' && (imageUrl.startsWith('/assets') || imageUrl.startsWith('assets') || imageUrl.startsWith('/images') || imageUrl.startsWith('images'));
+  if (isFrontendAsset) {
+    return imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
+  }
+
+  // Backend'den gelen dosyalar - HER ZAMAN production URL kullan
+  let path = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
+  
+  // /static/uploads -> /uploads olarak normalize et (production'da /static yok)
+  if (path.startsWith('/static/')) {
+    path = path.replace('/static', '');
   }
   
-  // Diğer durumlarda public klasöründen al
-  return process.env.PUBLIC_URL + imageUrl;
+  return `${env.productionUrl}${path}`;
 };
 
 /**

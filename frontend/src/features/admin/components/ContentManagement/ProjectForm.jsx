@@ -33,6 +33,12 @@ export const ProjectForm = ({ editData = null, onUpdateSuccess = null, onCancelE
     { id: 'CANCELLED', name: 'İptal Edildi' }
   ];
 
+  const projectTypeOptions = [
+    { id: 'DEVELOPED_BY_MACS', name: 'Developed by MACS' },
+    { id: 'SUPPORTED_BY_MACS', name: 'Supported by MACS' },
+    { id: 'MEMBER_SHOWCASE', name: 'Member Showcase' }
+  ];
+
   return (
     <div className="form-container">
       <Alert type="success" message={submitSuccess ? (isEditMode ? 'Proje başarıyla güncellendi!' : 'Proje başarıyla eklendi!') : null} />
@@ -119,6 +125,13 @@ export const ProjectForm = ({ editData = null, onUpdateSuccess = null, onCancelE
           value={formData.status}
           onChange={(e) => handleChange('status', e.target.value)}
           options={statusOptions}
+        />
+
+        <FormSelect
+          label="Proje Tipi"
+          value={formData.projectType}
+          onChange={(e) => handleChange('projectType', e.target.value)}
+          options={projectTypeOptions}
         />
 
         <FormTextarea

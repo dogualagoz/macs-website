@@ -1,9 +1,11 @@
 import React, { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Search, Trophy, Sparkles, Filter, Code, Heart, UserCircle, Rocket } from 'lucide-react';
 import { MOCK_PROJECTS, MOCK_USERS, PROJECT_CATEGORIES } from '../data/mockProjectsData';
+import { projectService, memberService } from '../../../shared/services/api';
 import NewProjectCard from '../components/NewProjectCard';
 import StatsCounter from '../components/StatsCounter';
+import { getMediaUrl } from '../../../shared/utils/media';
 
 /**
  * New ProjectsPage Component
@@ -11,23 +13,77 @@ import StatsCounter from '../components/StatsCounter';
  */
 const NewProjectsPage = () => {
   const navigate = useNavigate();
+  const [projects, setProjects] = useState([]);
+  const [categories, setCategories] = useState(['All']);
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('developed');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [memberCount, setMemberCount] = useState(0);
+
+  // Backend'den projeleri ve kategorileri çek
+  React.useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [projectsData, categoriesData, leaderboardData, membersData] = await Promise.all([
+          projectService.getAll(),
+          projectService.getCategories(),
+          memberService.getLeaderboard(5),
+          memberService.getAll({ limit: 200 }).catch(() => [])
+        ]);
+        
+        // Leaderboard
+        setLeaderboard(leaderboardData || []);
+        
+        // Member count
+        setMemberCount(membersData.length || MOCK_USERS.length);
+        
+        // Projects handling
+        setProjects(projectsData.length > 0 ? projectsData : MOCK_PROJECTS.map(projectService._mapProject));
+        
+        // Categories handling
+        if (categoriesData && categoriesData.length > 0) {
+          const catNames = ['All', ...categoriesData.map(c => c.name)];
+          setCategories(catNames);
+        } else {
+          setCategories(PROJECT_CATEGORIES);
+        }
+      } catch (error) {
+        console.error("Veri çekilemedi, mock data kullanılıyor:", error);
+        setProjects(MOCK_PROJECTS.map(projectService._mapProject));
+        setCategories(PROJECT_CATEGORIES);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   // Filter Logic
   const filteredProjects = useMemo(() => {
-    return MOCK_PROJECTS.filter(p => {
-      const matchesTab = p.tab === activeTab;
+    // Tab -> project_type eşleşmesi
+    const tabToType = {
+      'developed': 'DEVELOPED_BY_MACS',
+      'supported': 'SUPPORTED_BY_MACS',
+      'showcase': 'MEMBER_SHOWCASE'
+    };
+    
+    return projects.filter(p => {
+      // project_type veya tab ile eşleştir (mock data için geriye uyumluluk)
+      const projectType = p.project_type || (p.tab ? tabToType[p.tab] : null);
+      const matchesTab = projectType === tabToType[activeTab] || p.tab === activeTab;
+      
       const matchesSearch = p.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                            p.tags.some(t => t.toLowerCase().includes(searchQuery.toLowerCase()));
-      const matchesCategory = selectedCategory === 'All' || p.category === selectedCategory;
+                            (p.tags?.some(t => t.toLowerCase().includes(searchQuery.toLowerCase())) || false);
+      const matchesCategory = selectedCategory === 'All' || p.category?.name === selectedCategory || p.category === selectedCategory;
       
       return matchesTab && matchesSearch && matchesCategory;
     });
-  }, [activeTab, searchQuery, selectedCategory]);
+  }, [projects, activeTab, searchQuery, selectedCategory]);
 
-  const featuredProject = MOCK_PROJECTS.find(p => p.featured && p.tab === activeTab) || filteredProjects[0];
+  const featuredProject = projects.find(p => (p.is_featured || p.featured) && p.tab === activeTab) || filteredProjects[0];
   const gridProjects = filteredProjects.filter(p => p.id !== featuredProject?.id);
 
   const TabButton = ({ id, label, icon: Icon }) => (
@@ -69,8 +125,8 @@ const NewProjectsPage = () => {
           </div>
           
           <div className="flex gap-6">
-            <StatsCounter end={MOCK_PROJECTS.length} label="Toplam Proje" />
-            <StatsCounter end={42} label="Katılımcı" />
+            <StatsCounter end={projects.length} label="Toplam Proje" />
+            <StatsCounter end={memberCount} label="Katılımcı" />
           </div>
         </div>
 
@@ -103,7 +159,7 @@ const NewProjectsPage = () => {
               </div>
               
               <div className="space-y-2">
-                {PROJECT_CATEGORIES.map(cat => (
+                {categories.map(cat => (
                   <button
                     key={cat}
                     onClick={() => setSelectedCategory(cat)}
@@ -137,7 +193,7 @@ const NewProjectsPage = () => {
                 />
               </div>
               <div className="flex gap-2 overflow-x-auto pb-2">
-                 {PROJECT_CATEGORIES.map(cat => (
+                 {categories.map(cat => (
                     <button
                       key={cat}
                       onClick={() => setSelectedCategory(cat)}
@@ -154,7 +210,7 @@ const NewProjectsPage = () => {
             {/* Featured Project */}
             {featuredProject && (
               <div 
-                onClick={() => navigate(`/projeler/${featuredProject.id}`)}
+                onClick={() => navigate(`/projeler/${featuredProject.slug}`)}
                 className="relative group w-full h-[400px] rounded-[2rem] overflow-hidden cursor-pointer border border-white/5 hover:border-blue-500/50 transition-all duration-500 shadow-2xl"
               >
                 <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-all z-10" />
@@ -172,7 +228,9 @@ const NewProjectsPage = () => {
                 </div>
 
                 <div className="absolute bottom-0 left-0 w-full p-8 bg-gradient-to-t from-black via-black/80 to-transparent z-20">
-                  <h2 className="text-3xl md:text-4xl font-bold text-white mb-2">{featuredProject.title}</h2>
+                  <Link to={`/projeler/${featuredProject.slug}`} className="hover:underline">
+                    <h2 className="text-3xl md:text-4xl font-bold text-white mb-2">{featuredProject.title}</h2>
+                  </Link>
                   <p className="text-gray-300 line-clamp-2 max-w-2xl mb-4">{featuredProject.shortDescription}</p>
                   <div className="flex gap-2">
                     {featuredProject.tags.map(t => (
@@ -208,7 +266,7 @@ const NewProjectsPage = () => {
                   <h3 className="font-bold text-lg">Top Contributors</h3>
                 </div>
                 <div className="p-4 space-y-4">
-                  {MOCK_USERS.sort((a, b) => b.projectCount - a.projectCount).slice(0, 5).map((user, idx) => (
+                  {(leaderboard.length > 0 ? leaderboard : MOCK_USERS).slice(0, 5).map((user, idx) => (
                     <div key={user.id} className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 transition-colors">
                       <div className={`
                         w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold
@@ -218,10 +276,14 @@ const NewProjectsPage = () => {
                       `}>
                         {idx + 1}
                       </div>
-                      <img src={user.avatar} alt={user.name} className="w-10 h-10 rounded-full border border-white/10" />
+                      <img 
+                        src={user.avatar_url || user.avatar || getMediaUrl(user.profile_image, user.full_name || user.name)} 
+                        alt={user.full_name || user.name} 
+                        className="w-10 h-10 rounded-full border border-white/10 object-cover" 
+                      />
                       <div className="flex-1">
-                        <p className="text-sm font-semibold text-white">{user.name}</p>
-                        <p className="text-xs text-gray-500">{user.projectCount} Proje</p>
+                        <p className="text-sm font-semibold text-white">{user.full_name || user.name}</p>
+                        <p className="text-xs text-gray-500">{user.project_count || user.projectCount || 0} Proje</p>
                       </div>
                     </div>
                   ))}

@@ -1,17 +1,33 @@
 import apiClient from './apiClient';
 import env from '../../config/env';
+import { getMediaUrl } from '../../utils/media';
 
 const MAPBOX_TOKEN = env.mapboxToken;
 
 const sponsorService = {
+  /**
+   * Data Mapper
+   */
+  _mapSponsor: (s) => {
+    if (!s) return null;
+    const fullUrl = getMediaUrl(s.logo_url || s.logo || s.logoUrl || s.imageUrl, 'Sponsor');
+    return {
+      ...s,
+      logo_url: fullUrl,
+      logoUrl: fullUrl,
+      logo: fullUrl,
+    };
+  },
+
   getAll: async (params = {}) => {
     const response = await apiClient.get('/sponsors/', { params });
-    return response.data;
+    const sponsors = response.data.sponsors || response.data;
+    return Array.isArray(sponsors) ? sponsors.map(sponsorService._mapSponsor) : [];
   },
 
   getById: async (id) => {
     const response = await apiClient.get(`/sponsors/${id}`);
-    return response.data;
+    return sponsorService._mapSponsor(response.data);
   },
 
   getCategories: async () => {

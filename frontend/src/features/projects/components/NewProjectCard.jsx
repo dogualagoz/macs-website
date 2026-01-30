@@ -12,7 +12,7 @@ const ProjectCard = ({ project }) => {
 
   return (
     <div 
-      onClick={() => navigate(`/projeler/${project.id}`)}
+      onClick={() => navigate(`/projeler/${project.slug}`)}
       className="group relative bg-macs-card/80 border border-white/5 rounded-3xl overflow-hidden hover:border-blue-500/30 transition-all duration-300 hover:shadow-[0_0_30px_rgba(59,130,246,0.15)] cursor-pointer flex flex-col h-full"
     >
       {/* Image Container */}

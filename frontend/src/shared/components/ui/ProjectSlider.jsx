@@ -84,7 +84,7 @@ const ProjectSlider = ({ projects = [] }) => {
                             const teamArray = parseTeamMembers(project.team_members);
                             
                             return (
-                                <Link key={project.id || project.slug} to={`/projeler/${project.slug || ''}`} className="slider-card-link">
+                                <Link key={project.slug || project.id} to={`/projeler/${project.slug || ''}`} className="slider-card-link">
                                     <div className="slider-card slider-card-compact project-card-slide">
                                         {/* Image Section */}
                                         <div className="slider-card-image">

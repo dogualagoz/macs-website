@@ -22,7 +22,7 @@ export const useEventsData = () => {
         ]);
         
         // Backend'den veri geldiyse onu kullan, yoksa mock data kullan
-        const finalEvents = (eventsData && eventsData.length > 0) ? eventsData : mockEvents;
+        const finalEvents = (eventsData && eventsData.length > 0) ? eventsData : mockEvents.map(eventService._mapEvent);
         const finalCategories = (categoriesData && categoriesData.length > 0) ? categoriesData : mockEventCategories;
         
         setEvents(finalEvents);
@@ -32,7 +32,7 @@ export const useEventsData = () => {
         console.error('Error loading events:', err);
         // API hatası durumunda mock data kullan
         console.log('Using mock data for events');
-        setEvents(mockEvents);
+        setEvents(mockEvents.map(eventService._mapEvent));
         setCategories(mockEventCategories);
         setError(null);
       } finally {

@@ -3,14 +3,28 @@
  * Handles all event-related API calls
  */
 import apiClient from './apiClient';
+import { getMediaUrl } from '../../utils/media';
 
 const eventService = {
+  /**
+   * Data Mapper
+   */
+  _mapEvent: (e) => {
+    if (!e) return null;
+    const fullUrl = getMediaUrl(e.image_url || e.image, 'Event');
+    return {
+      ...e,
+      image_url: fullUrl,
+      imageUrl: fullUrl,
+      image: fullUrl,
+    };
+  },
+
   /**
    * Get all events (public view)
    */
   getAll: async (params = {}) => {
     const queryParams = new URLSearchParams();
-    
     if (params.skip) queryParams.append('skip', params.skip);
     if (params.limit) queryParams.append('limit', params.limit);
     if (params.search) queryParams.append('search', params.search);
@@ -19,7 +33,9 @@ const eventService = {
     
     const queryString = queryParams.toString();
     const response = await apiClient.get(`/events${queryString ? `?${queryString}` : ''}`);
-    return response.data;
+    const data = response.data;
+    const events = data.events || data;
+    return Array.isArray(events) ? events.map(eventService._mapEvent) : [];
   },
 
   /**
@@ -27,16 +43,13 @@ const eventService = {
    */
   getAllAdmin: async (params = {}) => {
     const queryParams = new URLSearchParams();
-    
     if (params.skip) queryParams.append('skip', params.skip);
     if (params.limit) queryParams.append('limit', params.limit);
-    if (params.search) queryParams.append('search', params.search);
-    if (params.category_id) queryParams.append('category_id', params.category_id);
-    if (params.status) queryParams.append('status', params.status);
     
     const queryString = queryParams.toString();
     const response = await apiClient.get(`/events/admin${queryString ? `?${queryString}` : ''}`);
-    return response.data;
+    const events = response.data.events || response.data;
+    return Array.isArray(events) ? events.map(eventService._mapEvent) : [];
   },
 
   /**
@@ -45,7 +58,7 @@ const eventService = {
   getFeatured: async () => {
     try {
       const response = await apiClient.get('/events/featured');
-      return response.data;
+      return eventService._mapEvent(response.data);
     } catch (error) {
       if (error.response?.status === 404) return null;
       throw error;
@@ -57,7 +70,7 @@ const eventService = {
    */
   getBySlug: async (slug) => {
     const response = await apiClient.get(`/events/by-slug/${slug}`);
-    return response.data;
+    return eventService._mapEvent(response.data);
   },
 
   /**
@@ -65,7 +78,7 @@ const eventService = {
    */
   getById: async (id) => {
     const response = await apiClient.get(`/events/${id}`);
-    return response.data;
+    return eventService._mapEvent(response.data);
   },
 
   /**

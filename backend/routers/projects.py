@@ -350,8 +350,8 @@ def create_project(
     db.refresh(db_project)
     
     # Member'ları ekle
-    if member_ids:
-        handle_member_ids(db, db_project.id, member_ids)
+    if project.member_ids:
+        handle_member_ids(db, db_project.id, project.member_ids)
         db.commit()
         db.refresh(db_project)
         
@@ -509,12 +509,12 @@ def update_project(
         setattr(db_project, field, value)
     
     # Member IDs güncellemesi (eğer gönderildiyse)
-    if member_ids is not None:
+    if project_update.member_ids is not None:
         # Mevcut member ilişkilerini sil
         db.query(ProjectMember).filter(ProjectMember.project_id == project_id).delete()
         
         # Yeni member ilişkilerini ekle
-        for member_input in member_ids:
+        for member_input in project_update.member_ids:
             member_id = member_input.member_id
             
             # Member'ın var olduğunu kontrol et
