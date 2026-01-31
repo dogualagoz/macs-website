@@ -5,6 +5,7 @@ import FeaturedEventCard from '../components/FeaturedEventCard';
 import EventCard from '../components/EventCard';
 import Loading from '../../../shared/components/feedback/Loading';
 import ErrorMessage from '../../../shared/components/feedback/ErrorMessage';
+import SEO from '../../../shared/components/seo/SEO';
 
 export default function Events() {
   // Custom hooks for data fetching and filtering
@@ -12,12 +13,19 @@ export default function Events() {
   const { activeFilter, setActiveFilter, filteredAndSorted, featuredEvent } = useEventFilters(events);
 
   // Loading and error states
-  if (loading) return <Loading />;
+  if (loading) return <Loading className="pt-32" />;
   if (error) return <ErrorMessage message={error} onRetry={retry} />;
 
 
   return (
-    <div className="min-h-screen bg-white pt-20">
+    <>
+      <SEO 
+        title="Etkinlikler"
+        description="MACS topluluğunun düzenlediği yazılım atölyeleri, seminerler, hackathonlar ve networking etkinlikleri. Öğrenmeye ve gelişmeye hazır mısın?"
+        keywords="MACS etkinlikleri, yazılım atölyesi, hackathon, seminer, ESOGÜ etkinlik"
+        url="https://esogumacs.com/etkinlikler"
+      />
+      <div className="min-h-screen bg-white pt-20">
       {/* Header Section */}
       <section className="bg-gradient-to-br from-[#07132b] to-[#0a1a3a] text-white py-20">
         <motion.div 
@@ -62,7 +70,8 @@ export default function Events() {
         {/* Empty State */}
         {filteredAndSorted.length === 0 && <EmptyState />}
       </div>
-    </div>
+      </div>
+    </>
   );
 }
 

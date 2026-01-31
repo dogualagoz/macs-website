@@ -79,8 +79,10 @@
 }
 
 .value-icon {
-  width: 25px;
-  height: 27px;
+  width: 24px;
+  height: 24px;
+  color: #2563eb;
+  flex-shrink: 0;
 }
 
 .value-name {
@@ -102,42 +104,42 @@
   .about-section {
     padding: 32px 0 16px;
   }
-  
+
   .about-section .section-title {
     font-size: 26px;
   }
-  
-  .about-description { 
-    font-size: 15px; 
-    line-height: 24px; 
-    padding: 0 12px; 
+
+  .about-description {
+    font-size: 15px;
+    line-height: 24px;
+    padding: 0 12px;
   }
-  
-  .mission-card { 
-    padding: 20px; 
+
+  .mission-card {
+    padding: 20px;
     margin: 0 12px 24px 12px;
   }
-  
+
   .mission-title {
     font-size: 20px;
   }
-  
+
   .mission-text {
     font-size: 14px;
   }
-  
-  .values-card { 
-    padding: 28px; 
+
+  .values-card {
+    padding: 28px;
     margin: 0 12px;
   }
-  
+
   .values-title {
     font-size: 20px;
   }
-  
-  .values-grid { 
-    grid-template-columns: 1fr; 
-    gap: 20px; 
+
+  .values-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
   }
 }
 
@@ -145,58 +147,58 @@
   .about-section {
     padding: 24px 0 12px;
   }
-  
+
   .about-section .section-title {
     font-size: 22px;
   }
-  
+
   .about-description {
     font-size: 14px;
     line-height: 22px;
     padding: 0 8px;
     margin-bottom: 20px;
   }
-  
+
   .mission-card {
     padding: 16px;
     margin: 0 8px 20px 8px;
     border-radius: 6px;
   }
-  
+
   .mission-title {
     font-size: 18px;
     margin-bottom: 14px;
   }
-  
+
   .mission-text {
     font-size: 13px;
     line-height: 20px;
   }
-  
+
   .values-card {
     padding: 20px;
     margin: 0 8px;
     border-radius: 6px;
   }
-  
+
   .values-title {
     font-size: 18px;
     margin-bottom: 14px;
   }
-  
+
   .values-grid {
     gap: 16px;
   }
-  
+
   .value-icon {
-    width: 22px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
   }
-  
+
   .value-name {
     font-size: 14px;
   }
-  
+
   .value-description {
     font-size: 13px;
     line-height: 19px;

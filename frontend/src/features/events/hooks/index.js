@@ -14,6 +14,7 @@ export const useEventsData = () => {
 
   useEffect(() => {
     const loadEventsData = async () => {
+      const startTime = Date.now();
       try {
         setLoading(true);
         const [eventsData, categoriesData] = await Promise.all([
@@ -36,7 +37,12 @@ export const useEventsData = () => {
         setCategories(mockEventCategories);
         setError(null);
       } finally {
-        setLoading(false);
+        const elapsedTime = Date.now() - startTime;
+        const remainingTime = Math.max(400 - elapsedTime, 0);
+        
+        setTimeout(() => {
+          setLoading(false);
+        }, remainingTime);
       }
     };
 

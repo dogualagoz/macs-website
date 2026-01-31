@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Github, ExternalLink, Calendar, Layers, Activity, Share2 } from 'lucide-react';
 import { MOCK_PROJECTS } from '../data/mockProjectsData';
 import { projectService } from '../../../shared/services/api';
+import Loading from '../../../shared/components/feedback/Loading';
 
 /**
  * New ProjectDetailPage Component
@@ -38,11 +39,7 @@ const NewProjectDetailPage = () => {
   }, [id]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#050B14] text-white">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
+    return <Loading variant="dark" />;
   }
 
   if (!project) {

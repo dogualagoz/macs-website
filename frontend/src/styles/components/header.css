@@ -15,7 +15,7 @@
   z-index: 1000;
   border-bottom: 1px solid var(--header-border);
   cursor: default;
-  transition: all 0.4s ease-in-out;
+  transition: all 0.6s ease-in-out;
 }
 
 /* Projeler Sayfası için Koyu Tema Ayarları */
@@ -111,6 +111,29 @@
   background-color: #ffffff;
   color: #000000;
   border-color: #ffffff;
+}
+
+/* Koyu tema için mobil menü ikonu */
+.header.header-dark .menu-icon img {
+  filter: brightness(0) invert(1);
+}
+
+.header.header-dark .close-icon {
+  filter: brightness(0) invert(1);
+}
+
+/* Koyu tema için mobil menü arka planı */
+.header.header-dark .r-navbar {
+  background: #0a1929 !important;
+  box-shadow: -10px 0 40px rgba(0, 0, 0, 0.6);
+}
+
+.header.header-dark .r-navbar ul li a {
+  color: #ffffff !important;
+}
+
+.header.header-dark .r-navbar ul li a:hover {
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 .Button {
@@ -228,6 +251,11 @@
     filter: brightness(0);
   }
 
+  /* Koyu tema ise menü ikonunu beyaz yap */
+  .header.header-dark .menu-icon img {
+    filter: brightness(0) invert(1) !important;
+  }
+
   .r-logo img {
     position: relative;
     justify-self: flex-start;
@@ -240,22 +268,41 @@
   }
 
   .r-navbar {
-    /* display: none;  */
     position: fixed;
     top: 0;
     right: 0;
     width: 80%;
-    height: 100%;
-    background-color: #fff;
-    z-index: 999;
+    height: 100vh;
+    background: #ffffff !important;
+    z-index: 9999;
     padding: 1.5rem;
-    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+    box-shadow: -10px 0 40px rgba(0, 0, 0, 0.3);
     transform: translateX(100%);
-
     visibility: hidden;
-    transition:
-      transform 0.4s ease,
-      opacity 0.4s ease;
+    opacity: 1;
+    transition: transform 0.4s ease;
+    overflow-y: auto;
+  }
+
+  .r-navbar ul {
+    margin-top: 1rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .r-navbar ul li a {
+    display: block;
+    color: #1e1e1e !important;
+    font-size: 1.1rem;
+    font-weight: 500;
+    text-decoration: none;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+  }
+
+  .r-navbar ul li a:hover {
+    background-color: #f0f0f0;
   }
 
   .close-icon {

@@ -13,7 +13,27 @@ const Header = ({ isScrolled }) => {
 
   // Projeler sayfasında mıyız kontrol et
   const isProjectsPage = location.pathname.startsWith('/projeler');
-  console.log("Current Path:", location.pathname, "Is Projects Page:", isProjectsPage);
+
+  // İletişim linkine tıklandığında footer'a scroll (her sayfada çalışır)
+  const handleContactClick = (e) => {
+    e.preventDefault();
+    setMenuOpen(false);
+    
+    // Footer her sayfada mevcut, direkt scroll yap
+    const scrollToFooter = () => {
+      const footer = document.getElementById('contact');
+      if (footer) {
+        footer.scrollIntoView({ behavior: 'smooth' });
+        return true;
+      }
+      return false;
+    };
+
+    // Eğer hemen bulamazsa biraz bekle (sayfa yüklenme durumu için)
+    if (!scrollToFooter()) {
+      setTimeout(scrollToFooter, 100);
+    }
+  };
 
   return (
     <header className={`header ${isScrolled ? 'header-scrolled' : ''} ${isProjectsPage ? 'header-dark' : ''}`}>
@@ -25,14 +45,12 @@ const Header = ({ isScrolled }) => {
         </div>
         <nav className="nav-menu">
           <ul>
-            <li><a href="/#home">Ana Sayfa</a></li>
+            <li><Link to="/#home">Ana Sayfa</Link></li>
             <li><Link to="/etkinlikler">Etkinlikler</Link></li>
             <li><Link to="/projeler">Projeler</Link></li>
             <li><Link to="/sponsorluk">Sponsorlarımız</Link></li>
-            {/* <li><a href="#BlogMakale">Blog/Makaleler</a></li>
-            <li><a href="#soruces">Kaynaklar</a></li> */}
-            <li><a href="/#about">Hakkımızda</a></li>
-            <li><a href="/#contact">İletişim</a></li>
+            <li><Link to="/hakkimizda">Hakkımızda</Link></li>
+            <li><a href="#contact" onClick={handleContactClick}>İletişim</a></li>
           </ul>
         </nav>
         <div className="Button">
@@ -50,14 +68,12 @@ const Header = ({ isScrolled }) => {
           <nav className={`r-navbar${menuOpen ? " active" : ""}`}>
             <img className='close-icon' src="/assets/images/img_close.png" alt="kapat" onClick={toggleMenu} />
             <ul>
-              <li><a href="/#home" onClick={() => setMenuOpen(false)}>Ana Sayfa</a></li>
+              <li><Link to="/#home" onClick={() => setMenuOpen(false)}>Ana Sayfa</Link></li>
               <li><Link to="/etkinlikler" onClick={() => setMenuOpen(false)}>Etkinlikler</Link></li>
               <li><Link to="/projeler" onClick={() => setMenuOpen(false)}>Projeler</Link></li>
               <li><Link to="/sponsorluk" onClick={() => setMenuOpen(false)}>Sponsorlarımız</Link></li>
-              {/* <li><a href="#BlogMakale" onClick={() => setMenuOpen(false)}>Blog/Makaleler</a></li>
-              <li><a href="#soruces" onClick={() => setMenuOpen(false)}>Kaynaklar</a></li> */}
-              <li><a href="/#about" onClick={() => setMenuOpen(false)}>Hakkımızda</a></li>
-              <li><a href="/#contact" onClick={() => setMenuOpen(false)}>İletişim</a></li>
+              <li><Link to="/hakkimizda" onClick={() => setMenuOpen(false)}>Hakkımızda</Link></li>
+              <li><a href="#contact" onClick={handleContactClick}>İletişim</a></li>
               <li><a href="https://forms.gle/MXaCH1YG3qE4rsX36" target="_blank" rel="noopener noreferrer" onClick={() => setMenuOpen(false)}>Bize Katıl</a></li>
           </ul>
           </nav>
@@ -75,4 +91,5 @@ Header.defaultProps = {
   isScrolled: false
 };
 
-export default Header; 
+export default Header;
+ 

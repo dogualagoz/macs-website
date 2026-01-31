@@ -12,12 +12,14 @@ import { EventsPage, EventDetailPage } from './features/events';
 import NewProjectsPage from './features/projects/pages/NewProjectsPage';
 import NewProjectDetailPage from './features/projects/pages/NewProjectDetailPage';
 import { SponsorsPage } from './features/sponsors';
+import { AboutPage } from './features/about';
 import ComingSoon from './shared/components/pages/ComingSoon';
 import { LoginPage, ProtectedRoute, AuthProvider } from './features/auth';
 import { AdminPanel } from './features/admin';
 import Page404 from './shared/components/Page404';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import './styles/App.css';
+import ScrollToTop from './shared/components/navigation/ScrollToTop';
 
 function App() {
   // State to track whether the page has been scrolled
@@ -37,19 +39,6 @@ function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Smooth scroll for hash links with header offset
-  useEffect(() => {
-    if (location.hash) {
-      const id = location.hash.replace('#', '');
-      const el = document.getElementById(id);
-      if (el) {
-        const headerHeight = 70;
-        const top = el.getBoundingClientRect().top + window.pageYOffset - headerHeight;
-        window.scrollTo({ top, behavior: 'smooth' });
-      }
-    }
-  }, [location]);
-
   useEffect(() => {
     if (firstRender.current) {
       firstRender.current = false; // ilk render'ı atla (script zaten saydı)
@@ -62,6 +51,7 @@ function App() {
 
   return (
     <AuthProvider>
+      <ScrollToTop />
       <div className="app">
         {/* Header'ı sadece admin ve login sayfalarında gösterme */}
         <Routes>
@@ -80,7 +70,8 @@ function App() {
             <Route path="/projeler" element={<NewProjectsPage />} />
             <Route path="/projeler/:id" element={<NewProjectDetailPage />} />
             {/* Sponsorluklar geçici olarak ComingSoon sayfasına yönlendirildi. Sadece bu satırı değiştirerek eski haline dönebilir. */}
-            <Route path="/sponsorluk" element={<ComingSoon />} />
+            <Route path="/sponsorluk" element={<SponsorsPage />} />
+            <Route path="/hakkimizda" element={<AboutPage />} />
             <Route path="/login" element={<LoginPage />} />
             
             {/* Protected routes */}

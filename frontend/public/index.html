@@ -1,54 +1,145 @@
-<!DOCTYPE html>
-<html lang="en">
-  <script src="https://cdn.tailwindcss.com"></script>
-<script>
-  tailwind.config = {
-    plugins: [tailwindcssTypography],
-  }
-</script>
-<sc2ript src="https://cdn.jsdelivr.net/npm/@tailwindcss/typography@0.5.13/dist/index.min.js"></script>
+<!doctype html>
+<html lang="tr">
   <head>
+    <!-- Vercel Analytics -->
     <script>
-      window.va = window.va || function(){(window.vaq = window.vaq || []).push(arguments)};
+      window.va =
+        window.va ||
+        function () {
+          (window.vaq = window.vaq || []).push(arguments);
+        };
     </script>
     <script defer src="/_vercel/insights/script.js"></script>
+
+    <!-- Temel Meta Etiketleri -->
     <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/assets/images/img_exclude.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <!-- SEO Meta Etiketleri -->
+    <title>MACS - Matematik ve Bilgisayar Bilimleri Topluluğu | ESOGÜ</title>
     <meta
       name="description"
-      content="Matematik ve Bilgisayar Kulübü Resmi Websitesi"
+      content="MACS, Eskişehir Osmangazi Üniversitesi Matematik ve Bilgisayar Bilimleri Bölümü öğrencilerinin kurduğu, yazılım projeleri ve etkinlikler düzenleyen aktif bir öğrenci topluluğudur."
     />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/assets/images/img_exclude.png" />
-    <!--
-      manifest.json provides metadata used when your web app is installed on a
-      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
-    -->
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <!--
-      Notice the use of %PUBLIC_URL% in the tags above.
-      It will be replaced with the URL of the `public` folder during the build.
-      Only files inside the `public` folder can be referenced from the HTML.
+    <meta
+      name="keywords"
+      content="MACS, Matematik, Bilgisayar Bilimleri, ESOGÜ, Eskişehir Osmangazi Üniversitesi, yazılım, topluluk, öğrenci kulübü, etkinlik, proje"
+    />
+    <meta
+      name="author"
+      content="MACS - Matematik ve Bilgisayar Bilimleri Topluluğu"
+    />
+    <meta name="robots" content="index, follow" />
+    <meta name="googlebot" content="index, follow" />
 
-      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
-      work correctly both with client-side routing and a non-root public URL.
-      Learn how to configure a non-root public URL by running `npm run build`.
-    -->
-    <title>MACS Club</title>
+    <!-- Tema ve Favicon -->
+    <meta name="theme-color" content="#050B14" />
+    <link rel="icon" href="%PUBLIC_URL%/assets/images/img_exclude.png" />
+    <link
+      rel="apple-touch-icon"
+      href="%PUBLIC_URL%/assets/images/img_exclude.png"
+    />
+
+    <!-- Open Graph (Facebook, LinkedIn, WhatsApp) -->
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:site_name"
+      content="MACS - Matematik ve Bilgisayar Bilimleri Topluluğu"
+    />
+    <meta
+      property="og:title"
+      content="MACS - Matematik ve Bilgisayar Bilimleri Topluluğu | ESOGÜ"
+    />
+    <meta
+      property="og:description"
+      content="MACS, Eskişehir Osmangazi Üniversitesi'nde yazılım projeleri ve etkinlikler düzenleyen aktif bir öğrenci topluluğudur."
+    />
+    <meta
+      property="og:image"
+      content="%PUBLIC_URL%/assets/images/og-image.png"
+    />
+    <meta property="og:url" content="https://esogumacs.com" />
+    <meta property="og:locale" content="tr_TR" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="MACS - Matematik ve Bilgisayar Bilimleri Topluluğu"
+    />
+    <meta
+      name="twitter:description"
+      content="MACS, ESOGÜ'de yazılım projeleri ve etkinlikler düzenleyen aktif bir öğrenci topluluğudur."
+    />
+    <meta
+      name="twitter:image"
+      content="%PUBLIC_URL%/assets/images/og-image.png"
+    />
+    <meta name="twitter:site" content="@esogumacs" />
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://esogumacs.com" />
+
+    <!-- Manifest (PWA) -->
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+
+    <!-- Preconnect for Performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- JSON-LD Yapılandırılmış Veri (Organization) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "MACS - Matematik ve Bilgisayar Bilimleri Topluluğu",
+        "alternateName": "MACS",
+        "url": "https://esogumacs.com",
+        "logo": "https://esogumacs.com/assets/images/img_exclude.png",
+        "description": "Eskişehir Osmangazi Üniversitesi Matematik ve Bilgisayar Bilimleri Bölümü öğrenci topluluğu",
+        "foundingDate": "2020",
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Eskişehir",
+          "addressCountry": "TR"
+        },
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "email": "mathandcomputersociety@gmail.com",
+          "telephone": "+90-538-329-6386",
+          "contactType": "customer service"
+        },
+        "sameAs": [
+          "https://www.instagram.com/esogumacs/",
+          "https://www.linkedin.com/company/esogumacs/"
+        ]
+      }
+    </script>
+
+    <!-- JSON-LD Yapılandırılmış Veri (WebSite) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "MACS",
+        "url": "https://esogumacs.com",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://esogumacs.com/search?q={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
+      }
+    </script>
   </head>
   <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <noscript
+      >Bu uygulamayı çalıştırmak için JavaScript'i etkinleştirmeniz
+      gerekmektedir.</noscript
+    >
     <div id="root"></div>
-    <!--
-      This HTML file is a template.
-      If you open it directly in the browser, you will see an empty page.
-
-      You can add webfonts, meta tags, or analytics to this file.
-      The build step will place the bundled scripts into the <body> tag.
-
-      To begin the development, run `npm start` or `yarn start`.
-      To create a production bundle, use `npm run build` or `yarn build`.
-    -->
   </body>
 </html>

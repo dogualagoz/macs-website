@@ -1,20 +1,27 @@
 {
-  "short_name": "MACS Club",
-  "name": "MACS Club - Matematik ve Bilgisayar Bilimleri Kulübü",
+  "short_name": "MACS",
+  "name": "MACS - Matematik ve Bilgisayar Bilimleri Topluluğu",
+  "description": "Eskişehir Osmangazi Üniversitesi Matematik ve Bilgisayar Bilimleri Bölümü öğrenci topluluğu",
   "icons": [
     {
       "src": "assets/images/img_exclude.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "assets/images/img_exclude.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "theme_color": "#050B14",
+  "background_color": "#FFFFFF",
+  "orientation": "portrait-primary",
+  "lang": "tr",
+  "categories": ["education", "technology"],
+  "scope": "/"
 }

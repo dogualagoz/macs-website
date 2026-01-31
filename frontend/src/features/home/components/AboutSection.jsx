@@ -1,5 +1,7 @@
 import React from "react";
+import { Users, GraduationCap, Lightbulb, Handshake } from 'lucide-react';
 import '../../../styles/components/about.css';
+
 const AboutSection = () => {
   return (
     <section id="about" className="about-section" style={{ cursor: "default" }}>
@@ -31,11 +33,7 @@ const AboutSection = () => {
           <div className="values-grid">
             <div className="value-item">
               <div className="value-header">
-                <img
-                  src="../assets/images/img_people_25x27.png"
-                  alt="Community"
-                  className="value-icon"
-                />
+                <Users className="value-icon text-blue-600" size={24} />
                 <span className="value-name">Topluluk</span>
               </div>
               <p className="value-description">
@@ -46,11 +44,7 @@ const AboutSection = () => {
 
             <div className="value-item">
               <div className="value-header">
-                <img
-                  src="../assets/images/img_graduation_cap.png"
-                  alt="Learning"
-                  className="value-icon"
-                />
+                <GraduationCap className="value-icon text-blue-600" size={24} />
                 <span className="value-name">Öğrenme</span>
               </div>
               <p className="value-description">
@@ -61,11 +55,7 @@ const AboutSection = () => {
 
             <div className="value-item">
               <div className="value-header">
-                <img
-                  src="../assets/images/img_innovation.png"
-                  alt="Innovation"
-                  className="value-icon"
-                />
+                <Lightbulb className="value-icon text-blue-600" size={24} />
                 <span className="value-name">Yenilik</span>
               </div>
               <p className="value-description">
@@ -76,11 +66,7 @@ const AboutSection = () => {
 
             <div className="value-item">
               <div className="value-header">
-                <img
-                  src="../assets/images/img_handshake.png"
-                  alt="Collaboration"
-                  className="value-icon"
-                />
+                <Handshake className="value-icon text-blue-600" size={24} />
                 <span className="value-name">İş Birliği</span>
               </div>
               <p className="value-description">

@@ -1,23 +1,37 @@
 import React from 'react';
-import '../../../styles/pages/events2.css';
+import { motion } from 'framer-motion';
+import '../../../styles/components/loader.css';
 
 /**
- * Loading Spinner Component
- * Reusable loading indicator for async operations
+ * Unified Loading Component
+ * @param {Object} props
+ * @param {string} props.message - Optional message to display
+ * @param {'light' | 'dark'} props.variant - Theme variant
+ * @param {boolean} props.fullscreen - Whether to take up the whole screen
  */
-export default function Loading({ message = 'Yükleniyor...' }) {
+export default function Loading({ 
+  message = 'Yükleniyor...', 
+  variant = 'light',
+  fullscreen = false,
+  className = ''
+}) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white">
-      <div className="text-center">
-        <div className="spinner center">
-          {[...Array(12)].map((_, i) => (
-            <div key={i} className="spinner-blade"></div>
-          ))}
-        </div>
-        {message && (
-          <p className="mt-4 text-gray-600">{message}</p>
-        )}
+    <div className={`loader-container loader-${variant} ${fullscreen ? 'fullscreen' : ''} ${className}`}>
+      <div className="spinner">
+        {[...Array(12)].map((_, i) => (
+          <div key={i} className="spinner-blade"></div>
+        ))}
       </div>
+      {message && (
+        <motion.p 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+          className="loader-text"
+        >
+          {message}
+        </motion.p>
+      )}
     </div>
   );
 }

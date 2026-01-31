@@ -1,3 +1,22 @@
-# https://www.robotstxt.org/robotstxt.html
+# robots.txt for MACS Website
+# https://esogumacs.com
+
 User-agent: *
-Disallow:
+Allow: /
+
+# Sitemap
+Sitemap: https://esogumacs.com/sitemap.xml
+
+# Disallow admin pages
+Disallow: /admin
+Disallow: /login
+
+# Allow all crawlers
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+# Crawl delay (optional, helps prevent server overload)
+Crawl-delay: 1

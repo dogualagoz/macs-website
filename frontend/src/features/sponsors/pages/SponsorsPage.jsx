@@ -8,8 +8,10 @@ import { getMediaUrl } from '../../../shared/utils/media';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import '../../../styles/pages/sponsors.css';
 
-const MAPBOX_TOKEN = env.mapboxToken;
+import Loading from '../../../shared/components/feedback/Loading';
+import SEO from '../../../shared/components/seo/SEO';
 
+const MAPBOX_TOKEN = env.mapboxToken;
 
 const transformSponsorData = (sponsor) => {
   const mapped = sponsorService._mapSponsor(sponsor);
@@ -33,6 +35,7 @@ export default function SponsorsPage() {
 
   useEffect(() => {
     const fetchSponsors = async () => {
+      const startTime = Date.now();
       try {
         setLoading(true);
         const data = await sponsorService.getAll({ is_active: true });
@@ -52,7 +55,11 @@ export default function SponsorsPage() {
         // API hatası durumunda mock data kullan
         setSponsors(mockSponsors.map(transformSponsorData));
       } finally {
-        setLoading(false);
+        const elapsedTime = Date.now() - startTime;
+        const remainingTime = Math.max(400 - elapsedTime, 0);
+        setTimeout(() => {
+          setLoading(false);
+        }, remainingTime);
       }
     };
 
@@ -60,18 +67,18 @@ export default function SponsorsPage() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="sponsors-loading">
-        <div className="sponsors-loading__content">
-          <div className="sponsors-loading__spinner"></div>
-          <p className="sponsors-loading__text">Sponsorlar yükleniyor...</p>
-        </div>
-      </div>
-    );
+    return <Loading variant="light" className="pt-32" />;
   }
 
   return (
-    <div className="sponsors-page">
+    <>
+      <SEO 
+        title="Sponsorlarımız"
+        description="MACS topluluğunu destekleyen değerli sponsorlar ve iş ortakları. Eskişehir'deki teknoloji ekosisteminin güçlü paydaşları."
+        keywords="MACS sponsorları, sponsor, iş ortağı, Eskişehir teknoloji, destek"
+        url="https://esogumacs.com/sponsorluk"
+      />
+      <div className="sponsors-page">
       <section className="sponsors-hero">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -187,7 +194,8 @@ export default function SponsorsPage() {
           />
         )}
       </AnimatePresence>
-    </div>
+      </div>
+    </>
   );
 }
 
