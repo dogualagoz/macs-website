@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Search, Trophy, Sparkles, Filter, Code, Heart, UserCircle, Rocket } from 'lucide-react';
-import { MOCK_PROJECTS, MOCK_USERS, PROJECT_CATEGORIES } from '../data/mockProjectsData';
+import { MOCK_USERS, PROJECT_CATEGORIES } from '../data/mockProjectsData';
+import { mockProjects, mockProjectCategories } from '../data/mockProjects';
 import { projectService, memberService } from '../../../shared/services/api';
 import NewProjectCard from '../components/NewProjectCard';
 import StatsCounter from '../components/StatsCounter';
@@ -45,19 +46,19 @@ const NewProjectsPage = () => {
         setMemberCount(membersData.length || MOCK_USERS.length);
         
         // Projects handling
-        setProjects(projectsData.length > 0 ? projectsData : MOCK_PROJECTS.map(projectService._mapProject));
+        setProjects(projectsData.length > 0 ? projectsData : mockProjects.map(projectService._mapProject));
         
         // Categories handling
         if (categoriesData && categoriesData.length > 0) {
           const catNames = ['All', ...categoriesData.map(c => c.name)];
           setCategories(catNames);
         } else {
-          setCategories(PROJECT_CATEGORIES);
+          setCategories(['All', ...mockProjectCategories.map(c => c.name)]);
         }
       } catch (error) {
-        console.error("Veri çekilemedi, mock data kullanılıyor:", error);
-        setProjects(MOCK_PROJECTS.map(projectService._mapProject));
-        setCategories(PROJECT_CATEGORIES);
+        console.error("Veri çekilemedi, anasayfa mock datası kullanılıyor:", error);
+        setProjects(mockProjects.map(projectService._mapProject));
+        setCategories(['All', ...mockProjectCategories.map(c => c.name)]);
       } finally {
         // En az 0.4 saniye bekle (akıcı geçiş için)
         const elapsedTime = Date.now() - startTime;

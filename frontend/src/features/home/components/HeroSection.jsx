@@ -7,19 +7,52 @@
  * - Community description
  * - Social media badges
  */
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import '../../../styles/components/hero.css';
 
+const images = [
+  '/assets/heroimages/codedrink.jpg',
+  '/assets/heroimages/devbreak.jpg',
+  '/assets/heroimages/log.jpg'
+];
+
 const HeroSection = () => {
-  const heroStyle = {
-    backgroundImage: 'url(/assets/images/ekip2.png)',
-    backgroundSize: 'cover',
-    backgroundPosition: 'center center',
-    backgroundRepeat: 'no-repeat'
-  };
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
+    }, 7000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   return (
-    <section className="hero" id="home" style={heroStyle}>
+    <section className="hero" id="home">
+      {/* Background Slider */}
+      <div className="hero-background-wrapper">
+        <AnimatePresence initial={false}>
+          <motion.div
+            key={currentIndex}
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '-100%' }}
+            transition={{ 
+              duration: 3, // Daha yavaş ve akıcı
+              ease: [0.45, 0, 0.55, 1], // Kusursuz senkronizasyon için özel easing
+            }}
+            className="hero-slide-container"
+          >
+            <div 
+              className="hero-background-image" 
+              style={{ backgroundImage: `url(${images[currentIndex]})` }} 
+            />
+          </motion.div>
+        </AnimatePresence>
+        <div className="hero-overlay" />
+      </div>
+
       <div className="hero-container">
         {/* Main logo */}
         <div className="hero-logo">

@@ -4,47 +4,20 @@ import React, { useState } from "react";
 import { X } from 'lucide-react';
 
 const people_data = {
-  BerkeZerelgil: {
-    member: "Berke Zerelgil",
-    role: "Kulüp Başkanı",
-    graduate: "Matematik ve Bilgisayar Bilimleri 4. Sınıf",
-    bio: "Designer ve Uygulama Geliştirme odaklı, MACS kulübü ekip lideri",
-    pic: "/assets/images/profiles/berkepp.jpeg"
-  },
   EfeAltun: {
     member: "Efe Altın",
-    role: "Kulüp Başkan Yardımcısı",
+    role: "Kulüp Başkanı",
     graduate: "Matematik ve Bilgisayar Bilimleri 3. Sınıf",
     bio: "AI geliştirme odaklı",
     pic: "/assets/images/profiles/efepp.jpeg"
   },
-  YigitYucel: {
-    member: "Yiğit Yücel",
-    role: "Genel Koordinatör",
-    graduate: "Matematik ve Bilgisayar Bilimleri 3. Sınıf",
-    bio: "Siber güvenlik odaklı",
-    pic: "/assets/images/profiles/yigitpp.jpeg"
-  },
+
   DoguAlagoz: {
     member: "Doğu Alagöz",
     role: "Proje Koordinatörlüğü",
     graduate: "Matematik ve Bilgisayar Bilimleri 3. Sınıf",
     bio: "Backend developer ve Mobil geliştirme odaklı",
     pic: "/assets/images/profiles/dogupp.jpeg"
-  },
-  KeremAlagoz: {
-    member: "Kerem Alagöz",
-    role: "Proje Koordinatörlüğü",
-    graduate: "Matematik ve Bilgisayar Bilimleri 3. Sınıf",
-    bio: "AI geliştirme odaklı",
-    pic: "/assets/images/profiles/kerempp.jpeg"
-  },
-  HiraYilmaz: {
-    member: "Hira Yılmaz",
-    role: "Denetim Koordinatörlüğü",
-    graduate: "Matematik ve Bilgisayar Bilimleri 3. Sınıf",
-    bio: "Oyun geliştirme odaklı",
-    pic: "/assets/images/profiles/hirapp.jpg"
   },
   ErenAlpaslan: {
     member: "Eren Alpaslan",
@@ -74,20 +47,6 @@ const people_data = {
     bio: "Oyun Geliştirme odaklı",
     pic: "/assets/images/profiles/erdempp.jpeg"
   },
-  AhsenAslan: {
-    member: "Ahsen Aslan",
-    role: "Tasarım ve Sosyal Medya Koordinatörlüğü",
-    graduate: "Matematik ve Bilgisayar Bilimleri 2. Sınıf",
-    bio: "Python Geliştirme odaklı",
-    pic: "/assets/images/profiles/ahsenpp.JPG"
-  },
-  CagriAri: {
-    member: "Çağrı Arı",
-    role: "Tasarım ve Sosyal Medya Koordinatörlüğü",
-    graduate: "Matematik ve Bilgisayar Bilimleri 3. Sınıf",
-    bio: "Oyun Geliştirme odaklı",
-    pic: "/assets/images/profiles/cagripp.JPG"
-  }
 };
 
 const TeamSection = () => {

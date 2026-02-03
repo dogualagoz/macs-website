@@ -30,6 +30,7 @@ export const mockProjects = [
     created_at: "2025-01-01",
     is_active: true,
     is_featured: true,
+    project_type: 'DEVELOPED_BY_MACS'
   },
   {
     id: 2,
@@ -50,6 +51,7 @@ export const mockProjects = [
     created_at: "2025-02-15",
     is_active: true,
     is_featured: false,
+    project_type: 'SUPPORTED_BY_MACS'
   },
   {
     id: 3,
@@ -70,6 +72,7 @@ export const mockProjects = [
     created_at: "2024-09-01",
     is_active: true,
     is_featured: false,
+    project_type: 'MEMBER_SHOWCASE'
   },
 ];
 

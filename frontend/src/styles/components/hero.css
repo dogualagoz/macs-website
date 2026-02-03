@@ -1,4 +1,4 @@
-*{
+* {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -13,12 +13,59 @@
   justify-content: center;
   text-align: center;
   padding: 2rem;
-  background-color: #F6F6F6;
+  background-color: #000; /* Dark background for better transitions */
   cursor: default;
+  overflow: hidden; /* Ensure scale animations don't overflow */
 
   animation: fadeInUp 1s ease forwards;
   animation-delay: 0.2s;
-  opacity: 0; /* Başlangıçta gizli */
+  opacity: 0;
+}
+
+.hero-slide-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden; /* Blur'un dışarı taşmasını engeller */
+  transform: translateZ(0); /* Hardware acceleration */
+}
+
+.hero-background-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  filter: blur(4px) brightness(0.8);
+  transform: scale(
+    1.1
+  ); /* Blur kenarlarını tamamen kutunun dışında bırakmak için */
+  will-change: transform;
+}
+
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    circle,
+    rgba(0, 0, 0, 0.2) 0%,
+    rgba(0, 0, 0, 0.5) 100%
+  );
+  z-index: 1;
+}
+
+.hero-container {
+  position: relative;
+  z-index: 2; /* Ensure content stays above background */
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 @keyframes fadeInUp {
@@ -30,11 +77,6 @@
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-.hero-container {
-  max-width: 800px;
-  margin: 0 auto;
 }
 
 .hero-logo {
@@ -56,7 +98,7 @@
 .hero-title {
   font-size: 4rem;
   font-weight: 800;
-  color: #FFFFFF;
+  color: #ffffff;
   margin-bottom: 1rem;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
 }
@@ -64,7 +106,7 @@
 .hero-subtitle {
   font-size: 1rem;
   font-weight: 600;
-  color: #FFFFFF;
+  color: #ffffff;
   margin-bottom: 2rem;
   line-height: 1.5;
   text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
