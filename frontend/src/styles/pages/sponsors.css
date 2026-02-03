@@ -34,7 +34,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Hero */
@@ -72,11 +74,11 @@
   .sponsors-hero {
     padding: 3rem 0;
   }
-  
+
   .sponsors-hero__title {
     font-size: 1.75rem;
   }
-  
+
   .sponsors-hero__subtitle {
     font-size: 0.95rem;
   }
@@ -117,7 +119,7 @@
   .sponsors-view-toggle__buttons {
     gap: 0.5rem;
   }
-  
+
   .sponsors-view-toggle__btn {
     padding: 0.5rem 1rem;
     font-size: 0.85rem;
@@ -181,11 +183,15 @@
 }
 
 @media (min-width: 768px) {
-  .sponsors-grid { grid-template-columns: repeat(2, 1fr); }
+  .sponsors-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (min-width: 1024px) {
-  .sponsors-grid { grid-template-columns: repeat(3, 1fr); }
+  .sponsors-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 /* Sponsor Card */
@@ -347,7 +353,9 @@
 }
 
 @media (min-width: 1024px) {
-  .sponsors-map { grid-template-columns: 3fr 1fr; }
+  .sponsors-map {
+    grid-template-columns: 3fr 1fr;
+  }
 }
 
 .sponsors-map__container {
@@ -822,6 +830,7 @@
   text-decoration: none;
   transition: all 0.2s;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
 }
 
 .sponsors-cta__btn:hover {
@@ -839,26 +848,25 @@
   .sponsors-hero {
     padding: 3rem 0;
   }
-  
+
   .sponsors-hero__title {
     font-size: 2rem;
   }
-  
+
   .sponsors-main {
     padding: 2rem 1rem;
   }
-  
+
   .sponsors-map {
     grid-template-columns: 1fr;
   }
-  
+
   .sponsors-map__container {
     height: 400px;
   }
-  
+
   .sponsors-sidebar {
     height: 300px;
     order: -1;
   }
 }
-

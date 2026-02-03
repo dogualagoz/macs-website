@@ -297,8 +297,7 @@ const AboutPage = () => {
                   </motion.div>
 
                   {/* İstatistikler */}
-                  <motion.div 
-                    className="about-stats"
+                    <motion.div className="about-stats" 
                     variants={staggerContainer}
                     initial="hidden"
                     whileInView="visible"
@@ -309,15 +308,15 @@ const AboutPage = () => {
                       <span className="stat-label">Aktif Üye</span>
                     </motion.div>
                     <motion.div className="stat-item" variants={scaleIn}>
-                      <span className="stat-number">20+</span>
+                      <span className="stat-number">4+</span>
                       <span className="stat-label">Tamamlanan Proje</span>
                     </motion.div>
                     <motion.div className="stat-item" variants={scaleIn}>
-                      <span className="stat-number">30+</span>
+                      <span className="stat-number">6+</span>
                       <span className="stat-label">Etkinlik</span>
                     </motion.div>
                     <motion.div className="stat-item" variants={scaleIn}>
-                      <span className="stat-number">2+</span>
+                      <span className="stat-number">1+</span>
                       <span className="stat-label">Yıllık Deneyim</span>
                     </motion.div>
                   </motion.div>

@@ -31,7 +31,7 @@ const Footer = () => {
               </div>
               <div className="contact-item">
                 <img src="/assets/images/img_phone.png" alt="Phone" />
-                <span>+90 538 329 6386</span>
+                <span>+90 533 032 0102</span>
               </div>
             </div>
           </div>
@@ -40,10 +40,12 @@ const Footer = () => {
             <h3>Sosyal Medya</h3>
             <div className="social-links">
               <img src="/assets/images/img_icon.svg" alt="X" />
-              <img
-                src="/assets/images/img_icon_gray_50_01_18x18.svg"
-                alt="Linkedin"
-              />
+              <a href="https://www.linkedin.com/company/esogumacs" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+                <img
+                  src="/assets/images/img_icon_gray_50_01_18x18.svg"
+                  alt="LinkedIn"
+                />
+              </a>
               {/* <img src="/assets/images/img_logo_youtube.svg" alt="YouTube" /> */}
               <a href="https://www.instagram.com/esogumacs/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
                 <img

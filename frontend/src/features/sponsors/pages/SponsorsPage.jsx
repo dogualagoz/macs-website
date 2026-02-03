@@ -31,7 +31,7 @@ export default function SponsorsPage() {
   const [sponsors, setSponsors] = useState([]);
   const [error, setError] = useState(null);
   const [selectedSponsor, setSelectedSponsor] = useState(null);
-  const [activeView, setActiveView] = useState('grid');
+  const [activeView, setActiveView] = useState('map');
 
   useEffect(() => {
     const fetchSponsors = async () => {

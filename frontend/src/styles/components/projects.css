@@ -379,7 +379,7 @@
   border-radius: 10px;
 }
 
-button:hover {
+.Buttons button:hover {
   transition: ease 0.5s;
   background-color: #ffffff;
 }

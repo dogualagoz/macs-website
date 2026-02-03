@@ -35,10 +35,10 @@ export default function FeaturedEventCard({ event }) {
 
   return (
     <Link to={`/etkinlikler/${event.slug}`} style={{ textDecoration: 'none' }}>
-      <div className="group relative overflow-hidden rounded-2xl bg-white shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200 col-span-3">
-        <div className="grid grid-cols-3 gap-0 h-full">
+      <div className="group relative overflow-hidden rounded-2xl bg-white shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-0 h-full">
           {/* Image Container - Left Side */}
-          <div className="relative h-80 overflow-hidden bg-gray-100 col-span-1">
+          <div className="relative h-64 md:h-80 overflow-hidden bg-gray-100 col-span-1">
             <img
               src={getImageUrl(event.image_url)}
               alt={event.title}
@@ -51,7 +51,7 @@ export default function FeaturedEventCard({ event }) {
           </div>
 
           {/* Content Container - Right Side */}
-          <div className="p-8 flex flex-col justify-between col-span-2">
+          <div className="p-6 md:p-8 flex flex-col justify-between col-span-1 md:col-span-2">
             {/* Featured Badge */}
             <div>
               <div className="mb-4">

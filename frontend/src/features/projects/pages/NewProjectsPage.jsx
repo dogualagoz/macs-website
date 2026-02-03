@@ -103,7 +103,7 @@ const NewProjectsPage = () => {
         setActiveTab(id);
         setSelectedCategory('All');
       }}
-      className={`relative px-6 py-3 rounded-full flex items-center gap-2 transition-all duration-300 font-medium ${
+      className={`relative px-6 py-3 rounded-full flex items-center gap-2 transition-all duration-300 font-medium cursor-pointer ${
         activeTab === id 
           ? 'bg-blue-600 text-white shadow-[0_0_20px_rgba(37,99,235,0.5)]' 
           : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
@@ -212,7 +212,7 @@ const NewProjectsPage = () => {
                         <button
                           key={cat}
                           onClick={() => setSelectedCategory(cat)}
-                          className={`w-full text-left px-4 py-3 rounded-xl transition-all duration-200 flex justify-between items-center group ${
+                          className={`w-full text-left px-4 py-3 rounded-xl transition-all duration-200 flex justify-between items-center group cursor-pointer ${
                             selectedCategory === cat 
                               ? 'bg-blue-600/20 text-blue-300 border border-blue-500/30' 
                               : 'hover:bg-white/5 text-gray-400 hover:text-white'
