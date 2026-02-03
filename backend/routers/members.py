@@ -257,46 +257,11 @@ def delete_member(
     current_user: User = Depends(get_current_user)
 ):
     """
-    Member'ı soft delete yapar (is_active = False).
-    
-    - Member silinmez, sadece pasif hale getirilir
-    - Proje ilişkileri korunur
-    """
-    db_member = db.query(Member).filter(Member.id == member_id).first()
-    
-    if not db_member:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Üye bulunamadı"
-        )
-    
-    # Soft delete
-    db_member.is_active = False
-    db.commit()
-    
-    return None
-
-
-@router.delete("/{member_id}/hard", status_code=status.HTTP_204_NO_CONTENT)
-def hard_delete_member(
-    member_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    """
     Member'ı kalıcı olarak siler.
     
-    ⚠️ DİKKAT: Bu işlem geri alınamaz!
     - Member ve tüm proje ilişkileri silinir (CASCADE)
-    - Sadmin yetkisi gerekir
+    - Sadece giriş yapmış kullanıcılar silebilir
     """
-    # Admin kontrolü
-    if current_user.role != "admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Bu işlem için admin yetkisi gereklidir"
-        )
-    
     db_member = db.query(Member).filter(Member.id == member_id).first()
     
     if not db_member:
@@ -310,3 +275,6 @@ def hard_delete_member(
     db.commit()
     
     return None
+
+
+

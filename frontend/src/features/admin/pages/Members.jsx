@@ -47,18 +47,22 @@ const Members = () => {
 
   // Üye silme işlemi
   const handleDeleteMember = async (memberId) => {
-    if (!window.confirm("Bu üyeyi silmek istediğinize emin misiniz?")) {
+    if (!window.confirm("Bu üyeyi kalıcı olarak silmek istediğinize emin misiniz? Bu işlem geri alınamaz.")) {
       return;
     }
     
     try {
+      setLoading(true);
       await memberService.delete(memberId);
-      // Üye listesini güncelle
-      setMembers(members.filter(m => m.id !== memberId));
+      // Üye listesini lokal state'den hemen temizle
+      setMembers(prevMembers => prevMembers.filter(m => m.id !== memberId));
       alert("Üye başarıyla silindi!");
     } catch (err) {
       console.error("Üye silme hatası:", err);
-      alert("Üye silinirken bir hata oluştu: " + err.message);
+      const errorMsg = err.response?.data?.detail || err.message || "Bilinmeyen bir hata oluştu";
+      alert("Üye silinirken bir hata oluştu: " + errorMsg);
+    } finally {
+      setLoading(false);
     }
   };
   
