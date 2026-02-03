@@ -53,6 +53,7 @@ app = FastAPI(
 origins = [
     "http://localhost:3000",  # Geliştirme ortamı
     "https://macs-website-ejpz-2c1oycxy2-dogualagozs-projects.vercel.app",  # Vercel preview URL
+    "https://macs-website-ejpz-git-newprojectpag-2f22c9-dogualagoz-projects.vercel.app",
     "https://macs-website-ejpz.vercel.app",  # Vercel production URL
     "https://macs-website.vercel.app",  # Vercel production URL (alternative)
     "https://macs-website-dogualagoz.vercel.app",
@@ -64,6 +65,7 @@ origins = [
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
+    allow_origin_regex="https://macs-website-.*\.vercel\.app",  # Tüm Vercel preview ve production URL'lerini kapsar
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
