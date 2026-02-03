@@ -78,12 +78,16 @@ Base.metadata.create_all(bind=engine)
 os.makedirs("static/uploads", exist_ok=True)
 
 # Statik dosyaları sunmak için middleware ekle
+# 1. Lokal için ana static klasörü
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Railway volume varsa uploads klasörünü de mount et
+# 2. Resimler için ortak /uploads yolu 
+# Railway'de volume'a, lokalde static/uploads'a bakar
 UPLOAD_VOLUME_PATH = "/app/uploads"
 if os.path.exists(UPLOAD_VOLUME_PATH):
     app.mount("/uploads", StaticFiles(directory=UPLOAD_VOLUME_PATH), name="uploads")
+else:
+    app.mount("/uploads", StaticFiles(directory="static/uploads"), name="uploads")
 
 # Routerları ekle
 app.include_router(events_router)

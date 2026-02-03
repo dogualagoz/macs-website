@@ -1,4 +1,5 @@
 import apiClient from './apiClient';
+import uploadService from './uploadService';
 import env from '../../config/env';
 import { getMediaUrl } from '../../utils/media';
 
@@ -90,16 +91,7 @@ const sponsorService = {
   },
 
   uploadImage: async (file) => {
-    const formData = new FormData();
-    formData.append('file', file);
-    
-    const response = await apiClient.post('/uploads/image', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    });
-    
-    return response.data.url;
+    return uploadService.uploadImage(file);
   }
 };
 

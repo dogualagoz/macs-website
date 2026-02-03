@@ -3,6 +3,7 @@
  * Handles all member-related API calls
  */
 import apiClient from './apiClient';
+import uploadService from './uploadService';
 import { getMediaUrl } from '../../utils/media';
 
 const memberService = {
@@ -79,18 +80,7 @@ const memberService = {
    * Upload profile image for member
    */
   uploadImage: async (file) => {
-    if (!file) return null;
-    
-    const formData = new FormData();
-    formData.append('file', file);
-    
-    const response = await apiClient.post('/uploads/', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    
-    return response.data.url;
+    return uploadService.uploadImage(file);
   },
 };
 

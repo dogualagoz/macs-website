@@ -3,6 +3,7 @@
  * Handles all event-related API calls
  */
 import apiClient from './apiClient';
+import uploadService from './uploadService';
 import { getMediaUrl } from '../../utils/media';
 
 const eventService = {
@@ -117,18 +118,7 @@ const eventService = {
    * Upload image for event
    */
   uploadImage: async (file) => {
-    if (!file) return null;
-    
-    const formData = new FormData();
-    formData.append('file', file);
-    
-    const response = await apiClient.post('/upload/', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    
-    return response.data.url;
+    return uploadService.uploadImage(file);
   },
 };
 
