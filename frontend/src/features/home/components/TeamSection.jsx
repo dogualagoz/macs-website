@@ -120,16 +120,16 @@ const TeamSection = () => {
               <p className="team-modal-graduate">{selectedMember.graduate}</p>
               <p className="team-modal-bio">{selectedMember.bio}</p>
               <div className="team-modal-social">
-                <a href="#" className="social-link" aria-label="LinkedIn">
+                <a href="#!" className="social-link" aria-label="LinkedIn">
                   <img src="/assets/images/img_linkedin.png" alt="LinkedIn" />
                 </a>
-                <a href="#" className="social-link" aria-label="GitHub">
+                <a href="#!" className="social-link" aria-label="GitHub">
                   <img src="/assets/images/img_github_18x17.png" alt="GitHub" />
                 </a>
-                <a href="#" className="social-link" aria-label="Instagram">
+                <a href="#!" className="social-link" aria-label="Instagram">
                   <img src="/assets/images/img_instagram_circle.png" alt="Instagram" />
                 </a>
-                <a href="#" className="social-link" aria-label="Email">
+                <a href="#!" className="social-link" aria-label="Email">
                   <img src="/assets/images/img_email.png" alt="Email" />
                 </a>
               </div>

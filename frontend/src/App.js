@@ -13,7 +13,6 @@ import NewProjectsPage from './features/projects/pages/NewProjectsPage';
 import NewProjectDetailPage from './features/projects/pages/NewProjectDetailPage';
 import { SponsorsPage } from './features/sponsors';
 import { AboutPage } from './features/about';
-import ComingSoon from './shared/components/pages/ComingSoon';
 import { LoginPage, ProtectedRoute, AuthProvider } from './features/auth';
 import { AdminPanel } from './features/admin';
 import Page404 from './shared/components/Page404';

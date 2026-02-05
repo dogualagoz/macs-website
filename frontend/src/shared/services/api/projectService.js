@@ -24,18 +24,27 @@ const projectService = {
       image: getMediaUrl(p.image_url || p.image || p.imageUrl, 'Project'),
       tags: p.technologies ? p.technologies.split(',').map(t => t.trim()) : [],
       
+      githubUrl: p.github_url || p.githubUrl,
+      liveUrl: p.live_url || p.liveUrl,
+      
       // Project Type -> Tab Eşleşmesi
       tab: p.project_type === 'DEVELOPED_BY_MACS' ? 'developed' :
            p.project_type === 'SUPPORTED_BY_MACS' ? 'supported' : 'showcase',
       
       // Team -> Members Eşleşmesi
-      team: p.members?.map(m => ({
+      team: (p.members && p.members.length > 0) ? p.members.map(m => ({
         id: m.id.toString(),
         name: m.full_name,
         avatar: getMediaUrl(m.profile_image || m.avatar_url, m.full_name),
         role: m.project_role || 'Üye',
         projectCount: m.project_count || 0
-      })) || [],
+      })) : (p.team_members ? p.team_members.split(',').map((name, idx) => ({
+        id: `temp-${idx}`,
+        name: name.trim(),
+        avatar: getMediaUrl(null, name.trim()), // Generates UI Avatar
+        role: 'Üye',
+        projectCount: 0
+      })) : []),
 
       // Category Çevirisi (Object to String)
       category: p.category?.name || p.category || 'Proje',

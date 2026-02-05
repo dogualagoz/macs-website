@@ -40,12 +40,16 @@ const Dashboard = () => {
 
         // Projects
         const projectsList = projectsData?.projects || projectsData;
-        const finalProjects = (projectsList && projectsList.length > 0) 
+        const allProjects = (projectsList && projectsList.length > 0) 
           ? projectsList 
           : mockProjects.map(projectService._mapProject);
-        setProjects(finalProjects);
+        
+        // Anasayfada sadece 'developed' ve 'supported' projeleri göster, 'showcase' (member showcase) gizle
+        const filteredProjects = allProjects.filter(p => p.tab !== 'showcase');
+        
+        setProjects(filteredProjects);
         setProjectCategories((projectCategoriesData && projectCategoriesData.length > 0) ? projectCategoriesData : mockProjectCategories);
-        setFeaturedProject(featuredProjectData || finalProjects.find(p => p.is_featured) || finalProjects[0]);
+        setFeaturedProject(featuredProjectData || filteredProjects.find(p => p.is_featured) || filteredProjects[0]);
 
         // Events
         const finalEvents = (eventsData && eventsData.length > 0) ? eventsData : mockEvents.map(eventService._mapEvent);
@@ -58,11 +62,15 @@ const Dashboard = () => {
         console.error('Error loading dashboard data:', err);
         console.log('Using mock data for dashboard');
         const mappedMockProjects = mockProjects.map(projectService._mapProject);
+        
+        // Mock data için de filtre uygula
+        const filteredMockProjects = mappedMockProjects.filter(p => p.tab !== 'showcase');
+        
         const mappedMockEvents = mockEvents.map(eventService._mapEvent);
         
-        setProjects(mappedMockProjects);
+        setProjects(filteredMockProjects);
         setProjectCategories(mockProjectCategories);
-        setFeaturedProject(mappedMockProjects.find(p => p.is_featured) || mappedMockProjects[0]);
+        setFeaturedProject(filteredMockProjects.find(p => p.is_featured) || filteredMockProjects[0]);
 
         setEvents(mappedMockEvents);
         setEventCategories(mockEventCategories);

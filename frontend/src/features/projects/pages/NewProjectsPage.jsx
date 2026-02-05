@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Search, Trophy, Sparkles, Filter, Code, Heart, UserCircle, Rocket } from 'lucide-react';
-import { MOCK_USERS, PROJECT_CATEGORIES } from '../data/mockProjectsData';
+import { Search, Trophy, Sparkles, Filter, Code, Heart, UserCircle } from 'lucide-react';
+import { MOCK_USERS } from '../data/mockProjectsData';
 import { mockProjects, mockProjectCategories } from '../data/mockProjects';
 import { projectService, memberService } from '../../../shared/services/api';
 import NewProjectCard from '../components/NewProjectCard';

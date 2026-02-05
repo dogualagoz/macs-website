@@ -203,7 +203,7 @@ def get_events_admin(
     return query.offset(skip).limit(limit).all()
 
 # Spesifik route'lar - genel route'lardan önce
-@router.get("/featured", response_model=Event)
+@router.get("/featured", response_model=Optional[Event])
 def get_featured_event(db: Session = Depends(get_db)):
     """
     Öne çıkan etkinliği getirir.
@@ -225,12 +225,6 @@ def get_featured_event(db: Session = Depends(get_db)):
             EventModel.is_deleted == False,
             EventModel.is_active == True
         ).order_by(EventModel.start_time.asc()).first()
-    
-    if not featured_event:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Öne çıkan etkinlik bulunamadı"
-        )
     
     return featured_event
 

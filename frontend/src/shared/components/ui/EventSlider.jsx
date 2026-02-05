@@ -4,18 +4,15 @@
  * Modern slider/carousel for displaying events with smooth animations.
  * Uses framer-motion for gesture support and transitions.
  */
-import React, { useState } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, MapPin, Clock, ChevronLeft, ChevronRight, Users } from 'lucide-react';
 import { getImageUrl, handleImageError } from '../../../utils/imageUtils';
 import '../../../styles/components/slider.css';
 
 const EventSlider = ({ events = [] }) => {
     const allEvents = events;
-
-    const [direction, setDirection] = useState(0);
 
     // Navigate to previous cards
     const handlePrev = () => {
@@ -70,21 +67,7 @@ const EventSlider = ({ events = [] }) => {
         return endDate < new Date();
     };
 
-    // Animation variants
-    const slideVariants = {
-        enter: (direction) => ({
-            x: direction > 0 ? 300 : -300,
-            opacity: 0
-        }),
-        center: {
-            x: 0,
-            opacity: 1
-        },
-        exit: (direction) => ({
-            x: direction < 0 ? 300 : -300,
-            opacity: 0
-        })
-    };
+
 
     if (allEvents.length === 0) {
         return <div className="slider-empty">Gösterilecek etkinlik yok.</div>;

@@ -11,12 +11,13 @@ const sponsorService = {
    */
   _mapSponsor: (s) => {
     if (!s) return null;
-    const fullUrl = getMediaUrl(s.logo_url || s.logo || s.logoUrl || s.imageUrl, 'Sponsor');
+    const fullUrl = getMediaUrl(s.image_url || s.logo_url || s.logo || s.logoUrl || s.imageUrl, 'Sponsor');
     return {
       ...s,
       logo_url: fullUrl,
       logoUrl: fullUrl,
       logo: fullUrl,
+      discountInfo: s.discount_info || s.discountInfo,
     };
   },
 

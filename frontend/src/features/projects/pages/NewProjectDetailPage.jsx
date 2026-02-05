@@ -13,6 +13,27 @@ const NewProjectDetailPage = () => {
   const { id } = useParams();
   const [project, setProject] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
+  const [copied, setCopied] = React.useState(false);
+
+  const handleShare = async () => {
+    const shareData = {
+      title: project?.title || 'MACS Proje',
+      text: project?.shortDescription || 'MACS topluluğu projesine göz atın!',
+      url: window.location.href,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(window.location.href);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }
+    } catch (err) {
+      console.error('Paylaşım hatası:', err);
+    }
+  };
 
   React.useEffect(() => {
     const fetchProject = async () => {
@@ -88,21 +109,41 @@ const NewProjectDetailPage = () => {
           </p>
 
           <div className="flex flex-wrap gap-4 mt-8">
-            {project.githubUrl && (
-              <a href={project.githubUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-xl backdrop-blur-md border border-white/10 transition-all font-medium">
-                <Github size={20} />
-                GitHub
-              </a>
-            )}
-            {project.liveUrl && (
-              <a href={project.liveUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl transition-all font-medium shadow-[0_0_20px_rgba(37,99,235,0.4)]">
-                <ExternalLink size={20} />
-                Canlı Proje
-              </a>
-            )}
-             <button className="flex items-center gap-2 bg-white/5 hover:bg-white/10 text-gray-300 px-4 py-3 rounded-xl backdrop-blur-md border border-white/5 transition-all">
+            <a 
+              href={project.githubUrl || "#"} 
+              target={project.githubUrl ? "_blank" : "_self"}
+              rel="noopener noreferrer" 
+              className={`flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-xl backdrop-blur-md border border-white/10 transition-all font-medium ${!project.githubUrl ? 'opacity-50 cursor-not-allowed' : ''}`}
+              onClick={(e) => !project.githubUrl && e.preventDefault()}
+            >
+              <Github size={20} />
+              GitHub
+            </a>
+            <a 
+              href={project.liveUrl || "#"} 
+              target={project.liveUrl ? "_blank" : "_self"}
+              rel="noopener noreferrer" 
+              className={`flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl transition-all font-medium shadow-[0_0_20px_rgba(37,99,235,0.4)] ${!project.liveUrl ? 'opacity-50 cursor-not-allowed bg-blue-600/50 shadow-none' : ''}`}
+              onClick={(e) => !project.liveUrl && e.preventDefault()}
+            >
+              <ExternalLink size={20} />
+              Canlı Demo
+            </a>
+            <div className="relative">
+              <button 
+                onClick={handleShare}
+                className="flex items-center gap-2 bg-white/5 hover:bg-white/10 text-gray-300 px-4 py-3 rounded-xl backdrop-blur-md border border-white/5 transition-all"
+                title="Paylaş"
+              >
                 <Share2 size={20} />
               </button>
+              
+              {copied && (
+                <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs px-3 py-2 rounded-lg shadow-lg whitespace-nowrap animate-bounce">
+                  Link Kopyalandı!
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

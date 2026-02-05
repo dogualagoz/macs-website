@@ -4,7 +4,6 @@ import Map, { Marker, Popup, NavigationControl } from 'react-map-gl';
 import { mockSponsors, eskisehirCenter } from '../data/mockSponsors';
 import { sponsorService } from '../../../shared/services/api';
 import env from '../../../shared/config/env';
-import { getMediaUrl } from '../../../shared/utils/media';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import '../../../styles/pages/sponsors.css';
 
@@ -15,13 +14,19 @@ const MAPBOX_TOKEN = env.mapboxToken;
 
 const transformSponsorData = (sponsor) => {
   const mapped = sponsorService._mapSponsor(sponsor);
+  
+  // Koordinatları güvenli bir şekilde sayıya çevir
+  const lat = Number(sponsor.latitude || sponsor.location?.lat);
+  const lng = Number(sponsor.longitude || sponsor.location?.lng);
+
   return {
     ...mapped,
-    imageUrl: mapped.logo_url, // UI'daImageUrl olarak kullanılıyor
+    imageUrl: mapped.logo_url,
     location: {
       address: sponsor.address || sponsor.location?.address || '',
-      lat: sponsor.latitude || sponsor.location?.lat,
-      lng: sponsor.longitude || sponsor.location?.lng
+      // Eğer koordinatlar geçerli değilse null dön (Mapbox filtresi bunları ayıklayacak)
+      lat: isNaN(lat) ? null : lat,
+      lng: isNaN(lng) ? null : lng
     }
   };
 };

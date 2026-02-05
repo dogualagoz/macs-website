@@ -4,25 +4,16 @@
  * Modern slider/carousel for displaying projects with smooth animations.
  * Uses framer-motion for gesture support and transitions.
  */
-import React, { useState } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Code2, Users, ChevronLeft, ChevronRight, Github, ExternalLink } from 'lucide-react';
 import { getImageUrl, handleImageError } from '../../../utils/imageUtils';
 import '../../../styles/components/slider.css';
 
-const statusMap = {
-    PLANNING: { label: 'Planlama', color: 'status-planning' },
-    IN_PROGRESS: { label: 'Geliştirme', color: 'status-progress' },
-    COMPLETED: { label: 'Tamamlandı', color: 'status-completed' },
-    ON_HOLD: { label: 'Beklemede', color: 'status-hold' },
-    CANCELLED: { label: 'İptal', color: 'status-cancelled' },
-};
-
 const ProjectSlider = ({ projects = [] }) => {
     const allProjects = projects;
-
-    const [direction, setDirection] = useState(0);
+    const navigate = useNavigate();
 
     // Navigate to previous cards
     const handlePrev = () => {
@@ -52,21 +43,7 @@ const ProjectSlider = ({ projects = [] }) => {
         return members.split(',').map(m => m.trim()).filter(Boolean);
     };
 
-    // Animation variants
-    const slideVariants = {
-        enter: (direction) => ({
-            x: direction > 0 ? 300 : -300,
-            opacity: 0
-        }),
-        center: {
-            x: 0,
-            opacity: 1
-        },
-        exit: (direction) => ({
-            x: direction < 0 ? 300 : -300,
-            opacity: 0
-        })
-    };
+
 
     if (allProjects.length === 0) {
         return <div className="slider-empty">Gösterilecek proje yok.</div>;
@@ -79,12 +56,24 @@ const ProjectSlider = ({ projects = [] }) => {
                 <div className="slider-slide slider-slide-multi">
                     <div className="slider-grid slider-grid-scroll">
                         {allProjects.map((project) => {
-                            const statusInfo = statusMap[project.status] || statusMap.PLANNING;
                             const techArray = parseTechnologies(project.technologies);
                             const teamArray = parseTeamMembers(project.team_members);
                             
+                            const handleCardClick = () => {
+                                navigate(`/projeler/${project.slug || ''}`);
+                            };
+
+                            const handleButtonClick = (e) => {
+                                e.stopPropagation();
+                            };
+
                             return (
-                                <Link key={project.slug || project.id} to={`/projeler/${project.slug || ''}`} className="slider-card-link">
+                                <div 
+                                    key={project.slug || project.id} 
+                                    className="slider-card-link"
+                                    onClick={handleCardClick}
+                                    style={{ cursor: 'pointer' }}
+                                >
                                     <div className="slider-card slider-card-compact project-card-slide">
                                         {/* Image Section */}
                                         <div className="slider-card-image">
@@ -122,18 +111,45 @@ const ProjectSlider = ({ projects = [] }) => {
                                             )}
 
                                             {/* Team Members */}
-                                            {teamArray.length > 0 && (
+                                            {(project.team?.length > 0 || teamArray.length > 0) && (
                                                 <div className="slider-card-team">
-                                                    <Users className="team-icon" />
-                                                    <span>
-                                                        {teamArray.slice(0, 2).join(', ')}
-                                                        {teamArray.length > 2 && ` +${teamArray.length - 2}`}
-                                                    </span>
+                                                    {project.team?.length > 0 ? (
+                                                        <div className="avatar-group">
+                                                            {project.team.slice(0, 3).map((member, idx) => (
+                                                                <div key={idx} className="avatar-item" title={member.name}>
+                                                                    <img 
+                                                                        src={member.avatar} 
+                                                                        alt={member.name}
+                                                                        onError={(e) => {
+                                                                            e.target.src = '/assets/images/profiles/placeholder.jpg';
+                                                                        }}
+                                                                    />
+                                                                </div>
+                                                            ))}
+                                                            {project.team.length > 3 && (
+                                                                <div className="avatar-more">
+                                                                    +{project.team.length - 3}
+                                                                </div>
+                                                            )}
+                                                            <span className="team-names-summary">
+                                                                {project.team.slice(0, 2).map(m => m.name).join(', ')}
+                                                                {project.team.length > 2 && '...'}
+                                                            </span>
+                                                        </div>
+                                                    ) : (
+                                                        <>
+                                                            <Users className="team-icon" />
+                                                            <span>
+                                                                {teamArray.slice(0, 2).join(', ')}
+                                                                {teamArray.length > 2 && ` +${teamArray.length - 2}`}
+                                                            </span>
+                                                        </>
+                                                    )}
                                                 </div>
                                             )}
 
                                             {/* Action Buttons */}
-                                            <div className="slider-card-actions">
+                                            <div className="slider-card-actions" onClick={handleButtonClick}>
                                                 <span className="slider-action-button primary">
                                                     <ExternalLink className="action-icon" />
                                                     Projeyi İncele
@@ -144,7 +160,6 @@ const ProjectSlider = ({ projects = [] }) => {
                                                         target="_blank"
                                                         rel="noreferrer"
                                                         className="slider-action-button secondary"
-                                                        onClick={(e) => e.stopPropagation()}
                                                     >
                                                         <Github className="action-icon" />
                                                         GitHub
@@ -153,7 +168,7 @@ const ProjectSlider = ({ projects = [] }) => {
                                             </div>
                                         </div>
                                     </div>
-                                </Link>
+                                </div>
                             );
                         })}
                     </div>

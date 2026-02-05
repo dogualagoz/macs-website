@@ -27,11 +27,31 @@ const HeroSection = () => {
       img.src = src;
     });
 
-    const timer = setInterval(() => {
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
-    }, 7000);
+    let timer;
 
-    return () => clearInterval(timer);
+    const startTimer = () => {
+      timer = setInterval(() => {
+        setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
+      }, 7000);
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        clearInterval(timer);
+      } else {
+        // Sayfa tekrar görünür olduğunda zamanlayıcıyı sıfırdan başlat
+        clearInterval(timer);
+        startTimer();
+      }
+    };
+
+    startTimer();
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
 
   return (

@@ -289,6 +289,7 @@
 }
 
 .team-modal {
+  position: relative;
   background: #ffffff;
   border-radius: 20px;
   max-width: 400px;

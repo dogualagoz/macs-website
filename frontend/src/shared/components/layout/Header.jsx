@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import '../../../styles/components/header.css';
 
-const Header = ({ isScrolled }) => {
+const Header = ({ isScrolled = false }) => {
   const [menuOpen, setMenuOpen] = useState(false); // Menü açık/kapalı durumu
   const location = useLocation();
 
@@ -87,9 +87,7 @@ Header.propTypes = {
   isScrolled: PropTypes.bool
 };
 
-Header.defaultProps = {
-  isScrolled: false
-};
+
 
 export default Header;
  

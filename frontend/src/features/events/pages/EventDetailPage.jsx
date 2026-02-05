@@ -25,43 +25,9 @@ import '../../../styles/pages/events2.css'
  * - Program satırlarını HH:MM - Başlık tarzında parse eder; bulunamazsa sentetik akışa düşer.
  */
 
-const demoEvent = {
-  id: 1,
-  title: "MACS's LOG 2025",
-  slug: "macs-s-log-2025",
-  description:
-    "Birbirinden değerli konuşmacılarla kariyer, yazılım ve topluluk kültürü üzerine ilham verici bir gün.",
-  // Admin panelde tek content alanına yazılacak örnek metin
-  content: `## Hakkında\nMACS's LOG; geliştirme kültürü, topluluk yönetimi ve kariyer yolculuklarına odaklanan bir etkinliktir.\nGün boyunca **atölyeler**, **konferanslar** ve **networking** oturumları yer alacaktır.\n\n## Program\n09:30 - Kayıt & Karşılama\n10:00 - Açılış Konuşması\n11:30 - Keynote\n13:30 - Öğle Arası\n14:30 - Atölyeler\n16:30 - Kapanış & Networking`,
-  image_url:
-    "https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=1600&auto=format&fit=crop",
-  location: "Osmangazi Üniversitesi F-1 Binası",
-  start_time: "2025-10-25T09:30:00+03:00",
-  end_time: "2025-10-25T17:00:00+03:00",
-  category_id: 3,
-  category: { id: 3, name: "Etkinlik" },
-  created_by: 7,
-  creator: { id: 7, name: "MACS Ekibi" },
-  is_active: true,
-  is_deleted: false,
-  is_featured: true,
-};
 
-function formatDate(dt) {
-  try {
-    // Eğer zaten Z ile bitiyorsa tekrar ekleme
-    const dateStr = dt && !dt.endsWith('Z') ? dt + 'Z' : dt;
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return dt;
-    return new Intl.DateTimeFormat("tr-TR", {
-      dateStyle: "full",
-      timeStyle: "short",
-      timeZone: "Europe/Istanbul",
-    }).format(d);
-  } catch (e) {
-    return dt;
-  }
-}
+
+
 
 function formatDateOnly(dt) {
   try {
@@ -540,11 +506,7 @@ function Timeline({ start, end, contentProgramLines }) {
   );
 }
 
-function addMinutes(date, minutes) {
-  const d = new Date(date);
-  d.setMinutes(d.getMinutes() + minutes);
-  return d;
-}
+
 
 // Container: fetch event by slug and render view
 export default function EventPageContainer() {
