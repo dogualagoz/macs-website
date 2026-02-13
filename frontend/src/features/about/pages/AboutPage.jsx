@@ -39,7 +39,7 @@ const websiteTeam = [
     id: 5,
     ad_soyad: "Yusuf Efe Taşdelen",
     rol: "Frontend Developer",
-    profil_resmi: "/assets/images/profiles/yusufpp.jpeg"
+    profil_resmi: "/assets/images/profiles/yusufefepp.jpeg"
   },
   {
     id: 6,
