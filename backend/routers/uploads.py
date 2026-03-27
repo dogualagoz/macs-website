@@ -1,9 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 import os
 import uuid
+import shutil
+import tempfile
 from typing import Optional
 from datetime import datetime
+from starlette.background import BackgroundTasks
 from database import get_db
 from .auth import get_current_user
 from models.users import User
@@ -53,3 +57,36 @@ async def upload_file(
     file_url = f"{STATIC_URL_PREFIX}/{unique_filename}"
     
     return {"url": file_url}
+
+@router.get("/download-all")
+async def download_all_uploads(
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Tüm yüklenen dosyaları zipleyip döndürür.
+    Sadece yetkili kullanıcılar erişebilir.
+    """
+    if not os.path.exists(UPLOAD_DIR) or not os.listdir(UPLOAD_DIR):
+        raise HTTPException(status_code=404, detail="Yüklenecek dosya bulunamadı")
+    
+    # Geçici bir klasör oluştur
+    temp_dir = tempfile.mkdtemp()
+    zip_base_name = os.path.join(temp_dir, "macs_uploads_backup")
+    
+    # Arşivi oluştur (zip formatında)
+    # base_dir=None tüm UPLOAD_DIR içeriğini zip köküne koyar
+    zip_file_path = shutil.make_archive(zip_base_name, 'zip', UPLOAD_DIR)
+    
+    # Dosya gönderildikten sonra geçici klasörü silmek için background task ekle
+    def remove_temp_dir(dir_path: str):
+        if os.path.exists(dir_path):
+            shutil.rmtree(dir_path)
+
+    background_tasks.add_task(remove_temp_dir, temp_dir)
+    
+    return FileResponse(
+        path=zip_file_path,
+        filename=f"macs_uploads_{datetime.now().strftime('%Y%m%d_%H%M%S')}.zip",
+        media_type='application/zip'
+    )
