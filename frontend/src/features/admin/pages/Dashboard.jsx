@@ -239,6 +239,7 @@ const Dashboard = () => {
     }
   };
 
+
   // Aktif sekmeye göre veri getir
   useEffect(() => {
     if (activeTab === 'events') {
