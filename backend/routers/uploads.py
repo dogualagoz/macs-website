@@ -10,17 +10,9 @@ from models.users import User
 
 router = APIRouter(prefix="/api/upload", tags=["system"])
 
-# Railway volume path'ini kontrol et
-UPLOAD_VOLUME_PATH = "/app/uploads"  # Railway volume mount path
-if os.path.exists(UPLOAD_VOLUME_PATH):
-    UPLOAD_DIR = UPLOAD_VOLUME_PATH
-    STATIC_URL_PREFIX = "/uploads"
-else:
-    # Local development için
-    UPLOAD_DIR = "static/uploads"
-    STATIC_URL_PREFIX = "/static/uploads"
+UPLOAD_DIR = os.getenv("UPLOAD_DIR", "static/uploads")
+STATIC_URL_PREFIX = "/uploads"
 
-# Klasör yoksa oluştur
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 @router.post("/")
