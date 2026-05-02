@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 # Router'ları import et
 from routers import auth_router, events_router, users_router, projects_router, uploads_router, sponsors_router, members_router
 
-# OpenAPI Tag Metadata (Swagger grupları için)
+# OpenAPI Tag Metadata (Swagger grupları için)..
 tags_metadata = [
     {
         "name": "authentication",
