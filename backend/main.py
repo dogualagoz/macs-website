@@ -51,21 +51,15 @@ app = FastAPI(
 
 # CORS ayarları
 origins = [
-    "http://localhost:3000",  # Geliştirme ortamı
-    "https://macs-website-ejpz-2c1oycxy2-dogualagozs-projects.vercel.app",  # Vercel preview URL
-    "https://macs-website-ejpz-git-newprojectpag-2f22c9-dogualagoz-projects.vercel.app",
-    "https://macs-website-ejpz.vercel.app",  # Vercel production URL
-    "https://macs-website.vercel.app",  # Vercel production URL (alternative)
-    "https://macs-website-dogualagoz.vercel.app",
+    "http://localhost:3000",
+    "http://localhost:5173",
     "https://macsclub.com.tr",
-    "https://www.macsclub.com.tr",  # Vercel preview URL
-    "http://localhost:5173"
+    "https://www.macsclub.com.tr",
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_origin_regex="https://macs-website-.*\.vercel\.app",  # Tüm Vercel preview ve production URL'lerini kapsar
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -81,13 +75,10 @@ os.makedirs("static/uploads", exist_ok=True)
 # 1. Lokal için ana static klasörü
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# 2. Resimler için ortak /uploads yolu 
-# Railway'de volume'a, lokalde static/uploads'a bakar
-UPLOAD_VOLUME_PATH = "/app/uploads"
-if os.path.exists(UPLOAD_VOLUME_PATH):
-    app.mount("/uploads", StaticFiles(directory=UPLOAD_VOLUME_PATH), name="uploads")
-else:
-    app.mount("/uploads", StaticFiles(directory="static/uploads"), name="uploads")
+# 2. Resimler için /uploads yolu — UPLOAD_DIR env variable'ı ile yapılandırılır
+UPLOAD_DIR = os.getenv("UPLOAD_DIR", "static/uploads")
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 # Routerları ekle
 app.include_router(events_router)
