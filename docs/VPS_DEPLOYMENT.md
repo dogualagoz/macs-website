@@ -40,7 +40,7 @@ EOF
 ### 1c. Railway'den veri dump'ı al (local bilgisayarda çalıştır)
 
 ```bash
-pg_dump "postgresql://postgres:UkBvoeMZJNcREKHyXvVzhQKUBvUlXdDm@switchback.proxy.rlwy.net:23031/railway" \
+pg_dump "postgresql://postgres:<RAILWAY_DB_PASSWORD>@<RAILWAY_HOST>:<PORT>/railway" \
   -Fc -f macs_railway_backup.dump
 ```
 
