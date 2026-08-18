@@ -1,0 +1,5 @@
+/* Tailwind giriş noktası. Daha önce bu stiller production'da
+   cdn.tailwindcss.com script'i üzerinden geliyordu; artık build'e dahil. */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
