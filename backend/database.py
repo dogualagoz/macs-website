@@ -13,14 +13,25 @@ load_dotenv()
 #! Databse URL'ini al
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL tanımlı değil")
+
+#! Bağlantı seçenekleri sürücüye özeldir; connect_timeout ve statement_timeout
+#! yalnızca psycopg2'de geçerli. Testlerin sqlite ile çalışabilmesi için
+#! bunları sadece PostgreSQL URL'lerinde uyguluyoruz.
+if DATABASE_URL.startswith("postgres"):
+    connect_args = {
+        "connect_timeout": 5,
+        "options": "-c statement_timeout=10000"
+    }
+else:
+    connect_args = {}
+
 #! Database engine'i oluştur
 engine = create_engine(
     DATABASE_URL,
     pool_pre_ping=True,
-    connect_args={
-        "connect_timeout": 5,
-        "options": "-c statement_timeout=10000"
-    }
+    connect_args=connect_args
 )
 
 #! Sessionlocal sınıfını oluştur
