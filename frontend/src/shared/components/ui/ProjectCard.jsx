@@ -47,7 +47,7 @@ const ProjectCard = ({
             alt={title}
             onError={(e) => handleImageError(e, '/assets/images/img_source_code.png')}
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-          />
+          loading="lazy" />
           <div className="absolute top-3 left-3">
             <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${statusInfo.color}`}>
               {statusInfo.label}

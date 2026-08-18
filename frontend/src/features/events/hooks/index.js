@@ -1,6 +1,7 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { eventService } from '../../../shared/services/api';
 import { mockEvents, mockEventCategories } from '../data/mockEvents';
+import { USE_MOCK_FALLBACK } from '../../../shared/utils/mockFallback';
 
 /**
  * Custom hook for fetching and managing events data
@@ -12,46 +13,48 @@ export const useEventsData = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const loadEventsData = async () => {
-      const startTime = Date.now();
-      try {
-        setLoading(true);
-        const [eventsData, categoriesData] = await Promise.all([
-          eventService.getAll(),
-          eventService.getCategories()
-        ]);
-        
-        // Backend'den veri geldiyse onu kullan, yoksa mock data kullan
-        const finalEvents = (eventsData && eventsData.length > 0) ? eventsData : mockEvents.map(eventService._mapEvent);
-        const finalCategories = (categoriesData && categoriesData.length > 0) ? categoriesData : mockEventCategories;
-        
-        setEvents(finalEvents);
-        setCategories(finalCategories);
-        setError(null);
-      } catch (err) {
-        console.error('Error loading events:', err);
-        // API hatası durumunda mock data kullan
-        console.log('Using mock data for events');
+  const loadEventsData = useCallback(async () => {
+    const startTime = Date.now();
+    try {
+      setLoading(true);
+      const [eventsData, categoriesData] = await Promise.all([
+        eventService.getAll(),
+        eventService.getCategories()
+      ]);
+
+      // Boş liste geçerli bir yanıt: "henüz etkinlik yok" demek, hata değil.
+      setEvents(eventsData || []);
+      setCategories(categoriesData || []);
+      setError(null);
+    } catch (err) {
+      console.error('Etkinlikler yüklenemedi:', err);
+
+      if (USE_MOCK_FALLBACK) {
         setEvents(mockEvents.map(eventService._mapEvent));
         setCategories(mockEventCategories);
         setError(null);
-      } finally {
-        const elapsedTime = Date.now() - startTime;
-        const remainingTime = Math.max(400 - elapsedTime, 0);
-        
-        setTimeout(() => {
-          setLoading(false);
-        }, remainingTime);
+      } else {
+        setEvents([]);
+        setCategories([]);
+        setError('Etkinlikler yüklenemedi. Lütfen tekrar deneyin.');
       }
-    };
+    } finally {
+      const elapsedTime = Date.now() - startTime;
+      const remainingTime = Math.max(400 - elapsedTime, 0);
 
-    loadEventsData();
+      setTimeout(() => {
+        setLoading(false);
+      }, remainingTime);
+    }
   }, []);
 
-  const retry = () => {
-    window.location.reload();
-  };
+  useEffect(() => {
+    loadEventsData();
+  }, [loadEventsData]);
+
+  const retry = useCallback(() => {
+    loadEventsData();
+  }, [loadEventsData]);
 
   return {
     events,

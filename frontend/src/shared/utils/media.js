@@ -7,13 +7,21 @@ import env from '../config/env';
 
 const PRODUCTION_URL = env.productionUrl;
 
+/**
+ * İsmin baş harflerinden avatar üretir.
+ * Hem "görsel hiç yok" hem de "görsel var ama yüklenemedi" durumunda
+ * aynı yedeğin kullanılabilmesi için ayrı fonksiyon.
+ */
+export const getInitialsAvatar = (name = 'User') =>
+  `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0D8ABC&color=fff&size=128`;
+
 export const getMediaUrl = (url, name = 'User') => {
   // 1. Durum: URL yoksa
   if (!url) {
     if (name === 'Project' || name === 'Event' || name === 'Sponsor') {
       return '/assets/images/img_source_code.png';
     }
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0D8ABC&color=fff&size=128`;
+    return getInitialsAvatar(name);
   }
 
   // 2. Durum: Zaten tam URL ise (http/https)

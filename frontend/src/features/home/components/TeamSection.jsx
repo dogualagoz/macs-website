@@ -2,6 +2,7 @@ import '../../../styles/components/team.css'
 
 import React, { useState } from "react";
 import { X } from 'lucide-react';
+import { getInitialsAvatar } from '../../../shared/utils/media';
 
 const people_data = {
   EfeAltun: {
@@ -82,7 +83,7 @@ const TeamSection = () => {
               >
                 <div
                   className="member-avatar"
-                  style={{ backgroundImage: `url(${p.pic || '/assets/images/avatar-placeholder.png'})` }}
+                  style={{ backgroundImage: `url(${p.pic || getInitialsAvatar(p.member)})` }}
                 ></div>
 
                 <h3 className="member-name">{p.member}</h3>
@@ -111,7 +112,7 @@ const TeamSection = () => {
             <div className="team-modal-header">
               <div
                 className="team-modal-avatar"
-                style={{ backgroundImage: `url(${selectedMember.pic || '/assets/images/avatar-placeholder.png'})` }}
+                style={{ backgroundImage: `url(${selectedMember.pic || getInitialsAvatar(selectedMember.member)})` }}
               ></div>
             </div>
             <div className="team-modal-body">

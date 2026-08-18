@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import { memberService } from '../../../shared/services/api';
 import env from '../../../shared/config/env';
+import { handleAvatarError } from '../../../utils/imageUtils';
 
 // Backend URL'den /api kısmını çıkar ve image URL ile birleştir
 const getImageUrl = (imageUrl) => {
@@ -136,7 +137,8 @@ const Members = () => {
                                 alt={member.full_name}
                                 className="table-thumb"
                                 style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }}
-                              />
+                                onError={(e) => handleAvatarError(e, member.full_name)}
+                              loading="lazy" />
                             ) : (
                               <div 
                                 className="table-thumb-placeholder"

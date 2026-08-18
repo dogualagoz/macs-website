@@ -17,6 +17,7 @@ import { useParams } from 'react-router-dom';
 import { eventService } from '../../../shared/services/api';
 import { mockEvents } from '../data/mockEvents';
 import { getImageUrl } from '../../../utils/imageUtils';
+import { markdownishToHtml } from '../../../shared/utils/richText';
 import '../../../styles/pages/events2.css'
 
 /**
@@ -95,12 +96,9 @@ function splitContent(content = "") {
 }
 
 function mdLikeToHtml(text) {
-  // Basit dönüştürücü: başlık temizleme, **kalın**, paragraflar
-  const escaped = text
-    .replace(/^##\s*Hakkında\b\s*/im, "")
-    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-  const ps = escaped.split(/\n\n+/).map(p => `<p>${p.replace(/\n/g, "<br/>")}</p>`).join("");
-  return ps || "<p></p>";
+  // "## Hakkında" başlığını at, kalanı escape edilmiş şekilde biçimlendir.
+  const withoutHeading = String(text ?? "").replace(/^##\s*Hakkında\b\s*/im, "");
+  return markdownishToHtml(withoutHeading);
 }
 
 function parseProgram(programLines, startDate) {

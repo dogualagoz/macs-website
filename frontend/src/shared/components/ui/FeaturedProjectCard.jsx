@@ -35,7 +35,7 @@ const FeaturedProjectCard = ({ title, description, image, technologies, githubUr
           src={getImageUrl(image, '/assets/images/img_source_code.png')} 
           alt={title}
           onError={(e) => handleImageError(e, '/assets/images/img_source_code.png')}
-        />
+        loading="lazy" />
       </div>
       <div className="Details-Container">
         <div className="First-come">
@@ -62,12 +62,12 @@ const FeaturedProjectCard = ({ title, description, image, technologies, githubUr
           <div className="Detail-Project" onClick={handleButtonClick}>
             {slug ? (
               <Link to={`/projeler/${slug}`} className='Detail-Project-button' style={{ textDecoration: 'none' }}>
-                <img className='Project-icon' src="/assets/images/img_linking.png" alt="detay" />
+                <img className='Project-icon' src="/assets/images/img_linking.png" alt="detay" loading="lazy" />
                 Projeyi İncele
               </Link>
             ) : (
               <a href={liveUrl || '#'} className='Detail-Project-button' style={{ textDecoration: 'none' }}>
-                <img className='Project-icon' src="assets/images/img_linking.png" alt="detay" />
+                <img className='Project-icon' src="assets/images/img_linking.png" alt="detay" loading="lazy" />
                 Projeyi İncele
               </a>
             )}
@@ -76,12 +76,12 @@ const FeaturedProjectCard = ({ title, description, image, technologies, githubUr
           <div className="Git-div" onClick={handleButtonClick}>
             {githubUrl ? (
               <a href={githubUrl} target="_blank" rel="noreferrer" className="Git-button" style={{ textDecoration: 'none' }}>
-                <img src="/assets/images/img_github_18x17.png" alt="Github" className="Git-img" />
+                <img src="/assets/images/img_github_18x17.png" alt="Github" className="Git-img" loading="lazy" />
                 <span className="Git-span">Git Hub</span>
               </a>
             ) : (
               <div className="Git-button" style={{ opacity: 0.6 }}>
-                <img src="assets/images/img_github_18x17.png" alt="Github" className="Git-img" />
+                <img src="assets/images/img_github_18x17.png" alt="Github" className="Git-img" loading="lazy" />
                 <span className="Git-span">Git Hub</span>
               </div>
             )}

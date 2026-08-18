@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { memberService } from '../../../shared/services/api';
 import env from '../../../shared/config/env';
+import { handleAvatarError } from '../../../utils/imageUtils';
 
 /**
  * Üye Seçici Bileşeni
@@ -140,7 +141,7 @@ const MemberSelector = ({ selectedMembers = [], onChange }) => {
                   overflow: 'hidden'
                 }}>
                   {member.profile_image ? (
-                    <img src={getImageUrl(member.profile_image)} alt="" style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+                    <img src={getImageUrl(member.profile_image)} alt="" style={{width: '100%', height: '100%', objectFit: 'cover'}} onError={(e) => handleAvatarError(e, member.full_name)} />
                   ) : (
                     <div style={{display:'flex', alignItems:'center', justifyContent:'center', height:'100%', fontSize:'12px'}}>
                       {member.full_name.charAt(0)}
@@ -176,7 +177,7 @@ const MemberSelector = ({ selectedMembers = [], onChange }) => {
                 flexShrink: 0
               }}>
                 {member.profile_image ? (
-                  <img src={getImageUrl(member.profile_image)} alt="" style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+                  <img src={getImageUrl(member.profile_image)} alt="" style={{width: '100%', height: '100%', objectFit: 'cover'}} onError={(e) => handleAvatarError(e, member.full_name)} />
                 ) : (
                   <div style={{display:'flex', alignItems:'center', justifyContent:'center', height:'100%', fontSize:'14px'}}>
                     {member.full_name?.charAt(0)}

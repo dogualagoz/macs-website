@@ -5,6 +5,8 @@ import '../../../styles/pages/about.css';
 import SEO from '../../../shared/components/seo/SEO';
 import TeamSection from '../../home/components/TeamSection';
 import Loading from '../../../shared/components/feedback/Loading';
+import { getInitialsAvatar } from '../../../shared/utils/media';
+import { handleAvatarError } from '../../../utils/imageUtils';
 
 // =====================================================
 // EMEĞİ GEÇENLER - Web Sitesi Geliştirme Ekibi
@@ -21,7 +23,7 @@ const websiteTeam = [
     id: 2,
     ad_soyad: "Enes Dursun",
     rol: "Frontend Developer",
-    profil_resmi: "/assets/images/profiles/placeholder.jpg"
+    profil_resmi: ""
   },
   {
     id: 3,
@@ -168,7 +170,7 @@ const AboutPage = () => {
                     viewport={{ once: true, amount: 0.3 }}
                   >
                     <div className="about-intro-logo">
-                      <img src="/assets/images/img_exclude.png" alt="MACS Logo" />
+                      <img src="/assets/images/img_exclude.png" alt="MACS Logo" loading="lazy" />
                     </div>
                     <div className="about-intro-text">
                       <h2>Biz Kimiz?</h2>
@@ -351,12 +353,10 @@ const AboutPage = () => {
                         >
                           <div className="team-avatar">
                             <img 
-                              src={uye.profil_resmi} 
+                              src={uye.profil_resmi || getInitialsAvatar(uye.ad_soyad)} 
                               alt={uye.ad_soyad}
-                              onError={(e) => {
-                                e.target.style.display = 'none';
-                              }}
-                            />
+                              onError={(e) => handleAvatarError(e, uye.ad_soyad)}
+                            loading="lazy" />
                           </div>
                           <h4 className="team-name">{uye.ad_soyad}</h4>
                           <span className="team-role">{uye.rol}</span>

@@ -9,7 +9,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, error: authError } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const expired = new URLSearchParams(location.search).get('expired') === '1';
@@ -33,9 +33,9 @@ export default function LoginPage() {
         // Redirect to admin panel or intended page
         const from = location.state?.from?.pathname || "/admin";
         navigate(from);
-      } else {
-        setError("Giriş başarısız. Lütfen bilgilerinizi kontrol edin.");
       }
+      // Başarısızsa sebebi AuthContext'teki authError taşıyor
+      // (onay bekliyor / hesap kilitli / hatalı şifre) ve aşağıda gösteriliyor.
     } catch (err) {
       setError("Giriş sırasında bir hata oluştu.");
       console.error(err);
@@ -56,9 +56,9 @@ export default function LoginPage() {
               Oturum süreniz doldu. Lütfen tekrar giriş yapın.
             </div>
           )}
-          {error && (
+          {(error || authError) && (
             <div className="error-message">
-              {error}
+              {error || authError}
             </div>
           )}
           <form onSubmit={handleLogin}>

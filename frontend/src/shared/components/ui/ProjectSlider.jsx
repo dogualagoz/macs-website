@@ -6,9 +6,9 @@
  */
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Code2, Users, ChevronLeft, ChevronRight, Github, ExternalLink } from 'lucide-react';
-import { getImageUrl, handleImageError } from '../../../utils/imageUtils';
+import { getImageUrl, handleImageError, handleAvatarError } from '../../../utils/imageUtils';
 import '../../../styles/components/slider.css';
 
 const ProjectSlider = ({ projects = [] }) => {
@@ -81,7 +81,7 @@ const ProjectSlider = ({ projects = [] }) => {
                                                 src={getImageUrl(project.image_url || project.image)}
                                                 alt={project.title}
                                                 onError={(e) => handleImageError(e, '/assets/images/img_source_code.png')}
-                                            />
+                                            loading="lazy" />
                                         </div>
 
                                         {/* Content Section */}
@@ -120,10 +120,8 @@ const ProjectSlider = ({ projects = [] }) => {
                                                                     <img 
                                                                         src={member.avatar} 
                                                                         alt={member.name}
-                                                                        onError={(e) => {
-                                                                            e.target.src = '/assets/images/profiles/placeholder.jpg';
-                                                                        }}
-                                                                    />
+                                                                        onError={(e) => handleAvatarError(e, member.name)}
+                                                                    loading="lazy" />
                                                                 </div>
                                                             ))}
                                                             {project.team.length > 3 && (

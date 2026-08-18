@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
+import { handleAvatarError, handleImageError } from '../../../utils/imageUtils';
 
 /**
  * ProjectCard Component
@@ -19,10 +20,11 @@ const ProjectCard = ({ project }) => {
       <div className="relative h-48 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-t from-macs-card to-transparent z-10 opacity-60" />
         <img 
-          src={project.imageUrl} 
+          src={project.imageUrl}
+        onError={handleImageError} 
           alt={project.title} 
           className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
-        />
+        loading="lazy" />
         <div className="absolute top-4 left-4 z-20">
           <span className="px-3 py-1 text-xs font-semibold rounded-full bg-blue-600/20 text-blue-300 border border-blue-500/30 backdrop-blur-sm">
             {project.category}
@@ -63,7 +65,8 @@ const ProjectCard = ({ project }) => {
                 alt={member.name}
                 className="w-8 h-8 rounded-full border-2 border-macs-card"
                 title={member.name}
-              />
+                onError={(e) => handleAvatarError(e, member.name)}
+              loading="lazy" />
             ))}
           </div>
           <button className="p-2 rounded-full bg-white/5 text-white hover:bg-blue-600 hover:text-white transition-colors">

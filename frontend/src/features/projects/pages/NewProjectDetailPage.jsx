@@ -4,6 +4,9 @@ import { ArrowLeft, Github, ExternalLink, Calendar, Layers, Activity, Share2 } f
 import { MOCK_PROJECTS } from '../data/mockProjectsData';
 import { projectService } from '../../../shared/services/api';
 import Loading from '../../../shared/components/feedback/Loading';
+import ErrorMessage from '../../../shared/components/feedback/ErrorMessage';
+import { USE_MOCK_FALLBACK } from '../../../shared/utils/mockFallback';
+import { handleAvatarError, handleImageError } from '../../../utils/imageUtils';
 
 /**
  * New ProjectDetailPage Component
@@ -13,6 +16,7 @@ const NewProjectDetailPage = () => {
   const { id } = useParams();
   const [project, setProject] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState(null);
   const [copied, setCopied] = React.useState(false);
 
   const handleShare = async () => {
@@ -35,32 +39,47 @@ const NewProjectDetailPage = () => {
     }
   };
 
-  React.useEffect(() => {
-    const fetchProject = async () => {
-      try {
-        setLoading(true);
-        // Önce backend'den slug/id ile çekmeyi dene
-        const data = await projectService.getBySlug(id);
-        if (data) {
-          setProject(data);
-        } else {
-          // Bulunamazsa Mock'tan bak
-          const mock = MOCK_PROJECTS.find(p => p.id === id || p.slug === id);
-          setProject(mock ? projectService._mapProject(mock) : null);
-        }
-      } catch (error) {
-        console.error("Proje detayı çekilemedi:", error);
+  const fetchProject = React.useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await projectService.getBySlug(id);
+
+      if (data) {
+        setProject(data);
+      } else if (USE_MOCK_FALLBACK) {
         const mock = MOCK_PROJECTS.find(p => p.id === id || p.slug === id);
         setProject(mock ? projectService._mapProject(mock) : null);
-      } finally {
-        setLoading(false);
+      } else {
+        // Backend "bulunamadı" dedi: bu bir hata değil, 404 durumu.
+        setProject(null);
       }
-    };
-    fetchProject();
+      setError(null);
+    } catch (err) {
+      console.error("Proje detayı yüklenemedi:", err);
+
+      if (USE_MOCK_FALLBACK) {
+        const mock = MOCK_PROJECTS.find(p => p.id === id || p.slug === id);
+        setProject(mock ? projectService._mapProject(mock) : null);
+        setError(null);
+      } else {
+        setProject(null);
+        setError('Proje yüklenemedi. Lütfen tekrar deneyin.');
+      }
+    } finally {
+      setLoading(false);
+    }
   }, [id]);
+
+  React.useEffect(() => {
+    fetchProject();
+  }, [fetchProject]);
 
   if (loading) {
     return <Loading variant="dark" />;
+  }
+
+  if (error) {
+    return <ErrorMessage message={error} onRetry={fetchProject} />;
   }
 
   if (!project) {
@@ -78,7 +97,7 @@ const NewProjectDetailPage = () => {
       {/* Hero Section with Blur Backdrop */}
       <div className="relative h-[60vh] w-full overflow-hidden">
         <div className="absolute inset-0 z-0">
-          <img src={project.imageUrl} alt={project.title} className="w-full h-full object-cover opacity-40 blur-sm" />
+          <img src={project.imageUrl} alt={project.title} className="w-full h-full object-cover opacity-40 blur-sm" onError={handleImageError} />
           <div className="absolute inset-0 bg-gradient-to-t from-[#050B14] via-[#050B14]/80 to-transparent" />
         </div>
 
@@ -219,7 +238,7 @@ const NewProjectDetailPage = () => {
             <div className="space-y-4">
               {project.team.map((member, idx) => (
                 <div key={idx} className="flex items-center gap-3">
-                  <img src={member.avatar} alt={member.name} className="w-12 h-12 rounded-full border border-white/10" />
+                  <img src={member.avatar} alt={member.name} className="w-12 h-12 rounded-full border border-white/10" onError={(e) => handleAvatarError(e, member.name)} />
                   <div>
                     <p className="text-white font-semibold">{member.name}</p>
                     <p className="text-xs text-blue-400">{member.role}</p>

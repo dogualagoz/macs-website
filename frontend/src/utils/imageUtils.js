@@ -1,4 +1,5 @@
 import env from '../shared/config/env';
+import { getInitialsAvatar } from '../shared/utils/media';
 
 /**
  * Resim URL'lerini işleyen merkezi utility fonksiyonları
@@ -44,4 +45,19 @@ export const getImageUrl = (imageUrl, fallbackImage = '/assets/images/img_innova
 export const handleImageError = (event, fallbackImage = '/assets/images/img_innovation.png') => {
   event.target.onerror = null; // Sonsuz döngüyü önle
   event.target.src = fallbackImage;
+};
+
+/**
+ * Avatar yüklenemediğinde baş harfli yedeğe düşer.
+ *
+ * getMediaUrl/getImageUrl yedeği yalnızca URL BOŞKEN üretiyor. Yol dolu ama
+ * dosya sunucuda yoksa (404) <img> kırılır ve tarayıcı alt metnini kutunun
+ * içine sıkıştırır. Bu yüzden avatar basan her <img> onError taşımalı.
+ *
+ * @param {Event} event - Resim hata olayı
+ * @param {string} name - Baş harfi alınacak isim
+ */
+export const handleAvatarError = (event, name = 'User') => {
+  event.target.onerror = null; // sonsuz döngüyü önle
+  event.target.src = getInitialsAvatar(name);
 };

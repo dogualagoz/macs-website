@@ -60,7 +60,9 @@ export const AuthProvider = ({ children }) => {
         if (window.location.pathname.startsWith('/admin')) {
           window.location.href = '/login?expired=1';
         }
-      } catch (_e) {}
+      } catch (err) {
+        console.error('Oturum sonlandıktan sonra yönlendirme yapılamadı:', err);
+      }
     }, Math.min(delay, 2 ** 31 - 1));
   }, [logout]);
 
@@ -127,7 +129,10 @@ export const AuthProvider = ({ children }) => {
 
       return true;
     } catch (err) {
-      setError(err.message);
+      // Backend'in mesajını kullan: "hesabınız henüz onaylanmadı" ile
+      // "email veya şifre hatalı" kullanıcı için tamamen farklı durumlar.
+      const detail = err.response?.data?.detail;
+      setError(typeof detail === 'string' ? detail : 'Giriş yapılamadı. Lütfen tekrar deneyin.');
       return false;
     }
   };

@@ -38,7 +38,7 @@ const EventCard = ({ title, date, location, description, image, slug }) => {
           alt={title}
           onError={(e) => handleImageError(e)}
           style={isPast ? { filter: 'grayscale(100%)' } : {}}
-        />
+        loading="lazy" />
       </div>
 
       {/* Event content section */}
@@ -49,20 +49,20 @@ const EventCard = ({ title, date, location, description, image, slug }) => {
         {/* Event details (date and location) */}
         <div className="event-details-1">
           <div className="event-date">
-            <img src="/assets/images/img_calender.png" alt="Tarih" className="detail-icon" />
+            <img src="/assets/images/img_calender.png" alt="Tarih" className="detail-icon" loading="lazy" />
             <span>{formatDate(date)}</span>
           </div>
           </div>
           <div className="event-details-2">
           <div className="event-detail">
-            <img src="/assets/images/img_location.png" alt="Konum" className="detail-icon" />
+            <img src="/assets/images/img_location.png" alt="Konum" className="detail-icon" loading="lazy" />
             <span>{location}</span>
           </div>
         </div>
 
         <p className="event-description">{description}</p>
         <div className="clock">
-              <img src="/assets/images/img_clock.png" alt="saat" />
+              <img src="/assets/images/img_clock.png" alt="saat" loading="lazy" />
               <span>14:00-18:00</span>
             </div>
         {/* <button className="event-button">Detaylar</button> */}

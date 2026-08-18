@@ -4,6 +4,7 @@ import Map, { Marker, Popup, NavigationControl } from 'react-map-gl';
 import { mockSponsors, eskisehirCenter } from '../data/mockSponsors';
 import { sponsorService } from '../../../shared/services/api';
 import env from '../../../shared/config/env';
+import { handleAvatarError } from '../../../utils/imageUtils';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import '../../../styles/pages/sponsors.css';
 
@@ -243,6 +244,7 @@ function SponsorsGrid({ sponsors, onSponsorClick }) {
                   src={sponsor.imageUrl} 
                   alt={sponsor.name}
                   className="sponsor-card__avatar"
+                  onError={(e) => handleAvatarError(e, sponsor.name)}
                 />
               ) : (
                 <div className="sponsor-card__avatar sponsor-card__avatar--placeholder">
@@ -361,6 +363,7 @@ function SponsorsMap({ sponsors }) {
                     src={sponsor.imageUrl} 
                     alt={sponsor.name}
                     className="sponsors-map__marker-image"
+                    onError={(e) => handleAvatarError(e, sponsor.name)}
                   />
                 ) : (
                   (sponsor.name || 'S').charAt(0)
@@ -388,6 +391,7 @@ function SponsorsMap({ sponsors }) {
                         src={popupInfo.imageUrl} 
                         alt={popupInfo.name}
                         className="sponsor-popup__avatar"
+                        onError={(e) => handleAvatarError(e, popupInfo.name)}
                       />
                     ) : (
                       <div className="sponsor-popup__avatar sponsor-popup__avatar--placeholder">
@@ -455,6 +459,7 @@ function SponsorsMap({ sponsors }) {
                       src={sponsor.imageUrl} 
                       alt={sponsor.name}
                       className="sponsors-sidebar__item-avatar-image"
+                      onError={(e) => handleAvatarError(e, sponsor.name)}
                     />
                   ) : (
                     (sponsor.name || 'S').charAt(0)
@@ -524,6 +529,7 @@ function SponsorModal({ sponsor, onClose }) {
               src={sponsor.imageUrl} 
               alt={sponsor.name}
               className="sponsor-modal__avatar"
+              onError={(e) => handleAvatarError(e, sponsor.name)}
             />
           ) : (
             <div className="sponsor-modal__avatar sponsor-modal__avatar--placeholder">
