@@ -9,7 +9,7 @@ from schemas import (
     MemberCreate, MemberUpdate, MemberResponse, MemberWithStats,
     MemberWithProjects, ProjectMemberResponse
 )
-from routers.auth import get_current_user
+from routers.auth import require_staff
 
 router = APIRouter(prefix="/members", tags=["members"])
 
@@ -19,7 +19,7 @@ router = APIRouter(prefix="/members", tags=["members"])
 def create_member(
     member: MemberCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_staff)
 ):
     """
     Yeni member oluşturur.
@@ -221,7 +221,7 @@ def update_member(
     member_id: int,
     member_update: MemberUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_staff)
 ):
     """
     Member bilgilerini günceller.
@@ -254,7 +254,7 @@ def update_member(
 def delete_member(
     member_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_staff)
 ):
     """
     Member'ı kalıcı olarak siler.

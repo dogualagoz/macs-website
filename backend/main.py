@@ -1,12 +1,23 @@
 # Gerekli kütüphaneler
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
+import logging
 import os
 from database import engine, Base
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi.errors import RateLimitExceeded
+from slowapi import _rate_limit_exceeded_handler
+
+from rate_limit import limiter
 
 # Router'ları import et
 from routers import auth_router, events_router, users_router, projects_router, uploads_router, sponsors_router, members_router
+
+# Loglama: print yerine seviye ve zaman damgası taşıyan tek bir yapılandırma.
+logging.basicConfig(
+    level=os.getenv("LOG_LEVEL", "INFO"),
+    format="%(asctime)s %(levelname)s %(name)s %(message)s",
+)
 
 # OpenAPI Tag Metadata (Swagger grupları için)..
 tags_metadata = [
@@ -50,12 +61,21 @@ app = FastAPI(
 )
 
 # CORS ayarları
-origins = [
+# Frontend ayrı bir origin'den servis ediliyor (macsclub.com.tr -> api.macsclub.com.tr),
+# yani her istek cross-origin. Listede olmayan bir origin'den gelen çağrı tarayıcıda
+# CORS hatasıyla düşer. Docker'da frontend container'ı farklı bir portta açıldığı için
+# liste sabit değil, CORS_ORIGINS ile (virgülle ayrılmış) genişletilebilir.
+DEFAULT_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:5173",
+    "http://localhost:8080",
     "https://macsclub.com.tr",
     "https://www.macsclub.com.tr",
 ]
+
+_extra_origins = [o.strip() for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()]
+# dict.fromkeys: sırayı bozmadan tekrar edenleri eler.
+origins = list(dict.fromkeys(DEFAULT_ORIGINS + _extra_origins))
 
 app.add_middleware(
     CORSMiddleware,
@@ -64,6 +84,27 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Rate limiter'ı uygulamaya bağla.
+# Bu satırlar olmadan slowapi limiti aştığında 429 yerine 500 döner:
+# hata handler'ı request.app.state.limiter üzerinden header enjekte ediyor.
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+
+@app.middleware("http")
+async def security_headers(request: Request, call_next):
+    """Her yanıta temel güvenlik başlıklarını ekler."""
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+    # HSTS yalnızca HTTPS üzerinden anlamlı; HTTP'de göndermek tarayıcıda yok sayılır
+    # ama lokal geliştirmede kafa karıştırmaması için koşula bağlı.
+    if request.url.scheme == "https":
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    return response
 
 # Database tablolarını oluştur
 Base.metadata.create_all(bind=engine)

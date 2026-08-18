@@ -5,7 +5,7 @@ Bu sayede diğer modüller tek bir noktadan tüm şemalara erişebilir.
 
 from .users import (
     UserBase, UserCreate, UserUpdate, UserResponse,
-    AdminUserCreate, Token, PasswordChange, UserListResponse
+    AdminUserCreate, Token, PasswordChange, UserListResponse, UserAccessUpdate
 )
 from .events import (
     EventBase, EventCreate, EventUpdate, Event,
@@ -33,7 +33,7 @@ from .sponsors import (
 __all__ = [
     # User şemaları
     "UserBase", "UserCreate", "UserUpdate", "UserResponse",
-    "AdminUserCreate", "Token", "PasswordChange", "UserListResponse",
+    "AdminUserCreate", "Token", "PasswordChange", "UserListResponse", "UserAccessUpdate",
     
     # Event şemaları
     "EventBase", "EventCreate", "EventUpdate", "Event",

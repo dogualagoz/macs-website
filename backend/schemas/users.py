@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr, validator
-from typing import Optional, List
+from typing import Literal, Optional, List
 from datetime import datetime
 
 
@@ -44,6 +44,12 @@ class PasswordChange(BaseModel):
         if 'new_password' in values and v != values['new_password']:
             raise ValueError('Şifreler eşleşmiyor')
         return v
+
+class UserAccessUpdate(BaseModel):
+    """Admin'in bir hesabın onay durumunu ve rolünü değiştirmesi için."""
+    status: Optional[Literal["pending", "approved", "rejected"]] = None
+    role: Optional[Literal["admin", "moderator"]] = None
+    is_active: Optional[bool] = None
 
 class UserResponse(UserBase):
     id: int

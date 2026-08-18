@@ -3,29 +3,17 @@ from sqlalchemy.orm import Session
 from typing import Optional, List
 from sqlalchemy import desc
 from datetime import datetime
-from slowapi import Limiter
-from slowapi.util import get_remote_address
-
 from database import get_db
 from models.users import User
-from schemas import UserResponse, UserListResponse, PasswordChange
+from schemas import UserResponse, UserListResponse, PasswordChange, UserAccessUpdate
 from security import verify_token, get_password_hash, verify_password
-from routers.auth import get_current_user
+from routers.auth import get_current_user, require_admin
+from rate_limit import limiter
 
-limiter = Limiter(key_func=get_remote_address)
 router = APIRouter(
     prefix="/users",
     tags=["users"]
         )
-
-async def get_current_admin(current_user: User = Depends(get_current_user)):
-    """Admin yetki kontrolü"""
-    if current_user.role != "admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Bu işlem için admin yetkisi gerekli"
-        )
-    return current_user
 
 @router.get("/me", response_model=UserResponse)
 @limiter.limit("10/minute")
@@ -115,7 +103,7 @@ async def list_users(
     request: Request,
     skip: int = 0,
     limit: int = 10,
-    current_admin: User = Depends(get_current_admin),
+    current_admin: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
     """
@@ -133,7 +121,7 @@ async def list_users(
 async def get_user(
     request: Request,
     user_id: int,
-    current_admin: User = Depends(get_current_admin),
+    current_admin: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
     """
@@ -149,12 +137,56 @@ async def get_user(
         )
     return user
 
+@router.patch("/{user_id}/access", response_model=UserResponse)
+@limiter.limit("20/minute")
+async def update_user_access(
+    request: Request,
+    user_id: int,
+    access: UserAccessUpdate,
+    current_admin: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    """
+    Bir hesabın onay durumunu, rolünü ve aktifliğini değiştirir (Admin).
+
+    Kayıt olan hesaplar "pending" durumunda açılır; yetki kazanmaları için
+    buradan "approved" yapılmaları gerekir.
+
+    - Admin kendi erişimini kısıtlayamaz
+    - Rate limit: 20/dakika
+    """
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Kullanıcı bulunamadı"
+        )
+
+    # Adminin kendini kilitlemesini engelle: aksi halde son admin hesabı
+    # kapanırsa sisteme yetkiyle girebilen kimse kalmaz.
+    if user.id == current_admin.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Admin kendi erişim ayarlarını değiştiremez"
+        )
+
+    if access.status is not None:
+        user.status = access.status
+    if access.role is not None:
+        user.role = access.role
+    if access.is_active is not None:
+        user.is_active = access.is_active
+
+    db.commit()
+    db.refresh(user)
+    return user
+
 @router.delete("/{user_id}")
 @limiter.limit("10/minute")
 async def delete_user(
     request: Request,
     user_id: int,
-    current_admin: User = Depends(get_current_admin),
+    current_admin: User = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
     """

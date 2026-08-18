@@ -12,7 +12,7 @@ from schemas import (
     ProjectCategoryCreate, ProjectCategoryUpdate, ProjectCategoryResponse,
     ProjectMemberInput, ProjectMemberUpdate
 )
-from routers.auth import get_current_user
+from routers.auth import require_staff, require_admin
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 
@@ -122,7 +122,7 @@ def get_project_categories(db: Session = Depends(get_db)):
 def create_project_category(
     category: ProjectCategoryCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_staff)
 ):
     """
     Yeni proje kategorisi oluştur.
@@ -164,7 +164,7 @@ def update_project_category(
     category_id: int,
     category_update: ProjectCategoryUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_staff)
 ):
     """
     Proje kategorisini güncelle.
@@ -189,7 +189,7 @@ def update_project_category(
 def delete_project_category(
     category_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_staff)
 ):
     """
     Proje kategorisini sil.
@@ -269,7 +269,7 @@ def get_projects_admin(
     status: Optional[str] = Query(None, description="Durum ile filtrele"),
     search: Optional[str] = Query(None, description="Başlık veya açıklamada ara"),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_staff)
 ):
     """
     Admin/mode için projeleri listeler. Pasif projeler de dahildir.
@@ -308,7 +308,7 @@ def get_projects_admin(
 def create_project(
     project: ProjectCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_staff)
 ):
     """
     Yeni proje oluşturur.
@@ -447,7 +447,7 @@ def update_project(
     project_id: int,
     project_update: ProjectUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_staff)
 ):
     """
     Proje bilgilerini günceller.
@@ -543,7 +543,7 @@ def update_project(
 def delete_project(
     project_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_staff)
 ):
     """
     Projeyi soft delete yapar.
@@ -570,10 +570,12 @@ def delete_project(
 def hard_delete_project(
     project_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_admin)
 ):
     """
     Projeyi kalıcı olarak siler.
+
+    - Geri alınamaz olduğu için yalnızca admin
     """
     db_project = db.query(Project).filter(Project.id == project_id).first()
     
@@ -658,7 +660,7 @@ def add_member_to_project(
     project_id: int,
     member_data: ProjectMemberInput,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_staff)
 ):
     """
     Projeye yeni member ekler.
@@ -734,7 +736,7 @@ def update_project_member(
     member_id: int,
     member_data: ProjectMemberUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_staff)
 ):
     """
     Projedeki member'ın rolünü veya katkısını günceller.
@@ -781,7 +783,7 @@ def remove_member_from_project(
     project_id: int,
     member_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_staff)
 ):
     """
     Projeden member çıkarır.

@@ -1,10 +1,11 @@
 # Gerekli kütüphaneler
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, status, Request
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from enum import Enum
 from unidecode import unidecode
 from datetime import datetime
+import logging
 import re
 
 # Yerel modüller
@@ -15,7 +16,9 @@ from schemas import (
     Event, EventCreate, EventUpdate,
     EventCategory, EventCategoryCreate
 )
-from routers.auth import get_current_user
+from routers.auth import require_staff, require_admin
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/events",
@@ -28,13 +31,36 @@ class EventStatus(str, Enum):
     UPCOMING = "upcoming"  # Gelecek etkinlikler
     PAST = "past"         # Geçmiş etkinlikler
 
+
+# sort_by kullanıcıdan geliyor ve doğrudan getattr'a verilemez:
+# allowlist dışındaki bir değer ya 500'e düşürür ya da modelin
+# sıralama için tasarlanmamış bir attribute'unu sorguya sokar.
+SORTABLE_FIELDS = ("start_time", "title", "created_at")
+
+
+def _apply_sort(query, sort_by: Optional[str], sort_desc: bool):
+    """Sıralamayı yalnızca izin verilen kolonlar için uygular."""
+    if not sort_by:
+        return query
+
+    if sort_by not in SORTABLE_FIELDS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Geçersiz sıralama alanı. İzin verilenler: {', '.join(SORTABLE_FIELDS)}"
+        )
+
+    sort_column = getattr(EventModel, sort_by)
+    if sort_desc:
+        sort_column = sort_column.desc()
+    return query.order_by(sort_column)
+
 #!-----------------Kategori Endpointleri--------------------------------
 
 @router.get("/categories", response_model=List[EventCategory])
 def get_event_categories(
     db: Session = Depends(get_db),
-    skip: int= 0,
-    limit: int = 10
+    skip: int = Query(0, ge=0),
+    limit: int = Query(10, ge=1, le=100)
 ):
     """
     Etkinlik kategorilerini listeler.
@@ -47,7 +73,7 @@ def get_event_categories(
 def create_event_category(
     category: EventCategoryCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_staff)
 ):
     """Yeni etkinlik kategorisi oluşturur."""
     db_category = EventCategoryModel(**category.model_dump())
@@ -69,7 +95,7 @@ def update_event_category(
     category_id: int,
     category: EventCategoryCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_staff)
 ):
     """Kategori bilgilerini günceller."""
     db_category = db.query(EventCategoryModel).filter(
@@ -88,7 +114,7 @@ def update_event_category(
 def delete_event_category(
     category_id: int, 
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_staff)
 ):
     """
     Kategoriyi siler.
@@ -113,8 +139,8 @@ def delete_event_category(
 @router.get("", response_model=List[Event])
 def get_events(
     db: Session = Depends(get_db),
-    skip: int = 0,
-    limit: int = 10,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(10, ge=1, le=100),
     search: Optional[str] = None,           # İsme göre arama
     category_id: Optional[int] = None,      # Kategori filtresi
     status: EventStatus = EventStatus.ALL,  # Event durumu (default: Tümü)
@@ -151,13 +177,7 @@ def get_events(
         query = query.filter(EventModel.start_time < now)
 
     # Sıralama
-    if sort_by:
-        # Hangi alana göre sıralama yapılacak
-        sort_column = getattr(EventModel, sort_by)
-        # Artan/azalan sıralama
-        if sort_desc:
-            sort_column = sort_column.desc()
-        query = query.order_by(sort_column)
+    query = _apply_sort(query, sort_by, sort_desc)
 
     # Pagination
     return query.offset(skip).limit(limit).all()
@@ -166,14 +186,14 @@ def get_events(
 @router.get("/admin", response_model=List[Event])
 def get_events_admin(
     db: Session = Depends(get_db),
-    skip: int = 0,
-    limit: int = 50,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=200),
     search: Optional[str] = None,
     category_id: Optional[int] = None,
     status: EventStatus = EventStatus.ALL,
     sort_by: Optional[str] = "start_time",
     sort_desc: bool = False,
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_staff)
 ):
     """
     Admin görünümü için etkinlikleri listeler (is_active filtresi olmadan).
@@ -194,11 +214,7 @@ def get_events_admin(
     elif status == EventStatus.PAST:
         query = query.filter(EventModel.start_time < now)
 
-    if sort_by:
-        sort_column = getattr(EventModel, sort_by)
-        if sort_desc:
-            sort_column = sort_column.desc()
-        query = query.order_by(sort_column)
+    query = _apply_sort(query, sort_by, sort_desc)
 
     return query.offset(skip).limit(limit).all()
 
@@ -253,7 +269,7 @@ def create_slug(title: str) -> str:
 async def create_event(
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_staff)
 ):
     """
     Yeni etkinlik oluşturur.
@@ -262,18 +278,13 @@ async def create_event(
     - Kategori kontrolü
     - is_featured=True ise diğer etkinliklerin is_featured değeri False yapılır
     """
-    # Debug için request body'yi yazdır
-    body = await request.body()
-    print("Request body:", body)
-    
     try:
         # JSON olarak parse et
         event_data = await request.json()
-        print("Parsed JSON:", event_data)
         event = EventCreate(**event_data)
-    except Exception as e:
-        print("Error parsing request body:", str(e))
-        raise HTTPException(status_code=400, detail=f"Invalid request body: {str(e)}")
+    except Exception:
+        logger.warning("Etkinlik oluşturma isteği çözümlenemedi", exc_info=True)
+        raise HTTPException(status_code=400, detail="Geçersiz istek gövdesi")
     if event.category_id:
         category = db.query(EventCategoryModel).filter(EventCategoryModel.id == event.category_id).first()
         if not category:
@@ -323,7 +334,7 @@ def update_event(
     event_id: int,
     event: EventUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_staff)
 ):
     """
     Etkinlik bilgilerini günceller.
@@ -378,7 +389,7 @@ def update_event(
 def delete_event(
     event_id: int, 
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_staff)
 ):
     """
     Etkinliği soft-delete yapar.
@@ -401,14 +412,15 @@ def delete_event(
 
 @router.delete("/{event_id}/hard", status_code=status.HTTP_204_NO_CONTENT)
 def hard_delete_event(
-    event_id: int, 
+    event_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_admin)
 ):
     """
     Etkinliği kalıcı olarak siler.
-    
+
     - Veritabanından tamamen silinir
+    - Geri alınamaz olduğu için yalnızca admin
     """
     db_event = db.query(EventModel).filter(EventModel.id == event_id).first()
     if not db_event:

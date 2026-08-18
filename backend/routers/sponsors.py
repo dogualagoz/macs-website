@@ -1,9 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session 
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from sqlalchemy.orm import Session
 from typing import List, Optional
-import requests 
+import logging
+import requests
 
 from database import get_db
+from rate_limit import limiter
 from models.sponsors import Sponsor
 from schemas.sponsors import (
     Sponsor as SponsorSchema,
@@ -12,7 +14,9 @@ from schemas.sponsors import (
     GeocodeRequest,
     GeocodeResponse
 )
-from routers.auth import get_current_user
+from routers.auth import require_staff
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/sponsors", tags=["sponsors"])
 
@@ -20,20 +24,23 @@ router = APIRouter(prefix="/sponsors", tags=["sponsors"])
 def get_all_sponsors(
     category: Optional[str] = None,
     is_active: bool = True,
+    skip: int = Query(0, ge=0, description="Atlanacak kayıt sayısı"),
+    limit: int = Query(50, ge=1, le=200, description="Sayfa başına kayıt sayısı"),
     db: Session = Depends(get_db)
 ):
     """
     Tüm sponsorları getir
     - category: Kategoriye göre
     - is_active: Sadece aktif sponsorları göster
+    - Sayfalama: skip, limit
     """
 
     query = db.query(Sponsor).filter(Sponsor.is_active == is_active)
 
     if category:
         query = query.filter(Sponsor.category == category)
-    
-    return query.all()
+
+    return query.offset(skip).limit(limit).all()
 
 @router.get("/categories", response_model=List[str])
 def get_categories(db: Session = Depends(get_db)):
@@ -65,7 +72,7 @@ def get_sponsor_by_id(
 def create_sponsor(
     sponsor: SponsorCreate,
     db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_staff)
 ):
     """
     Yeni sponsor ekle (Admin only)
@@ -86,7 +93,7 @@ def update_sponsor(
     sponsor_id: int,
     sponsor_update: SponsorUpdate,
     db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_staff)
 ):
     """
     Sponsor güncelle (Admin only)
@@ -117,7 +124,7 @@ def update_sponsor(
 def delete_sponsor(
     sponsor_id: int,
     db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_staff)
 ):
     """
     Sponsor sil (Admin only)
@@ -142,15 +149,20 @@ def delete_sponsor(
 # ============================================
 
 @router.post("/geocode", response_model=GeocodeResponse)
+@limiter.limit("10/minute")
 def geocode_address(
-    request: GeocodeRequest,
-    current_user: dict = Depends(get_current_user)
+    request: Request,
+    payload: GeocodeRequest,
+    current_user: dict = Depends(require_staff)
 ):
     """
     Adres → Koordinat çevirme (Admin panel için)
-    
+
     ÜCRETSİZ! OpenStreetMap Nominatim kullanır.
-    
+
+    Rate limit: 10/dakika — Nominatim üçüncü parti bir servis ve aşırı
+    kullanımda sunucumuzun IP'sini engelliyor.
+
     Örnek:
     POST /api/sponsors/geocode
     {
@@ -169,7 +181,7 @@ def geocode_address(
     # OpenStreetMap Nominatim API (ÜCRETSİZ)
     url = "https://nominatim.openstreetmap.org/search"
     params = {
-        'q': request.address,
+        'q': payload.address,
         'format': 'json',
         'limit': 1,
         'countrycodes': 'tr'  # Sadece Türkiye'de ara (opsiyonel)
@@ -202,8 +214,9 @@ def geocode_address(
             status_code=status.HTTP_504_GATEWAY_TIMEOUT,
             detail="Geocoding servisi yanıt vermiyor. Lütfen tekrar deneyin."
         )
-    except requests.exceptions.RequestException as e:
+    except requests.exceptions.RequestException:
+        logger.exception("Geocoding isteği başarısız")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Geocoding hatası: {str(e)}"
+            detail="Geocoding servisine ulaşılamadı"
         )

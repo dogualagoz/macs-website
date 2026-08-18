@@ -4,16 +4,15 @@ from sqlalchemy.orm import Session
 from typing import Optional
 from os import getenv
 from datetime import datetime, timedelta
-from slowapi import Limiter
-from slowapi.util import get_remote_address
+import logging
 
 from database import get_db
 from models.users import User
 from schemas import UserCreate, UserResponse, Token, AdminUserCreate
 from security import verify_password, create_access_token, get_password_hash, verify_token
+from rate_limit import limiter
 
-# Rate limiting ayarları
-limiter = Limiter(key_func=get_remote_address)
+logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/auth",
@@ -40,9 +39,10 @@ async def register(
 ):
     """
     Yeni kullanıcı kaydı oluşturur.
-    
+
     - Email benzersiz olmalı
     - Şifre min. 6 karakter
+    - Hesap "pending" durumunda açılır; yetki kazanması için admin onayı gerekir
     - Rate limit: 5/dakika
     """
     try:
@@ -52,24 +52,25 @@ async def register(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Bu email adresi zaten kullanımda"
             )
-        
-        # Yeni kullanıcı oluştur
+
+        # Yeni kullanıcı oluştur.
+        # role ve status burada bilinçli olarak set edilmiyor: model default'ları
+        # ("moderator" / "pending") geçerli olsun ki kayıt olan kimse admin onayı
+        # almadan yetki kazanmasın.
         db_user = User(
             email=user.email,
             full_name=user.full_name,
             hashed_password=get_password_hash(user.password),
-            status="approved",
-            role="moderator",
             failed_login_attempts=0,
             last_login=None
         )
-        
+
         db.add(db_user)
         db.commit()
         db.refresh(db_user)
-        
+
         return db_user
-        
+
     except HTTPException as he:
         # HTTP exception'ları olduğu gibi yükselt
         raise he
@@ -78,14 +79,12 @@ async def register(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
-    except Exception as e:
-        import traceback
-        error_details = traceback.format_exc()
-        print(f"Hata detayları: {error_details}")
+    except Exception:
+        logger.exception("Kullanıcı kaydı başarısız")
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Kullanıcı kaydı sırasında bir hata oluştu: {str(e)}"
+            detail="Kullanıcı kaydı sırasında bir hata oluştu"
         )
 
 @router.post("/register/admin", response_model=UserResponse)
@@ -147,14 +146,12 @@ async def register_admin(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
-    except Exception as e:
-        import traceback
-        error_details = traceback.format_exc()
-        print(f"Admin kayıt hatası detayları: {error_details}")
+    except Exception:
+        logger.exception("Admin kaydı başarısız")
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Admin kullanıcı kaydı sırasında bir hata oluştu: {str(e)}"
+            detail="Admin kullanıcı kaydı sırasında bir hata oluştu"
         )
 
 @router.post("/login", response_model=Token)
@@ -210,7 +207,15 @@ async def login(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Hesabınız aktif değil"
             )
-        
+
+        # Hesap onaylanmış mı? Onaysız hesaba token vermenin anlamı yok;
+        # kullanıcıya sebebini burada söylemek daha anlaşılır.
+        if user.status != "approved":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Hesabınız henüz onaylanmadı. Yönetici onayı bekleniyor."
+            )
+
         # Başarılı giriş - sayaçları sıfırla
         user.failed_login_attempts = 0
         user.last_login = datetime.utcnow()
@@ -241,35 +246,68 @@ async def get_current_user(
 ) -> User:
     """
     Token'dan kullanıcıyı bulur ve döndürür.
-    Kullanıcı bulunamazsa veya token geçersizse hata döndürür.
+    Kullanıcı bulunamazsa, token geçersizse veya hesap onaylı değilse hata döndürür.
     """
+    credentials_error = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Kimlik doğrulanamadı",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
     try:
-        # Token'ı doğrula
         payload = verify_token(token)
-        email = payload.get("sub")
-        
-        # Kullanıcıyı bul
-        user = db.query(User).filter(User.email == email).first()
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Kullanıcı bulunamadı",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-            
-        # Kullanıcı aktif mi?
-        if not user.is_active:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Hesap aktif değil",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-            
-        return user
-        
-    except Exception as e:
+    except HTTPException:
+        raise
+    except Exception:
+        logger.warning("Token doğrulanamadı", exc_info=True)
+        raise credentials_error
+
+    email = payload.get("sub")
+    if not email:
+        raise credentials_error
+
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        raise credentials_error
+
+    # Hesap aktif mi?
+    if not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=str(e),
+            detail="Hesap aktif değil",
             headers={"WWW-Authenticate": "Bearer"},
-        ) 
+        )
+
+    # Hesap admin onayından geçmiş mi? Kayıt "pending" olarak açılır.
+    if user.status != "approved":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Hesabınız henüz onaylanmadı",
+        )
+
+    return user
+
+
+def require_roles(*allowed_roles: str):
+    """
+    Belirtilen rollerden birine sahip olmayı zorunlu kılan dependency üretir.
+
+    get_current_user yalnızca "bu geçerli bir kullanıcı mı" sorusunu yanıtlar;
+    "bu işlemi yapmaya yetkili mi" sorusu buradan geçmelidir.
+    """
+    async def dependency(current_user: User = Depends(get_current_user)) -> User:
+        if current_user.role not in allowed_roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Bu işlem için yetkiniz yok",
+            )
+        return current_user
+
+    return dependency
+
+
+# İçerik yönetimi: admin ve moderator
+require_staff = require_roles("admin", "moderator")
+
+# Geri alınamayan işlemler ve kullanıcı yönetimi: yalnızca admin
+require_admin = require_roles("admin")
