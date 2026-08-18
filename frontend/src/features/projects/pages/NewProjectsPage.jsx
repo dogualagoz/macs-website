@@ -7,9 +7,12 @@ import { projectService, memberService } from '../../../shared/services/api';
 import NewProjectCard from '../components/NewProjectCard';
 import StatsCounter from '../components/StatsCounter';
 import { getMediaUrl } from '../../../shared/utils/media';
+import { handleAvatarError, handleImageError } from '../../../utils/imageUtils';
 import { motion, AnimatePresence } from 'framer-motion';
 import Loading from '../../../shared/components/feedback/Loading';
+import ErrorMessage from '../../../shared/components/feedback/ErrorMessage';
 import SEO from '../../../shared/components/seo/SEO';
+import { USE_MOCK_FALLBACK } from '../../../shared/utils/mockFallback';
 
 /**
  * New ProjectsPage Component
@@ -20,6 +23,7 @@ const NewProjectsPage = () => {
   const [projects, setProjects] = useState([]);
   const [categories, setCategories] = useState(['All']);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('developed');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -27,50 +31,51 @@ const NewProjectsPage = () => {
   const [memberCount, setMemberCount] = useState(0);
 
   // Backend'den projeleri ve kategorileri çek
-  React.useEffect(() => {
-    const fetchData = async () => {
-      const startTime = Date.now();
-      try {
-        setLoading(true);
-        const [projectsData, categoriesData, leaderboardData, membersData] = await Promise.all([
-          projectService.getAll(),
-          projectService.getCategories(),
-          memberService.getLeaderboard(5),
-          memberService.getAll({ limit: 200 }).catch(() => [])
-        ]);
-        
-        // Leaderboard
-        setLeaderboard(leaderboardData || []);
-        
-        // Member count
-        setMemberCount(membersData.length || MOCK_USERS.length);
-        
-        // Projects handling
-        setProjects(projectsData.length > 0 ? projectsData : mockProjects.map(projectService._mapProject));
-        
-        // Categories handling
-        if (categoriesData && categoriesData.length > 0) {
-          const catNames = ['All', ...categoriesData.map(c => c.name)];
-          setCategories(catNames);
-        } else {
-          setCategories(['All', ...mockProjectCategories.map(c => c.name)]);
-        }
-      } catch (error) {
-        console.error("Veri çekilemedi, anasayfa mock datası kullanılıyor:", error);
+  const fetchData = React.useCallback(async () => {
+    const startTime = Date.now();
+    try {
+      setLoading(true);
+      const [projectsData, categoriesData, leaderboardData, membersData] = await Promise.all([
+        projectService.getAll(),
+        projectService.getCategories(),
+        memberService.getLeaderboard(5),
+        memberService.getAll({ limit: 200 }).catch(() => [])
+      ]);
+
+      setLeaderboard(leaderboardData || []);
+      setMemberCount(membersData.length);
+
+      // Boş liste geçerli bir yanıt: "henüz proje yok" demek, hata değil.
+      setProjects(projectsData || []);
+      setCategories(['All', ...(categoriesData || []).map(c => c.name)]);
+      setError(null);
+    } catch (err) {
+      console.error("Projeler yüklenemedi:", err);
+
+      if (USE_MOCK_FALLBACK) {
         setProjects(mockProjects.map(projectService._mapProject));
         setCategories(['All', ...mockProjectCategories.map(c => c.name)]);
-      } finally {
-        // En az 0.4 saniye bekle (akıcı geçiş için)
-        const elapsedTime = Date.now() - startTime;
-        const remainingTime = Math.max(400 - elapsedTime, 0);
-        
-        setTimeout(() => {
-          setLoading(false);
-        }, remainingTime);
+        setMemberCount(MOCK_USERS.length);
+        setError(null);
+      } else {
+        setProjects([]);
+        setCategories(['All']);
+        setError('Projeler yüklenemedi. Lütfen tekrar deneyin.');
       }
-    };
-    fetchData();
+    } finally {
+      // En az 0.4 saniye bekle (akıcı geçiş için)
+      const elapsedTime = Date.now() - startTime;
+      const remainingTime = Math.max(400 - elapsedTime, 0);
+
+      setTimeout(() => {
+        setLoading(false);
+      }, remainingTime);
+    }
   }, []);
+
+  React.useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   // Filter Logic
   const filteredProjects = useMemo(() => {
@@ -126,8 +131,10 @@ const NewProjectsPage = () => {
         <AnimatePresence mode="wait">
         {loading ? (
           <Loading variant="dark" />
+        ) : error ? (
+          <ErrorMessage message={error} onRetry={fetchData} />
         ) : (
-          <motion.div 
+          <motion.div
             key="content"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -138,7 +145,7 @@ const NewProjectsPage = () => {
             <div className="absolute top-20 right-20 w-96 h-96 bg-blue-600/10 rounded-full blur-[100px] pointer-events-none animate-pulse" />
             <div className="absolute top-40 left-10 w-72 h-72 bg-purple-600/10 rounded-full blur-[80px] pointer-events-none animate-pulse" />
 
-            <div className="container mx-auto px-4 py-12 relative z-10">
+            <div className="w-full max-w-[1760px] mx-auto px-4 sm:px-6 lg:px-10 py-12 relative z-10">
               
               {/* Header Section - Soldan giriş */}
               <div className="flex flex-col md:flex-row justify-between items-center mb-16 gap-8">
@@ -181,11 +188,11 @@ const NewProjectsPage = () => {
                 <TabButton id="showcase" label="Member Showcase" icon={UserCircle} />
               </motion.div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              <div className="flex flex-col lg:flex-row lg:items-start gap-8">
                 
                 {/* Left Sidebar - Filters - Soldan giriş */}
                 <motion.div 
-                  className="hidden lg:block lg:col-span-3 space-y-8 sticky top-24 h-fit"
+                  className="hidden lg:block lg:w-[260px] lg:shrink-0 space-y-8 sticky top-24 h-fit"
                   initial={{ opacity: 0, x: -40 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.5, delay: 0.4 }}
@@ -228,7 +235,7 @@ const NewProjectsPage = () => {
 
                 {/* Main Content - Aşağıdan yukarı giriş */}
                 <motion.div 
-                  className="col-span-1 lg:col-span-6 space-y-8"
+                  className="flex-1 min-w-0 space-y-8"
                   initial={{ opacity: 0, y: 50 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.3 }}
@@ -274,6 +281,7 @@ const NewProjectsPage = () => {
                       <img 
                         src={featuredProject.imageUrl} 
                         alt={featuredProject.title} 
+                        onError={handleImageError}
                         className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" 
                       />
                       
@@ -299,7 +307,7 @@ const NewProjectsPage = () => {
                   )}
 
                   {/* Grid Projects */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 min-[1700px]:grid-cols-3 gap-6">
                     {gridProjects.length > 0 ? (
                       gridProjects.map(project => (
                         <NewProjectCard key={project.id} project={project} />
@@ -314,7 +322,7 @@ const NewProjectsPage = () => {
 
                 {/* Right Sidebar - Leaderboard - Sağdan giriş */}
                 <motion.div 
-                  className="col-span-1 lg:col-span-3 space-y-6"
+                  className="lg:w-[300px] lg:shrink-0 space-y-6"
                   initial={{ opacity: 0, x: 40 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.5, delay: 0.5 }}
@@ -342,6 +350,7 @@ const NewProjectsPage = () => {
                               src={user.avatar_url || user.avatar || getMediaUrl(user.profile_image, user.full_name || user.name)} 
                               alt={user.full_name || user.name} 
                               className="w-10 h-10 rounded-full border border-white/10 object-cover" 
+                              onError={(e) => handleAvatarError(e, user.full_name || user.name)}
                             />
                             <div className="flex-1">
                               <p className="text-sm font-semibold text-white">{user.full_name || user.name}</p>
