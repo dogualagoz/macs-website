@@ -44,12 +44,20 @@ const Dashboard = () => {
           ? projectsList 
           : mockProjects.map(projectService._mapProject);
         
-        // Anasayfada sadece 'developed' ve 'supported' projeleri göster, 'showcase' (member showcase) gizle
-        const filteredProjects = allProjects.filter(p => p.tab !== 'showcase');
-        
-        setProjects(filteredProjects);
+        // Anasayfada proje türü ayrımı yok: developed, supported ve showcase'in
+        // tamamı listeleniyor, en yeni eklenen başta olacak şekilde.
+        // Backend zaten created_at'e göre sıralı dönüyor; burada tekrar
+        // sıralamak sıranın kaynağını açık kılıyor ve mock fallback verisi
+        // devreye girdiğinde de aynı davranışı garantiliyor.
+        const sortedProjects = [...allProjects].sort(
+          (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)
+        );
+
+        setProjects(sortedProjects);
         setProjectCategories((projectCategoriesData && projectCategoriesData.length > 0) ? projectCategoriesData : mockProjectCategories);
-        setFeaturedProject(featuredProjectData || filteredProjects.find(p => p.is_featured) || filteredProjects[0]);
+        // Öne çıkan proje admin panelinden seçiliyor (is_featured). /projects/featured
+        // işaretli projeyi, yoksa en yeniyi döndürür; 404'te getFeatured null verir.
+        setFeaturedProject(featuredProjectData || sortedProjects.find(p => p.is_featured) || sortedProjects[0]);
 
         // Events
         const finalEvents = (eventsData && eventsData.length > 0) ? eventsData : mockEvents.map(eventService._mapEvent);

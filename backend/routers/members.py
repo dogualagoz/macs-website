@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
-from sqlalchemy import func, desc
+from sqlalchemy import func, desc, and_, or_
 from typing import List, Optional
 
 from database import get_db
@@ -97,20 +97,38 @@ def get_members_leaderboard(
     - Sadece aktif member'lar gösterilir
     - Her member için proje sayısı ve toplam contribution_count hesaplanır
     """
-    # Member'ları ve istatistiklerini al
+    # Member'ları ve istatistiklerini al.
+    #
+    # Project'e de join ediliyor: aksi halde silinmiş (is_deleted) veya pasif
+    # (is_active=False) projelerdeki katkılar da sayıya dahil oluyordu; bir proje
+    # silindiğinde üyenin "N Proje" rakamı olduğu yerde kalıyordu.
+    # Filtreler outerjoin'in ON koşuluna yazılmalı — WHERE'e konursa hiç projesi
+    # olmayan üyeler tamamen listeden düşerdi.
     members_with_stats = db.query(
         Member,
         func.count(ProjectMember.id).label('project_count'),
         func.coalesce(func.sum(ProjectMember.contribution_count), 0).label('total_contributions')
     ).outerjoin(
         ProjectMember, Member.id == ProjectMember.member_id
+    ).outerjoin(
+        Project,
+        and_(
+            Project.id == ProjectMember.project_id,
+            Project.is_deleted == False,
+            Project.is_active == True
+        )
     ).filter(
-        Member.is_active == True
+        Member.is_active == True,
+        # ProjectMember var ama Project filtreden düştüyse satırı sayma.
+        or_(ProjectMember.id == None, Project.id != None)
     ).group_by(
         Member.id
     ).order_by(
-        desc('total_contributions'),
-        desc('project_count')
+        # Ekranda görünen tek metrik proje sayısı ("N Proje"). Sıralama önce ona
+        # bakmalı, yoksa liste kullanıcıya yanlış sıralanmış görünür:
+        # 10 katkılı 2 projeli üye, 5 katkılı 5 projelinin üstüne çıkardı.
+        desc('project_count'),
+        desc('total_contributions')
     ).limit(limit).all()
     
     # Response formatına çevir

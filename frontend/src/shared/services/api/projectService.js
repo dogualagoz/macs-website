@@ -64,23 +64,56 @@ const projectService = {
   },
 
   /**
-   * Get all projects (public view)
+   * Tek sayfa çeker. { projects, total } döner.
+   * Sayfalamayı kendi yöneten çağıranlar için; aksi halde getAll kullanılmalı.
    */
-  getAll: async (params = {}) => {
+  getPage: async (params = {}) => {
     const queryParams = new URLSearchParams();
     if (params.skip) queryParams.append('skip', params.skip);
     if (params.limit) queryParams.append('limit', params.limit);
     if (params.search) queryParams.append('search', params.search);
     if (params.category_id) queryParams.append('category_id', params.category_id);
     if (params.status) queryParams.append('status', params.status);
-    
+
     const queryString = queryParams.toString();
     const response = await apiClient.get(`/projects${queryString ? `?${queryString}` : ''}`);
-    
-    // Veriyi map'leyerek dön
+
     const data = response.data;
-    const projects = data.projects || data;
-    return Array.isArray(projects) ? projects.map(projectService._mapProject) : [];
+    const list = data.projects || data;
+    const projects = Array.isArray(list) ? list.map(projectService._mapProject) : [];
+
+    return { projects, total: typeof data.total === 'number' ? data.total : projects.length };
+  },
+
+  /**
+   * Get all projects (public view)
+   *
+   * Backend'in limit varsayılanı 10, tavanı 100. Parametresiz çağrıldığında
+   * eskiden yalnızca ilk 10 proje dönüyordu; projeler sayfası da filtreleri
+   * bu eksik liste üzerinde çalıştırdığı için geri kalanı hiç görünmüyordu.
+   * Sabit bir "limit: 100" yazmak aynı hatayı 101. projede tekrar ederdi,
+   * bu yüzden toplam sayıya bakılıp tüm sayfalar dolaşılıyor.
+   *
+   * params.limit açıkça verilirse tek sayfa döner (çağıran sayfalamayı üstlenmiş demektir).
+   */
+  getAll: async (params = {}) => {
+    if (params.limit) {
+      const { projects } = await projectService.getPage(params);
+      return projects;
+    }
+
+    const PAGE_SIZE = 100; // backend tavanı (le=100)
+    const first = await projectService.getPage({ ...params, skip: 0, limit: PAGE_SIZE });
+    const all = first.projects;
+
+    for (let skip = PAGE_SIZE; all.length < first.total; skip += PAGE_SIZE) {
+      const next = await projectService.getPage({ ...params, skip, limit: PAGE_SIZE });
+      // Boş sayfa: total ile gerçek kayıt sayısı uyuşmuyor. Sonsuz döngüye girme.
+      if (next.projects.length === 0) break;
+      all.push(...next.projects);
+    }
+
+    return all;
   },
 
   /**
