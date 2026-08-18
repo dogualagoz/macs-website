@@ -1,0 +1,99 @@
+# MACS backend + PostgreSQL.
+#
+# Veri kaliciligi:
+#   - macs_pgdata named volume PostgreSQL data dizinini tutar.
+#   - docker-entrypoint-initdb.d yalnizca volume BOSKEN calisir. Yani macs_db.sql
+#     bir kez yuklenir; sonraki "up"larda tekrar calismaz, mevcut veri korunur.
+#   - Dump icindeki setval() cagrilari sequence'lari son id'ye ayarlar, yeni
+#     kayitlar mevcut verinin uzerine (id 33, 34, ...) eklenmeye devam eder.
+#   - Seed'i sifirdan yuklemek icin: docker compose down -v  (TUM veriyi siler)
+
+services:
+  db:
+    image: postgres:13
+    container_name: macs-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-macs_db}
+    volumes:
+      - macs_pgdata:/var/lib/postgresql/data
+      - ./docker/initdb/00-roles.sql:/docker-entrypoint-initdb.d/00-roles.sql:ro
+      # macs_db.sql gitignore'da (gercek e-posta + bcrypt hash iceriyor), repoda gelmez.
+      # create_host_path: false -> dosya yoksa compose HATA verir. Kisa sozdizimi
+      # kullanilsaydi Docker o yolda bos bir KLASOR acar, DB sessizce bos kalirdi.
+      - type: bind
+        source: ./macs_db.sql
+        target: /docker-entrypoint-initdb.d/01-macs_db.sql
+        read_only: true
+        bind:
+          create_host_path: false
+    ports:
+      # Lokalde 5432/5433 dolu olabiliyor; varsayilan 5434. psql -h localhost -p 5434 -U postgres macs_db
+      - "${POSTGRES_PORT:-5434}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-macs_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 10s
+
+  backend:
+    build:
+      context: ./backend
+    container_name: macs-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      # env_file'daki degeri ezer: container icinde DB host'u her zaman "db".
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-macs_db}
+      UPLOAD_DIR: /app/static/uploads
+      # Frontend farkli bir portta/originde acildiginda (ornegin 8080 dolu ise)
+      # listeye eklenebilsin diye disari aciliyor. Degeri .env'den ya da
+      # komut satirindan gelir; bos ise main.py'deki varsayilan liste gecerli.
+      CORS_ORIGINS: ${CORS_ORIGINS:-}
+    volumes:
+      # Yuklenen gorseller HOST'ta duruyor, named volume'de degil.
+      #
+      # Named volume kullanilirsa: volume BOS dogar, icerigi disaridan gorunmez,
+      # mevcut dosyalarin elle kopyalanmasi gerekir. Prod'a gecerken bu adim
+      # unutulursa DB'deki 91 gorsel referansinin hepsi birden 404 olur.
+      #
+      # Bind mount ile kaynak tek bir yol: lokalde repo icindeki klasor, prod'da
+      # dosyalarin zaten durdugu vhost klasoru. Migration adimi yok.
+      #   Prod .env:  UPLOAD_HOST_DIR=/var/www/vhosts/api.macsclub.com.tr/httpdocs/static/uploads
+      #
+      # Klasor container icinde uid 10001 (appuser) tarafindan yazilabilir olmali:
+      #   chown -R 10001:10001 <klasor>
+      - type: bind
+        source: ${UPLOAD_HOST_DIR:-./backend/static/uploads}
+        target: /app/static/uploads
+        bind:
+          # Yol yoksa compose HATA versin. Kisa sozdiziminde Docker orada bos bir
+          # klasor acar, gorseller sessizce kaybolurdu.
+          create_host_path: false
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # CRA degiskenleri build-time'da bundle'a gomulur; bu yuzden env_file
+        # degil build args. Deger degisirse "up -d" yetmez, --build gerekir.
+        REACT_APP_API_URL: ${REACT_APP_API_URL:-http://localhost:8000}
+        REACT_APP_MAPBOX_TOKEN: ${REACT_APP_MAPBOX_TOKEN:-}
+    container_name: macs-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT:-8080}:80"
+
+volumes:
+  macs_pgdata:

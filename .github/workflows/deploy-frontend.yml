@@ -1,0 +1,54 @@
+name: Deploy Frontend
+
+# Frontend daha önce elle "npm run build + rsync" ile deploy ediliyordu.
+# Backend otomatik gittiği için ikisi farklı zamanlarda güncelleniyor ve
+# API'de kırıcı bir değişiklik olduğunda site elle deploy edilene kadar
+# bozuk kalıyordu.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/deploy-frontend.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        env:
+          REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL }}
+          REACT_APP_MAPBOX_TOKEN: ${{ secrets.REACT_APP_MAPBOX_TOKEN }}
+          # CRA uyarıları hata sayıp build'i düşürmesin
+          CI: false
+        run: npm run build
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Sync build to VPS
+        run: |
+          rsync -avz --delete \
+            ./build/ \
+            root@${{ secrets.VPS_HOST }}:/var/www/vhosts/macsclub.com.tr/httpdocs/

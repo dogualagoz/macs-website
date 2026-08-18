@@ -62,3 +62,8 @@ yarn-error.log*
 .project
 .settings/
 .classpath
+
+
+# DB dump (gercek kullanici e-postalari + bcrypt hash iceriyor, git'e girmemeli)
+macs_db.sql
+*.sql.gz
