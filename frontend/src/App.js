@@ -6,16 +6,13 @@ import React, { useState, useEffect, useRef} from 'react';
 import { Header, Footer } from './shared/components/layout';
 import { HomePage } from './features/home';
 import { EventsPage, EventDetailPage } from './features/events';
-// Old project pages (commented out)
-// import { ProjectsPage, ProjectDetailPage } from './features/projects';
-// New project pages
-import NewProjectsPage from './features/projects/pages/NewProjectsPage';
-import NewProjectDetailPage from './features/projects/pages/NewProjectDetailPage';
+import { ProjectsPage, ProjectDetailPage } from './features/projects';
 import { SponsorsPage } from './features/sponsors';
 import { AboutPage } from './features/about';
 import { LoginPage, ProtectedRoute, AuthProvider } from './features/auth';
 import { AdminPanel } from './features/admin';
 import Page404 from './shared/components/Page404';
+import ErrorBoundary from './shared/components/feedback/ErrorBoundary';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import './styles/App.css';
 import ScrollToTop from './shared/components/navigation/ScrollToTop';
@@ -60,14 +57,16 @@ function App() {
         </Routes>
 
         <main>
+          {/* key={pathname}: bir sayfa çökerse başka bir sayfaya gidildiğinde
+              boundary sıfırlansın, kullanıcı hata ekranında sıkışmasın. */}
+          <ErrorBoundary key={pathname}>
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<HomePage />} />
             <Route path="/etkinlikler" element={<EventsPage />} />
             <Route path="/etkinlikler/:slug" element={<EventDetailPage />} />
-            {/* NEW PROJECT PAGES */}
-            <Route path="/projeler" element={<NewProjectsPage />} />
-            <Route path="/projeler/:id" element={<NewProjectDetailPage />} />
+            <Route path="/projeler" element={<ProjectsPage />} />
+            <Route path="/projeler/:id" element={<ProjectDetailPage />} />
             {/* Sponsorluklar geçici olarak ComingSoon sayfasına yönlendirildi. Sadece bu satırı değiştirerek eski haline dönebilir. */}
             <Route path="/sponsorluk" element={<SponsorsPage />} />
             <Route path="/hakkimizda" element={<AboutPage />} />
@@ -81,6 +80,7 @@ function App() {
             {/* 404 page */}
             <Route path="*" element={<Page404 />} />
           </Routes>
+          </ErrorBoundary>
         </main>
 
         {/* Admin route'larında footer gösterme */}
