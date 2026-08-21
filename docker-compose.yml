@@ -30,8 +30,10 @@ services:
         bind:
           create_host_path: false
     ports:
+      # BIND_HOST: lokalde 0.0.0.0 (varsayilan), prod'da 127.0.0.1. Prod'da
+      # Plesk nginx proxy'ledigi icin portlarin disariya acilmasi gereksiz.
       # Lokalde 5432/5433 dolu olabiliyor; varsayilan 5434. psql -h localhost -p 5434 -U postgres macs_db
-      - "${POSTGRES_PORT:-5434}:5432"
+      - "${BIND_HOST:-0.0.0.0}:${POSTGRES_PORT:-5434}:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-macs_db}"]
       interval: 5s
@@ -78,7 +80,7 @@ services:
           # klasor acar, gorseller sessizce kaybolurdu.
           create_host_path: false
     ports:
-      - "${BACKEND_PORT:-8000}:8000"
+      - "${BIND_HOST:-0.0.0.0}:${BACKEND_PORT:-8000}:8000"
 
   frontend:
     build:
@@ -93,7 +95,7 @@ services:
     depends_on:
       - backend
     ports:
-      - "${FRONTEND_PORT:-8080}:80"
+      - "${BIND_HOST:-0.0.0.0}:${FRONTEND_PORT:-8080}:80"
 
 volumes:
   macs_pgdata:

@@ -1,0 +1,40 @@
+# Prod override. Tek basina kullanilmaz, base compose'un ustune biner:
+#
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+#
+# Port bind adresi burada DEGIL .env'de: BIND_HOST=127.0.0.1. Sebebi compose'un
+# "ports" listelerini birlestirirken UST USTE EKLEMESI - burada tekrar yazilsaydi
+# hem 0.0.0.0:8000 hem 127.0.0.1:8000 acilmaya calisilir ve cakisirdi.
+# "command" ise skaler oldugu icin override guvenli.
+
+services:
+  backend:
+    # Base image'in CMD'i tek islemli uvicorn (dev icin yeterli). Prod'da
+    # birden fazla worker gerekiyor.
+    #
+    # gunicorn KULLANILMIYOR: requirements.txt'de yok, ayrica gunicorn.conf.py
+    # 127.0.0.1:8001'e bind edip /var/log/macs ve /var/run altina yazmaya
+    # calisiyor - container icinde appuser (uid 10001) bunlarin hicbirini
+    # yapamaz. O dosya systemd'li eski kurulumdan kaliyor.
+    #
+    # --proxy-headers + --forwarded-allow-ips: istek Plesk nginx uzerinden
+    # geliyor. Bunlar olmadan uygulama client IP'si olarak proxy'yi gorur ve
+    # rate limit (slowapi) tum ziyaretcileri tek IP sayar.
+    command:
+      - uvicorn
+      - main:app
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+      - --workers
+      - "4"
+      - --proxy-headers
+      - --forwarded-allow-ips
+      - "*"
+
+  db:
+    # Prod'da Postgres'i disari acmaya gerek yok; backend ayni compose agindan
+    # "db:5432" ile ulasiyor. .env'de POSTGRES_PORT tanimliysa BIND_HOST=127.0.0.1
+    # sayesinde yalnizca sunucu icinden erisilir (psql ile bakmak icin ise yarar).
+    shm_size: 256mb
