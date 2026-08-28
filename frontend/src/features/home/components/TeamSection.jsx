@@ -1,53 +1,66 @@
 import '../../../styles/components/team.css'
 
-import React, { useState } from "react";
+import React, { memo, useState } from "react";
 import { X } from 'lucide-react';
 import { getInitialsAvatar } from '../../../shared/utils/media';
 
 const people_data = {
-  EfeAltun: {
-    member: "Efe Altın",
-    role: "Kulüp Başkanı",
-    graduate: "Matematik ve Bilgisayar Bilimleri 3. Sınıf",
-    bio: "AI geliştirme odaklı",
-    pic: "/assets/images/profiles/efepp.jpeg"
-  },
-
   DoguAlagoz: {
     member: "Doğu Alagöz",
-    role: "Proje Koordinatörlüğü",
-    graduate: "Matematik ve Bilgisayar Bilimleri 3. Sınıf",
-    bio: "Backend developer ve Mobil geliştirme odaklı",
+    role: "Yönetim Kurulu Başkanı",
+    graduate: "Matematik ve Bilgisayar Bilimleri 4. Sınıf",
     pic: "/assets/images/profiles/dogupp.jpeg"
   },
-  ErenAlpaslan: {
-    member: "Eren Alpaslan",
-    role: "Denetim Koordinatörlüğü",
+
+  YusufEfeTasdelen: {
+    member: "Yusuf Efe Taşdelen",
+    role: "Proje Koordinatörlüğü",
     graduate: "Matematik ve Bilgisayar Bilimleri 3. Sınıf",
-    bio: "AI geliştirme odaklı",
-    pic: "/assets/images/profiles/erenpp.jpeg"
+    pic: "/assets/images/profiles/yusufefepp.jpeg"
+  },
+  CerenCetin: {
+    member: "Ceren Çetin",
+    role: "Sponsorluk Koordinatörü",
+    graduate: "Matematik ve Bilgisayar Bilimleri 2. Sınıf",
+    pic: "/assets/images/profiles/ceren.jpeg"
   },
   LeylaMammadova: {
     member: "Leyla Mammadova",
-    role: "Kurumsal İletişim Koordinatörlüğü",
+    role: "Yönetim Kurulu Başkan Yardımcısı",
     graduate: "Matematik ve Bilgisayar Bilimleri 4. Sınıf",
     bio: "Frontend geliştirme odaklı",
     pic: "/assets/images/profiles/leylapp.jpg"
   },
-  AzraUskup: {
-    member: "Azra Üsküp",
+  DenizNazCoskun: {
+    member: "Deniz Naz Coşkun",
     role: "Genel Sekreter",
+    graduate: "Matematik ve Bilgisayar Bilimleri 2. Sınıf",
+    pic: "/assets/images/profiles/deniz.jpeg"
+  },
+  EmirTepedeldiren: {
+    member: "Emir Tepedeldiren",
+    role: "İnsan Kaynakları",
+    graduate: "Matematik ve Bilgisayar Bilimleri 2. Sınıf",
+    pic: "/assets/images/profiles/emir.jpeg"
+  },
+  YusufOyan: {
+    member: "Yusuf Oyan",
+    role: "İnsan Kaynakları",
+    graduate: "Matematik ve Bilgisayar Bilimleri 2. Sınıf",
+    pic: "/assets/images/profiles/yusufoyan.jpeg"
+  },
+  NehirCosan: {
+    member: "Nehir Coşan",
+    role: "Kurumsal İletişim Koordinatörü",
     graduate: "Matematik ve Bilgisayar Bilimleri 3. Sınıf",
-    bio: "Python Geliştirme odaklı",
-    pic: "/assets/images/profiles/azrapp.jpeg"
+    pic: "/assets/images/profiles/nehir.jpeg"
   },
-  AliErdemGecgel: {
-    member: "Ali Erdem Geçgel",
-    role: "Halkla İlişkiler",
-    graduate: "Matematik ve Bilgisayar Bilimleri 4. Sınıf",
-    bio: "Oyun Geliştirme odaklı",
-    pic: "/assets/images/profiles/erdempp.jpeg"
-  },
+  SemanurToy: {
+    member: "Semanur Toy",
+    role: "Sosyal Medya Koordinatörü",
+    graduate: "Matematik ve Bilgisayar Bilimleri 2. Sınıf",
+    pic: "/assets/images/profiles/sema.jpeg"
+}
 };
 
 const TeamSection = () => {
