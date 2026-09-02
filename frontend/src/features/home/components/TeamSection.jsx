@@ -5,49 +5,69 @@ import { X } from 'lucide-react';
 import { getInitialsAvatar } from '../../../shared/utils/media';
 
 const people_data = {
-  EfeAltun: {
-    member: "Efe Altın",
-    role: "Kulüp Başkanı",
-    graduate: "Matematik ve Bilgisayar Bilimleri 3. Sınıf",
-    bio: "AI geliştirme odaklı",
-    pic: "/assets/images/profiles/efepp.webp"
-  },
-
   DoguAlagoz: {
     member: "Doğu Alagöz",
-    role: "Proje Koordinatörlüğü",
-    graduate: "Matematik ve Bilgisayar Bilimleri 3. Sınıf",
-    bio: "Backend developer ve Mobil geliştirme odaklı",
+    role: "Yönetim Kurulu Başkanı",
+    graduate: "Matematik ve Bilgisayar Bilimleri 4. Sınıf",
     pic: "/assets/images/profiles/dogupp.webp"
   },
-  ErenAlpaslan: {
-    member: "Eren Alpaslan",
-    role: "Denetim Koordinatörlüğü",
+
+  YusufEfeTasdelen: {
+    member: "Yusuf Efe Taşdelen",
+    role: "Proje Koordinatörü",
     graduate: "Matematik ve Bilgisayar Bilimleri 3. Sınıf",
-    bio: "AI geliştirme odaklı",
-    pic: "/assets/images/profiles/erenpp.webp"
+    pic: "/assets/images/profiles/yusufefepp.webp"
   },
+
+  CerenCetin: {
+    member: "Ceren Çetin",
+    role: "Sponsorluk Koordinatörü",
+    graduate: "Matematik ve Bilgisayar Bilimleri 2. Sınıf",
+    pic: "/assets/images/profiles/ceren.webp"
+  },
+
   LeylaMammadova: {
     member: "Leyla Mammadova",
-    role: "Kurumsal İletişim Koordinatörlüğü",
+    role: "Yönetim Kurulu Başkan Yardımcısı",
     graduate: "Matematik ve Bilgisayar Bilimleri 4. Sınıf",
     bio: "Frontend geliştirme odaklı",
     pic: "/assets/images/profiles/leylapp.webp"
   },
-  AzraUskup: {
-    member: "Azra Üsküp",
+
+  DenizNazCoskun: {
+    member: "Deniz Naz Coşkun",
     role: "Genel Sekreter",
+    graduate: "Matematik ve Bilgisayar Bilimleri 2. Sınıf",
+    pic: "/assets/images/profiles/deniz.webp"
+  },
+
+  EmirTepedeldiren: {
+    member: "Emir Tepedeldiren",
+    role: "İnsan Kaynakları",
+    graduate: "Matematik ve Bilgisayar Bilimleri 2. Sınıf",
+    pic: "/assets/images/profiles/emir.webp"
+  },
+
+  YusufOyan: {
+    member: "Yusuf Oyan",
+    role: "İnsan Kaynakları",
+    graduate: "Matematik ve Bilgisayar Bilimleri 2. Sınıf",
+    pic: "/assets/images/profiles/yusufoyan.webp"
+  },
+
+  NehirCosan: {
+    member: "Nehir Coşan",
+    role: "Kurumsal İletişim Koordinatörü",
     graduate: "Matematik ve Bilgisayar Bilimleri 3. Sınıf",
-    bio: "Python Geliştirme odaklı",
-    pic: "/assets/images/profiles/azrapp.webp"
+    pic: "/assets/images/profiles/nehir.webp"
   },
-  AliErdemGecgel: {
-    member: "Ali Erdem Geçgel",
-    role: "Halkla İlişkiler",
-    graduate: "Matematik ve Bilgisayar Bilimleri 4. Sınıf",
-    bio: "Oyun Geliştirme odaklı",
-    pic: "/assets/images/profiles/erdempp.webp"
-  },
+
+  SemanurToy: {
+    member: "Semanur Toy",
+    role: "Sosyal Medya Koordinatörü",
+    graduate: "Matematik ve Bilgisayar Bilimleri 2. Sınıf",
+    pic: "/assets/images/profiles/sema.webp"
+  }
 };
 
 const TeamSection = () => {
@@ -100,7 +120,7 @@ const TeamSection = () => {
                 <h3 className="member-name">{p.member}</h3>
                 <p className="member-role">{p.role}</p>
                 <p className="member-department">{p.graduate}</p>
-                <p className="member-bio">{p.bio}</p>
+                {p.bio && <p className="member-bio">{p.bio}</p>}
                 <div className="member-social">
                   <img src="/assets/images/img_linkedin.png" alt="LinkedIn" />
                   <img src="/assets/images/img_github_18x17.png" alt="GitHub" />
@@ -132,7 +152,7 @@ const TeamSection = () => {
               <h2 className="team-modal-name">{selectedMember.member}</h2>
               <span className="team-modal-role">{selectedMember.role}</span>
               <p className="team-modal-graduate">{selectedMember.graduate}</p>
-              <p className="team-modal-bio">{selectedMember.bio}</p>
+              {selectedMember.bio && <p className="team-modal-bio">{selectedMember.bio}</p>}
               <div className="team-modal-social">
                 <a href="#!" className="social-link" aria-label="LinkedIn">
                   <img src="/assets/images/img_linkedin.png" alt="LinkedIn" />
