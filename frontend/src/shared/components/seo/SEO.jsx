@@ -13,7 +13,7 @@ const SEO = ({
   url = 'https://esogumacs.com',
   type = 'website'
 }) => {
-  const siteTitle = title === 'MACS' ? title : `${title} | MACS`;
+  const siteTitle = title.includes('MACS') ? title : `${title} | MACS`;
   
   return (
     <Helmet>
@@ -29,9 +29,11 @@ const SEO = ({
       <meta property="og:image" content={image} />
       <meta property="og:url" content={url} />
       <meta property="og:locale" content="tr_TR" />
+      <meta property="og:site_name" content="MACS - Matematik ve Bilgisayar Bilimleri Topluluğu" />
       
       {/* Twitter Card */}
       <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:site" content="@esogumacs" />
       <meta name="twitter:title" content={siteTitle} />
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={image} />
