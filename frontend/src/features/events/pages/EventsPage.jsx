@@ -1,9 +1,10 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useEventsData, useEventFilters } from '../hooks';
 import FeaturedEventCard from '../components/FeaturedEventCard';
 import EventCard from '../components/EventCard';
-import Loading from '../../../shared/components/feedback/Loading';
+import { PageHeaderSkeleton, EventGridSkeleton } from '../../../shared/components/feedback/Skeleton';
 import ErrorMessage from '../../../shared/components/feedback/ErrorMessage';
 import SEO from '../../../shared/components/seo/SEO';
 
@@ -13,7 +14,16 @@ export default function Events() {
   const { activeFilter, setActiveFilter, filteredAndSorted, featuredEvent } = useEventFilters(events);
 
   // Loading and error states
-  if (loading) return <Loading className="pt-32" />;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white pt-20">
+        <PageHeaderSkeleton />
+        <div className="mx-auto max-w-7xl px-4 py-12">
+          <EventGridSkeleton count={6} />
+        </div>
+      </div>
+    );
+  }
   if (error) return <ErrorMessage message={error} onRetry={retry} />;
 
 
@@ -115,21 +125,85 @@ function CategoryFilters({ categories, activeFilter, onFilterChange }) {
 
 // Events Grid Component
 function EventsGrid({ events, featuredEventId }) {
+  const now = new Date();
+  const isPastEvent = (event) =>
+    new Date(event.end_time || event.start_time) < now;
+
+  const visible = events.filter((event) => event.id !== featuredEventId);
+  const upcoming = visible.filter((event) => !isPastEvent(event));
+  const past = visible.filter(isPastEvent);
+
+  // Gecmisi aya gore grupla (timeline arsivi icin)
+  const months = new Map();
+  past.forEach((event) => {
+    const d = new Date(event.end_time || event.start_time);
+    const key = isNaN(d)
+      ? 'Tarihsiz'
+      : new Intl.DateTimeFormat('tr-TR', { month: 'long', year: 'numeric' }).format(d);
+    if (!months.has(key)) months.set(key, []);
+    months.get(key).push(event);
+  });
+
   return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {events
-        .filter(event => event.id !== featuredEventId)
-        .map((event, index) => (
-          <motion.div
-            key={event.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.1 * index }}
-          >
-            <EventCard event={event} />
-          </motion.div>
-        ))}
-    </div>
+    <>
+      {upcoming.length > 0 && (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {upcoming.map((event, index) => (
+            <motion.div
+              key={event.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: Math.min(index, 6) * 0.06 }}
+            >
+              <EventCard event={event} />
+            </motion.div>
+          ))}
+        </div>
+      )}
+
+      {past.length > 0 && (
+        <section className="mt-16" aria-label="Etkinlik arşivi">
+          <h2 className="text-2xl font-bold text-[#07132b] mb-8">Etkinlik Arşivi</h2>
+          <ol className="relative ml-1.5 border-l-2 border-gray-200">
+            {[...months.entries()].map(([label, items]) => (
+              <li key={label} className="relative mb-10 pl-8 last:mb-0">
+                <span
+                  aria-hidden="true"
+                  className="absolute -left-[9px] top-1.5 h-4 w-4 rounded-full bg-[#07132b] ring-4 ring-white"
+                />
+                <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500 mb-4">
+                  {label}
+                </h3>
+                <ul className="space-y-1">
+                  {items.map((event) => {
+                    const d = new Date(event.end_time || event.start_time);
+                    return (
+                      <li key={event.id}>
+                        <Link
+                          to={`/etkinlikler/${event.slug}`}
+                          className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 rounded-lg px-3 py-2 -mx-3 hover:bg-gray-50 transition-colors"
+                        >
+                          <time
+                            className="font-mono text-sm text-gray-500 w-20 shrink-0"
+                            dateTime={isNaN(d) ? undefined : d.toISOString()}
+                          >
+                            {isNaN(d) ? '—' : `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`}
+                          </time>
+                          <span className="font-medium text-[#07132b]">{event.title}</span>
+                          <span className="text-sm text-gray-500 sm:ml-auto">
+                            {event.location}
+                          </span>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
+    </>
   );
 }
 

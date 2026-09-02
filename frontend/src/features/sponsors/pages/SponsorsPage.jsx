@@ -8,7 +8,7 @@ import { handleAvatarError } from '../../../utils/imageUtils';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import '../../../styles/pages/sponsors.css';
 
-import Loading from '../../../shared/components/feedback/Loading';
+import { PageHeaderSkeleton, EventGridSkeleton, SponsorRowSkeleton } from '../../../shared/components/feedback/Skeleton';
 import SEO from '../../../shared/components/seo/SEO';
 
 const MAPBOX_TOKEN = env.mapboxToken;
@@ -73,7 +73,15 @@ export default function SponsorsPage() {
   }, []);
 
   if (loading) {
-    return <Loading variant="light" className="pt-32" />;
+    return (
+      <div className="min-h-screen bg-white pt-20">
+        <PageHeaderSkeleton />
+        <div className="mx-auto max-w-7xl px-4 py-12 grid gap-6 lg:grid-cols-[1fr_320px]">
+          <EventGridSkeleton count={3} />
+          <SponsorRowSkeleton count={6} />
+        </div>
+      </div>
+    );
   }
 
   return (
