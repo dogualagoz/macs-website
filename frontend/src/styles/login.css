@@ -91,3 +91,88 @@
   background-color: #93c5fd;
   cursor: not-allowed;
 }
+
+/* --- Marka temelli login yenileme --- */
+.login-container {
+  background:
+    radial-gradient(720px 360px at 15% 0%, rgba(0, 82, 204, 0.35), transparent 65%),
+    radial-gradient(640px 320px at 90% 100%, rgba(10, 26, 58, 0.9), transparent 60%),
+    #07132b;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 24px 16px;
+}
+
+.login-card {
+  border-radius: 16px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.login-header {
+  background: #07132b;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 2rem 1.5rem 1.5rem;
+  text-align: center;
+}
+
+.login-logo {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  margin-bottom: 0.75rem;
+}
+
+.login-title {
+  color: #ffffff;
+}
+
+.login-subtitle {
+  margin: 0.25rem 0 0;
+  color: var(--text-on-dark-muted, #b6c2d4);
+  font-size: 0.875rem;
+}
+
+.form-input {
+  min-height: 44px;
+  border-radius: 8px;
+}
+
+.form-input:focus-visible {
+  outline: none;
+  border-color: var(--accent-blue, #0052CC);
+  box-shadow: 0 0 0 3px rgba(0, 82, 204, 0.25);
+}
+
+.btn {
+  border-radius: 8px;
+}
+
+.btn-primary {
+  min-height: 48px;
+  font-weight: 600;
+  background-color: var(--accent-blue, #0052CC);
+}
+
+.btn-primary:hover {
+  background-color: #003d99;
+}
+
+.login-footer {
+  border-top: 1px solid #e5e7eb;
+  padding: 1rem 1.5rem;
+  text-align: center;
+  background: #f9fafb;
+}
+
+.login-backlink {
+  color: var(--accent-blue, #0052CC);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.login-backlink:hover {
+  text-decoration: underline;
+}

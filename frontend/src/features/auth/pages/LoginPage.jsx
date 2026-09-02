@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import "../../../styles/login.css";
 
@@ -48,7 +48,9 @@ export default function LoginPage() {
     <div className="login-container">
       <div className="login-card">
         <div className="login-header">
-          <h2 className="login-title">Admin Giriş</h2>
+          <img className="login-logo" src="/assets/images/img_exclude.webp" alt="MACS" width="72" height="72" />
+          <h2 className="login-title">Yönetim Paneli</h2>
+          <p className="login-subtitle">MACS kulüp yöneticisi girişi</p>
         </div>
         <div className="login-body">
           {expired && (
@@ -94,6 +96,9 @@ export default function LoginPage() {
               {loading ? "Giriş Yapılıyor..." : "Giriş Yap"}
             </button>
           </form>
+        </div>
+        <div className="login-footer">
+          <Link to="/" className="login-backlink">&larr; Siteye dön</Link>
         </div>
       </div>
     </div>
