@@ -8,7 +8,8 @@
  * - Social media badges
  */
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Link } from 'react-router-dom';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import '../../../styles/components/hero.css';
 
 const images = [
@@ -19,6 +20,7 @@ const images = [
 
 const HeroSection = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
     // Preload images
@@ -26,6 +28,8 @@ const HeroSection = () => {
       const img = new Image();
       img.src = src;
     });
+
+    if (reduceMotion) return undefined;
 
     let timer;
 
@@ -52,7 +56,7 @@ const HeroSection = () => {
       clearInterval(timer);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, []);
+  }, [reduceMotion]);
 
   return (
     <section className="hero" id="home">
@@ -61,11 +65,11 @@ const HeroSection = () => {
         <AnimatePresence initial={false}>
           <motion.div
             key={currentIndex}
-            initial={{ x: '100%' }}
+            initial={reduceMotion ? false : { x: '100%' }}
             animate={{ x: 0 }}
-            exit={{ x: '-100%' }}
+            exit={reduceMotion ? undefined : { x: '-100%' }}
             transition={{ 
-              duration: 3, // Daha yavaş ve akıcı
+              duration: reduceMotion ? 0 : 3, // Daha yavaş ve akıcı
               ease: [0.45, 0, 0.55, 1], // Kusursuz senkronizasyon için özel easing
             }}
             className="hero-slide-container"
@@ -90,23 +94,33 @@ const HeroSection = () => {
         </div>
 
         {/* Welcome message and description */}
-        <h1 className="hero-title">MACS'E HOŞ GELDİNİZ!</h1>
-        <p className="hero-subtitle"><strong>
-BU SİTE ESKİŞEHİR OSMANGAZİ ÜNİVERSİTESİ MATEMATİK VE BİLGİSAYAR BİLİMLERİ 
-BÖLÜMÜ ÖĞRENCİLERİNİN MATEMATİK VE BİLGİSAYAR TOPLULUĞU KULÜBÜNÜN RESMİ SAYFASIDIR. 
-        </strong>
+        <h1 className="hero-title">Matematik ve bilgisayarın buluşma noktası</h1>
+        <p className="hero-subtitle">
+          Eskişehir Osmangazi Üniversitesi Matematik ve Bilgisayar Bilimleri
+          bölümü öğrencilerinin kulübü MACS; projeler, etkinlikler ve atölyelerle
+          üretir.
         </p>
+
+        {/* Primary calls to action */}
+        <div className="hero-cta">
+          <Link to="/etkinlikler" className="hero-btn hero-btn--primary">
+            Etkinlikleri Keşfet
+          </Link>
+          <Link to="/projeler" className="hero-btn hero-btn--ghost">
+            Projeler
+          </Link>
+        </div>
 
         {/* Social media badges */}
         <div className="hero-badges">
           <img 
             src="/assets/images/img_920228d74c2145d3b604e2dfb42f2d3f1201a_1.png" 
-            alt="MACS" 
+            alt="MACS rozeti" 
             className="badge" 
           />
           <img 
             src="/assets/images/img_esogulogo_1.png"
-            alt="ESOGÜ"
+            alt="Eskişehir Osmangazi Üniversitesi rozeti"
             className="badge" 
           />
         </div>
