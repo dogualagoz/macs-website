@@ -13,9 +13,9 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import '../../../styles/components/hero.css';
 
 const images = [
-  '/assets/heroimages/codedrink.jpg',
-  '/assets/heroimages/devbreak.jpg',
-  '/assets/heroimages/log.jpg'
+  '/assets/heroimages/codedrink.webp',
+  '/assets/heroimages/devbreak.webp',
+  '/assets/heroimages/log.webp'
 ];
 
 const HeroSection = () => {
@@ -87,9 +87,10 @@ const HeroSection = () => {
         {/* Main logo */}
         <div className="hero-logo">
           <img 
-            src="/assets/images/img_exclude.png"   
+            src="/assets/images/img_exclude.webp"   
             alt="MACS Logo" 
             className="main-logo" 
+            width="170" height="170" fetchpriority="high"
           />
         </div>
 
@@ -117,11 +118,13 @@ const HeroSection = () => {
             src="/assets/images/img_920228d74c2145d3b604e2dfb42f2d3f1201a_1.png" 
             alt="MACS rozeti" 
             className="badge" 
+            width="82" height="66" loading="lazy"
           />
           <img 
             src="/assets/images/img_esogulogo_1.png"
             alt="Eskişehir Osmangazi Üniversitesi rozeti"
             className="badge" 
+            width="67" height="67" loading="lazy"
           />
         </div>
       </div>

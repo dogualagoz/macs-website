@@ -45,7 +45,7 @@ const ProjectCard = ({
           <img 
             src={getImageUrl(image)}
             alt={title}
-            onError={(e) => handleImageError(e, '/assets/images/img_source_code.png')}
+            onError={(e) => handleImageError(e, '/assets/images/img_source_code.webp')}
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
           loading="lazy" />
           <div className="absolute top-3 left-3">

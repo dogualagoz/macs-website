@@ -26,11 +26,11 @@ const Footer = () => {
             <h3>İletişim</h3>
             <div className="contact-info">
               <div className="contact-item">
-                <img src="/assets/images/img_mail.png" alt="Email" />
+                <img src="/assets/images/img_mail.png" alt="Email" width="14" height="14" loading="lazy" />
                 <span>mathandcomputersociety@gmail.com</span>
               </div>
               <div className="contact-item">
-                <img src="/assets/images/img_phone.png" alt="Phone" />
+                <img src="/assets/images/img_phone.png" alt="Phone" width="14" height="14" loading="lazy" />
                 <span>+90 533 032 0102</span>
               </div>
             </div>
@@ -61,7 +61,7 @@ const Footer = () => {
         <div className="footer-divider"></div>
 
         <div className="footer-bottom">
-          <img src="/assets/images/img_copyright.png" alt="Copyright" />
+          <img src="/assets/images/img_copyright.png" alt="Copyright" width="13" height="15" loading="lazy" />
           <span>2025 MACS. Tüm hakları saklıdır.</span>
         </div>
       </div>

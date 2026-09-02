@@ -19,7 +19,7 @@ export const getMediaUrl = (url, name = 'User') => {
   // 1. Durum: URL yoksa
   if (!url) {
     if (name === 'Project' || name === 'Event' || name === 'Sponsor') {
-      return '/assets/images/img_source_code.png';
+      return '/assets/images/img_source_code.webp';
     }
     return getInitialsAvatar(name);
   }
