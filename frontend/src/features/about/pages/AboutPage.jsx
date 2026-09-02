@@ -167,7 +167,7 @@ const AboutPage = () => {
                     variants={fadeInUp}
                     initial="hidden"
                     whileInView="visible"
-                    viewport={{ once: true, amount: 0.3 }}
+                    viewport={{ once: true, amount: 0.2 }}
                   >
                     <div className="about-intro-logo">
                       <img src="/assets/images/img_exclude.png" alt="MACS Logo" loading="lazy" />
@@ -194,7 +194,7 @@ const AboutPage = () => {
                     variants={staggerContainer}
                     initial="hidden"
                     whileInView="visible"
-                    viewport={{ once: true, amount: 0.3 }}
+                    viewport={{ once: true, amount: 0.2 }}
                   >
                     <motion.div className="mission-card" variants={fadeInLeft}>
                       <div className="card-icon">
@@ -303,7 +303,7 @@ const AboutPage = () => {
                     variants={staggerContainer}
                     initial="hidden"
                     whileInView="visible"
-                    viewport={{ once: true, amount: 0.3 }}
+                    viewport={{ once: true, amount: 0.2 }}
                   >
                     <motion.div className="stat-item" variants={scaleIn}>
                       <span className="stat-number">50+</span>
@@ -371,7 +371,7 @@ const AboutPage = () => {
                     variants={fadeInUp}
                     initial="hidden"
                     whileInView="visible"
-                    viewport={{ once: true, amount: 0.5 }}
+                    viewport={{ once: true, amount: 0.2 }}
                   >
                     <h2>Bize Katılmak İster Misiniz?</h2>
                     <p>
