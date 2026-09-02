@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { GraduationCap, Lightbulb, Handshake, Target, Heart, Sparkles, Rocket, Users } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import '../../../styles/pages/about.css';
 import SEO from '../../../shared/components/seo/SEO';
 import TeamSection from '../../home/components/TeamSection';
-import Loading from '../../../shared/components/feedback/Loading';
 import { getInitialsAvatar } from '../../../shared/utils/media';
 import { handleAvatarError } from '../../../utils/imageUtils';
 
@@ -17,7 +16,7 @@ const websiteTeam = [
     id: 1,
     ad_soyad: "Doğu Alagöz",
     rol: "Project Manager",
-    profil_resmi: "/assets/images/profiles/dogupp.jpeg"
+    profil_resmi: "/assets/images/profiles/dogupp.webp"
   },
   {
     id: 2,
@@ -29,25 +28,25 @@ const websiteTeam = [
     id: 3,
     ad_soyad: "Berke Zerelgil",
     rol: "UI/UX Designer",
-    profil_resmi: "/assets/images/profiles/berkepp.jpeg"
+    profil_resmi: "/assets/images/profiles/berkepp.webp"
   },
   {
     id: 4,
     ad_soyad: "Leyla Mammadova",
     rol: "Frontend Developer",
-    profil_resmi: "/assets/images/profiles/leylapp.jpg"
+    profil_resmi: "/assets/images/profiles/leylapp.webp"
   },
   {
     id: 5,
     ad_soyad: "Yusuf Efe Taşdelen",
     rol: "Frontend Developer",
-    profil_resmi: "/assets/images/profiles/yusufefepp.jpeg"
+    profil_resmi: "/assets/images/profiles/yusufefepp.webp"
   },
   {
     id: 6,
     ad_soyad: "Eren Alpaslan",
     rol: "Tester",
-    profil_resmi: "/assets/images/profiles/erenpp.jpeg"
+    profil_resmi: "/assets/images/profiles/erenpp.webp"
   }
 ];
 
@@ -100,16 +99,6 @@ const scaleIn = {
 };
 
 const AboutPage = () => {
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 400);
-
-    return () => clearTimeout(timer);
-  }, []);
-
   return (
     <>
       <SEO 
@@ -119,15 +108,10 @@ const AboutPage = () => {
         url="https://esogumacs.com/hakkimizda"
       />
       
-      <AnimatePresence mode="wait">
-        {loading ? (
-          <Loading variant="light" />
-        ) : (
-          <motion.div
-            key="content"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
           >
             <div className="about-page">
               {/* Hero Section */}
@@ -170,7 +154,7 @@ const AboutPage = () => {
                     viewport={{ once: true, amount: 0.2 }}
                   >
                     <div className="about-intro-logo">
-                      <img src="/assets/images/img_exclude.png" alt="MACS Logo" loading="lazy" />
+                      <img src="/assets/images/img_exclude.webp" alt="MACS Logo" loading="lazy" />
                     </div>
                     <div className="about-intro-text">
                       <h2>Biz Kimiz?</h2>
@@ -390,9 +374,7 @@ const AboutPage = () => {
                 </div>
               </section>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      </motion.div>
     </>
   );
 };
