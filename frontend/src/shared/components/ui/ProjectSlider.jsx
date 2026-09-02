@@ -6,7 +6,7 @@
  */
 import React from 'react';
 import PropTypes from 'prop-types';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Code2, Users, ChevronLeft, ChevronRight, Github, ExternalLink } from 'lucide-react';
 import { getImageUrl, handleImageError, handleAvatarError } from '../../../utils/imageUtils';
 import '../../../styles/components/slider.css';
@@ -80,7 +80,7 @@ const ProjectSlider = ({ projects = [] }) => {
                                             <img
                                                 src={getImageUrl(project.image_url || project.image)}
                                                 alt={project.title}
-                                                onError={(e) => handleImageError(e, '/assets/images/img_source_code.png')}
+                                                onError={(e) => handleImageError(e, '/assets/images/img_source_code.webp')}
                                             loading="lazy" />
                                         </div>
 
@@ -92,7 +92,15 @@ const ProjectSlider = ({ projects = [] }) => {
                                                 <span>{project.category?.name || 'Proje'}</span>
                                             </div>
 
-                                            <h3 className="slider-card-title">{project.title}</h3>
+                                            <h3 className="slider-card-title">
+                                                <Link
+                                                    to={`/projeler/${project.slug || ''}`}
+                                                    className="slider-card-title-link"
+                                                    onClick={handleButtonClick}
+                                                >
+                                                    {project.title}
+                                                </Link>
+                                            </h3>
 
                                             <p className="slider-card-description">
                                                 {project.description}
@@ -148,10 +156,14 @@ const ProjectSlider = ({ projects = [] }) => {
 
                                             {/* Action Buttons */}
                                             <div className="slider-card-actions" onClick={handleButtonClick}>
-                                                <span className="slider-action-button primary">
+                                                <Link
+                                                    to={`/projeler/${project.slug || ''}`}
+                                                    className="slider-action-button primary"
+                                                    onClick={handleButtonClick}
+                                                >
                                                     <ExternalLink className="action-icon" />
                                                     Projeyi İncele
-                                                </span>
+                                                </Link>
                                                 {project.github_url && (
                                                     <a
                                                         href={project.github_url}

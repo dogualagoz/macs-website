@@ -81,7 +81,9 @@ const FeaturedEventCard = ({ title, date, location, description, image, startTim
 
             {/* Title */}
             <h3 className="text-3xl font-bold text-gray-900 mb-4 line-clamp-2 group-hover:text-blue-700 transition">
-              {title}
+              <Link to={`/etkinlikler/${slug || ''}`} onClick={(e) => e.stopPropagation()} className="featured-event-card-title-link">
+                {title}
+              </Link>
             </h3>
 
             {/* Description */}

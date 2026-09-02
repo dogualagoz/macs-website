@@ -32,9 +32,9 @@ const FeaturedProjectCard = ({ title, description, image, technologies, githubUr
       <div className="Image-container">
         <img 
           className='First-img' 
-          src={getImageUrl(image, '/assets/images/img_source_code.png')} 
+          src={getImageUrl(image, '/assets/images/img_source_code.webp')} 
           alt={title}
-          onError={(e) => handleImageError(e, '/assets/images/img_source_code.png')}
+          onError={(e) => handleImageError(e, '/assets/images/img_source_code.webp')}
         loading="lazy" />
       </div>
       <div className="Details-Container">
@@ -42,9 +42,13 @@ const FeaturedProjectCard = ({ title, description, image, technologies, githubUr
           <span className="First-come-span">⭐ Öne Çıkan</span>
         </div>
       
-        <div className="Details-tittle">
-          {title}
-        </div>
+        <h3 className="Details-tittle">
+          {slug ? (
+            <Link to={`/projeler/${slug}`} onClick={(e) => e.stopPropagation()}>{title}</Link>
+          ) : (
+            title
+          )}
+        </h3>
         
         <div className="Details-subtittle">
           {description}
