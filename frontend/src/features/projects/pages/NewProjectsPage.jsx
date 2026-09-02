@@ -127,7 +127,7 @@ const NewProjectsPage = () => {
         keywords="MACS projeleri, yazılım projeleri, açık kaynak, web geliştirme, mobil uygulama, yapay zeka, ESOGÜ"
         url="https://esogumacs.com/projeler"
       />
-      <div className="min-h-screen bg-[#050B14] text-white overflow-x-hidden relative pt-32">
+      <div className="min-h-screen bg-[#07132b] text-white overflow-x-hidden relative pt-32">
         <AnimatePresence mode="wait">
         {loading ? (
           <Loading variant="dark" />

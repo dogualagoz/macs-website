@@ -84,7 +84,7 @@ const NewProjectDetailPage = () => {
 
   if (!project) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#050B14] text-white">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#07132b] text-white">
         <h2 className="text-3xl font-bold mb-4">Proje Bulunamadı</h2>
         <Link to="/projeler" className="text-blue-400 hover:underline">Geri Dön</Link>
       </div>
@@ -92,13 +92,13 @@ const NewProjectDetailPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#050B14] text-slate-200 pt-32">
+    <div className="min-h-screen bg-[#07132b] text-slate-200 pt-32">
       
       {/* Hero Section with Blur Backdrop */}
       <div className="relative h-[60vh] w-full overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img src={project.imageUrl} alt={project.title} className="w-full h-full object-cover opacity-40 blur-sm" onError={handleImageError} />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#050B14] via-[#050B14]/80 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#07132b] via-[#07132b]/80 to-transparent" />
         </div>
 
         <div className="container mx-auto px-4 h-full flex flex-col justify-end pb-12 relative z-10">
