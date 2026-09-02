@@ -23,16 +23,22 @@ function App() {
   const location = useLocation();
   const { pathname, search } = location; 
   const firstRender = useRef(true);
+  const scrollSentinelRef = useRef(null);
 
-  // Effect to handle scroll events and update header styling
+  // Header stilini kaydırma durumuna göre güncelle.
+  // `scroll` event'i yerine sentinel'li IntersectionObserver: kare başına
+  // setState çalıştırmaz, ana thread'i bloklamaz.
   useEffect(() => {
-    const handleScroll = () => {
-      const offset = window.scrollY;
-      setIsScrolled(offset > 50);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    const sentinel = scrollSentinelRef.current;
+    if (!sentinel || typeof IntersectionObserver === 'undefined') {
+      return undefined;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsScrolled(!entry.isIntersecting),
+      { rootMargin: '50px 0px 0px 0px', threshold: 0 }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
@@ -49,6 +55,7 @@ function App() {
     <AuthProvider>
       <ScrollToTop />
       <div className="app">
+        <div ref={scrollSentinelRef} aria-hidden="true" style={{ position: 'absolute', top: 0, left: 0, width: 1, height: 1, pointerEvents: 'none' }} />
         {/* Header'ı sadece admin ve login sayfalarında gösterme */}
         <Routes>
           <Route path="/login" element={null} />
