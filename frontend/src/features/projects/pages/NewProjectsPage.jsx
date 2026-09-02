@@ -9,7 +9,7 @@ import StatsCounter from '../components/StatsCounter';
 import { getMediaUrl } from '../../../shared/utils/media';
 import { handleAvatarError, handleImageError } from '../../../utils/imageUtils';
 import { motion, AnimatePresence } from 'framer-motion';
-import Loading from '../../../shared/components/feedback/Loading';
+import { Skeleton, EventGridSkeleton } from '../../../shared/components/feedback/Skeleton';
 import ErrorMessage from '../../../shared/components/feedback/ErrorMessage';
 import SEO from '../../../shared/components/seo/SEO';
 import { USE_MOCK_FALLBACK } from '../../../shared/utils/mockFallback';
@@ -130,7 +130,15 @@ const NewProjectsPage = () => {
       <div className="min-h-screen bg-[#07132b] text-white overflow-x-hidden relative pt-32">
         <AnimatePresence mode="wait">
         {loading ? (
-          <Loading variant="dark" />
+          <div className="w-full max-w-[1760px] mx-auto px-4 sm:px-6 lg:px-10 py-12">
+            <div className="mb-16 flex flex-col md:flex-row justify-between gap-8">
+              <div className="space-y-4">
+                <Skeleton className="skeleton-line skeleton-line--title" style={{ background: 'rgba(255,255,255,0.1)' }} />
+                <Skeleton className="skeleton-line skeleton-line--med" style={{ background: 'rgba(255,255,255,0.08)' }} />
+              </div>
+            </div>
+            <EventGridSkeleton count={9} dark />
+          </div>
         ) : error ? (
           <ErrorMessage message={error} onRetry={fetchData} />
         ) : (
@@ -201,7 +209,8 @@ const NewProjectsPage = () => {
                     <div className="relative mb-6">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                       <input 
-                        type="text"
+                        type="search"
+                        aria-label="Proje ara"
                         placeholder="Proje ara..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
@@ -246,7 +255,8 @@ const NewProjectsPage = () => {
                     <div className="relative mb-4">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                       <input 
-                        type="text"
+                        type="search"
+                        aria-label="Proje ara"
                         placeholder="Proje ara..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}

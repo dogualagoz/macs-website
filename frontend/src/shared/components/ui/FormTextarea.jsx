@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 import PropTypes from 'prop-types';
 
 export const FormTextarea = ({ 
@@ -10,10 +10,12 @@ export const FormTextarea = ({
   required = false,
   ...props 
 }) => {
+  const fieldId = useId();
   return (
     <div className="form-group">
-      <label className="form-label">{label}</label>
+      <label className="form-label" htmlFor={fieldId}>{label}</label>
       <textarea 
+        id={fieldId}
         rows={rows}
         placeholder={placeholder}
         className="form-textarea"

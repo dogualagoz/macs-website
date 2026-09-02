@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 import PropTypes from 'prop-types';
 
 export const FormSelect = ({ 
@@ -10,10 +10,11 @@ export const FormSelect = ({
   required = false,
   ...props 
 }) => {
+  const fieldId = useId();
   return (
     <div className="form-group">
-      <label className="form-label">{label}</label>
-      <select
+      <label className="form-label" htmlFor={fieldId}>{label}</label>
+      <select id={fieldId}
         className="form-input"
         value={value}
         onChange={onChange}

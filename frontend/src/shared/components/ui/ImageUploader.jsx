@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 import PropTypes from 'prop-types';
 
 export const ImageUploader = ({ 
@@ -7,6 +7,7 @@ export const ImageUploader = ({
   onChange,
   ...props 
 }) => {
+  const inputId = useId();
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file && onChange) {
@@ -16,8 +17,9 @@ export const ImageUploader = ({
 
   return (
     <div className="form-group">
-      <label className="form-label">{label}</label>
+      <label className="form-label" htmlFor={inputId}>{label}</label>
       <input 
+        id={inputId}
         type="file"
         className="form-input"
         accept="image/*"
