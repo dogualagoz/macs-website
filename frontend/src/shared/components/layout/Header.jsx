@@ -39,9 +39,9 @@ const Header = ({ isScrolled = false }) => {
     <header className={`header ${isScrolled ? 'header-scrolled' : ''} ${isProjectsPage ? 'header-dark' : ''}`}>
       <div className="header-container">
         <div className="logo">
-          <a href="/">
-            <img src="/assets/images/img_exclude.png" alt="MACS Logo" />
-          </a>
+          <Link to="/" aria-label="MACS ana sayfa">
+            <img src="/assets/images/img_exclude.webp" alt="MACS Logo" width="44" height="44" />
+          </Link>
         </div>
         <nav className="nav-menu">
           <ul>
@@ -60,13 +60,16 @@ const Header = ({ isScrolled = false }) => {
 
       <div className="responsive-navbar">
         <div className="r-logo">
-              <a href="/"><img src="/assets/images/img_exclude.png" alt="" /></a>
+              <Link to="/"><img src="/assets/images/img_exclude.webp" alt="MACS ana sayfa" /></Link>
         </div>
-        <div className='menu-icon' onClick={toggleMenu}>
-            <img src="/assets/images/img_menu.png" alt="Menu" />
-        </div>
+        <button type="button" className='menu-icon' onClick={toggleMenu}
+          aria-label={menuOpen ? "Menüyü kapat" : "Menüyü aç"} aria-expanded={menuOpen}>
+            <img src="/assets/images/img_menu.png" alt="" />
+        </button>
           <nav className={`r-navbar${menuOpen ? " active" : ""}`}>
-            <img className='close-icon' src="/assets/images/img_close.png" alt="kapat" onClick={toggleMenu} />
+            <button type="button" className='close-icon-btn' onClick={toggleMenu} aria-label="Menüyü kapat">
+              <img className='close-icon' src="/assets/images/img_close.png" alt="" />
+            </button>
             <ul>
               <li><Link to="/#home" onClick={() => setMenuOpen(false)}>Ana Sayfa</Link></li>
               <li><Link to="/etkinlikler" onClick={() => setMenuOpen(false)}>Etkinlikler</Link></li>

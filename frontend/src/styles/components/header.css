@@ -12,7 +12,7 @@
   background-color: var(--header-bg);
   backdrop-filter: blur(12px); /* Buzlu cam efekti */
   -webkit-backdrop-filter: blur(12px);
-  z-index: 1000;
+  z-index: var(--z-nav);
   border-bottom: 1px solid var(--header-border);
   cursor: default;
   transition: all 0.6s ease-in-out;
@@ -274,7 +274,7 @@
     width: 80%;
     height: 100vh;
     background: #ffffff !important;
-    z-index: 9999;
+    z-index: var(--z-nav);
     padding: 1.5rem;
     box-shadow: -10px 0 40px rgba(0, 0, 0, 0.3);
     transform: translateX(100%);
@@ -375,4 +375,19 @@
     height: 24px;
     width: 24px;
   }
+}
+
+/* Menu toggle'lar button elemana tasindi: native reset */
+.menu-icon,
+.close-icon-btn {
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }

@@ -1,6 +1,6 @@
 import '../../../styles/components/team.css'
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { X } from 'lucide-react';
 import { getInitialsAvatar } from '../../../shared/utils/media';
 
@@ -10,7 +10,7 @@ const people_data = {
     role: "Kulüp Başkanı",
     graduate: "Matematik ve Bilgisayar Bilimleri 3. Sınıf",
     bio: "AI geliştirme odaklı",
-    pic: "/assets/images/profiles/efepp.jpeg"
+    pic: "/assets/images/profiles/efepp.webp"
   },
 
   DoguAlagoz: {
@@ -18,35 +18,35 @@ const people_data = {
     role: "Proje Koordinatörlüğü",
     graduate: "Matematik ve Bilgisayar Bilimleri 3. Sınıf",
     bio: "Backend developer ve Mobil geliştirme odaklı",
-    pic: "/assets/images/profiles/dogupp.jpeg"
+    pic: "/assets/images/profiles/dogupp.webp"
   },
   ErenAlpaslan: {
     member: "Eren Alpaslan",
     role: "Denetim Koordinatörlüğü",
     graduate: "Matematik ve Bilgisayar Bilimleri 3. Sınıf",
     bio: "AI geliştirme odaklı",
-    pic: "/assets/images/profiles/erenpp.jpeg"
+    pic: "/assets/images/profiles/erenpp.webp"
   },
   LeylaMammadova: {
     member: "Leyla Mammadova",
     role: "Kurumsal İletişim Koordinatörlüğü",
     graduate: "Matematik ve Bilgisayar Bilimleri 4. Sınıf",
     bio: "Frontend geliştirme odaklı",
-    pic: "/assets/images/profiles/leylapp.jpg"
+    pic: "/assets/images/profiles/leylapp.webp"
   },
   AzraUskup: {
     member: "Azra Üsküp",
     role: "Genel Sekreter",
     graduate: "Matematik ve Bilgisayar Bilimleri 3. Sınıf",
     bio: "Python Geliştirme odaklı",
-    pic: "/assets/images/profiles/azrapp.jpeg"
+    pic: "/assets/images/profiles/azrapp.webp"
   },
   AliErdemGecgel: {
     member: "Ali Erdem Geçgel",
     role: "Halkla İlişkiler",
     graduate: "Matematik ve Bilgisayar Bilimleri 4. Sınıf",
     bio: "Oyun Geliştirme odaklı",
-    pic: "/assets/images/profiles/erdempp.jpeg"
+    pic: "/assets/images/profiles/erdempp.webp"
   },
 };
 
@@ -58,6 +58,15 @@ const TeamSection = () => {
     setSelectedMember(person);
     document.body.style.overflow = 'hidden';
   };
+
+  useEffect(() => {
+    if (!selectedMember) return undefined;
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') closeModal();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [selectedMember]);
 
   const closeModal = () => {
     setSelectedMember(null);
@@ -76,10 +85,12 @@ const TeamSection = () => {
 
           <div className="team-grid">
             {people.map((p, index) => (
-              <div
+              <button
+                type="button"
                 className="team-member"
                 key={index}
                 onClick={() => openModal(p)}
+                aria-haspopup="dialog"
               >
                 <div
                   className="member-avatar"
@@ -96,7 +107,7 @@ const TeamSection = () => {
                   <img src="/assets/images/img_instagram_circle.png" alt="Instagram" />
                   <img src="/assets/images/img_email.png" alt="Email" />
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         </div>
@@ -105,8 +116,10 @@ const TeamSection = () => {
       {/* Member Detail Modal */}
       {selectedMember && (
         <div className="team-modal-overlay" onClick={closeModal}>
-          <div className="team-modal" onClick={(e) => e.stopPropagation()}>
-            <button className="team-modal-close" onClick={closeModal}>
+          <div className="team-modal" role="dialog" aria-modal="true"
+            aria-label={`${selectedMember.member} profili`}
+            onClick={(e) => e.stopPropagation()}>
+            <button className="team-modal-close" onClick={closeModal} aria-label="Profili kapat">
               <X size={24} />
             </button>
             <div className="team-modal-header">
