@@ -274,7 +274,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: var(--z-modal);
   padding: 1rem;
   animation: fadeIn 0.2s ease-out;
 }
@@ -452,4 +452,15 @@
     width: 40px;
     height: 40px;
   }
+}
+
+/* .team-member button elementine tasindi: native reset */
+button.team-member {
+  font: inherit;
+  color: inherit;
+  border: 0;
+  padding: 0;
+  text-align: inherit;
+  cursor: pointer;
+  background: transparent;
 }

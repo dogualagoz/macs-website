@@ -250,8 +250,8 @@
 .Detail-Project-button {
   height: 45px;
   width: 100%;
-  border-radius: 10px;
-  background-color: #000000;
+  border-radius: var(--radius-control);
+  background-color: var(--bg-dark);
   color: #ffffff;
   text-align: center;
   font-family:
@@ -299,7 +299,7 @@
   width: 100%;
   background-color: #f9fafb;
   border: 1px solid #dedfe3;
-  border-radius: 10px;
+  border-radius: var(--radius-control);
   font-family:
     system-ui,
     -apple-system,
@@ -852,4 +852,12 @@
     font-size: 11px;
     padding: 0.3rem;
   }
+}
+
+/* FeaturedProjectCard baslik linki: kart tipografisini koru */
+.Details-tittle a,
+.Details-tittle a:hover,
+.Details-tittle a:visited {
+  color: inherit;
+  text-decoration: none;
 }

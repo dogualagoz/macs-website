@@ -23,7 +23,7 @@ const LogoLoader = ({ isLoading }) => {
             left: 0,
             width: '100%',
             height: '100%',
-            zIndex: 9999
+            zIndex: 'var(--z-loader)'
           }}
         >
           <div className="relative">

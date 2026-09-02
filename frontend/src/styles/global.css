@@ -16,6 +16,12 @@
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas,
     monospace;
   --focus-ring: 0 0 0 2px #ffffff, 0 0 0 4px var(--accent-blue);
+  --radius-control: 8px;
+  --radius-card: 16px;
+  --radius-pill: 9999px;
+  --z-nav: 40;
+  --z-modal: 50;
+  --z-loader: 60;
 }
 
 html {
@@ -78,8 +84,9 @@ body {
   color: white;
   border: none;
   padding: 10px 20px;
-  border-radius: 6px;
-  font-weight: 500;
+  min-height: 44px;
+  border-radius: var(--radius-control);
+  font-weight: 600;
   cursor: pointer;
   transition: background-color 0.2s;
   font-size: 0.9rem;
