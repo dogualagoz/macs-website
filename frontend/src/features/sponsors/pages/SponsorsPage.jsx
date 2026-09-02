@@ -285,6 +285,7 @@ function SponsorsGrid({ sponsors, onSponsorClick }) {
 function SponsorsMap({ sponsors }) {
   const [popupInfo, setPopupInfo] = useState(null);
   const [isClosing, setIsClosing] = useState(false);
+  const [mapError, setMapError] = useState(false);
   const [viewState, setViewState] = useState({
     longitude: eskisehirCenter.lng,
     latitude: eskisehirCenter.lat,
@@ -324,6 +325,41 @@ function SponsorsMap({ sponsors }) {
     }
   };
 
+  const mapFallback = mapError || !MAPBOX_TOKEN;
+  const markerCount = sponsors.filter(s => s.location?.lat && s.location?.lng).length;
+
+  if (mapFallback) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="sponsors-map"
+      >
+        <div
+          className="sponsors-map__container"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '12px',
+            background: '#f3f4f6',
+            color: '#4b5563',
+            textAlign: 'center',
+            padding: '24px',
+          }}
+        >
+          <MapIcon width={40} height={40} />
+          <strong style={{ color: '#1f2937' }}>Harita şu anda yüklenemedi</strong>
+          <span>
+            {markerCount} sponsor konumu listeden görüntülenebilir.
+          </span>
+        </div>
+      </motion.div>
+    );
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -339,6 +375,7 @@ function SponsorsMap({ sponsors }) {
           mapStyle="mapbox://styles/mapbox/streets-v12"
           mapboxAccessToken={MAPBOX_TOKEN}
           onClick={handleClosePopup}
+          onError={() => setMapError(true)}
           reuseMaps
         >
           <NavigationControl position="top-right" />
@@ -592,9 +629,9 @@ function GridIcon() {
   );
 }
 
-function MapIcon() {
+function MapIcon({ width = 18, height = 18 }) {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg width={width} height={height} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
       <circle cx="12" cy="10" r="3" />
     </svg>
