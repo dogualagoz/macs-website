@@ -200,3 +200,30 @@ Her iki durumda da semantik token seti: `--bg`, `--bg-elevated`, `--text`, `--te
 - Empty-state metinleri çoğu listede düşünülmüş.
 - ErrorBoundary bağlı (`App.js:63`) ve stilli.
 - Upload'lar bind-mount stratejisiyle prod'a taşınmaya akıllıca hazırlanmış (docker compose yorumları).
+
+---
+
+## Uygulama Durumu (2026-09-02, design/tasarim-gelistirme)
+
+Rapor kapsamindaki tum maddeler bu branch'te 24 commit ile uygulandi:
+
+- [x] Hero: scrim/kontrast, CTA, clamp tipografi, dvh, reduced-motion
+- [x] Self-host fontlar (Outfit + JetBrains Mono) + `--font-sans/--font-mono`
+- [x] Semantik token'lar: zemin/navy birlestirme, `--z-*`, `--radius-*`
+- [x] Global `:focus-visible` + `prefers-reduced-motion` tabani
+- [x] Skeleton sistemi (`feedback/Skeleton.jsx`) — Etkinlikler/Projeler/Sponsorlar
+- [x] Buton konsolidasyonu: `macs-btn` cekirdek sistemi + legacy CTA token gecisi
+- [x] A11y: Form* bilesenlerinde label-id, header/team div→button, modal dialog+Escape,
+      kart basliklarinda gercek linkler, arama aria-label
+- [x] Sahte `setTimeout` yuklemeleri kaldirildi (Home/About)
+- [x] Login ekrani markalaştirildi (navy panel, logo, 44px hedefler)
+- [x] Detay sayfalarina dinamik SEO + OG dublikasyon duzeltmesi
+- [x] Gorsel optimizasyonu: hero/profil/proje webp donusumu (`scripts/convert-images-webp.py`),
+      kritik img'lerde width/height + lazy
+- [x] Olu CSS (6 dosya) ve " 2" kopya dosyalari silindi
+- [x] App.js scroll listener → IntersectionObserver
+- [x] Gecmis etkinlikler: aylik "Etkinlik Arsivi" timeline'i (grid tektipliligi kirma)
+
+Kalmadi; ileriye yonelik notlar: DB'deki uploads gorselleri lokalde yok (volume
+sorunu, tasarim degil), Tailwind utility'lerinin bir kismi (events sayfasindaki
+`bg-gray-900` butonlar vb.) ileride `macs-btn`'e tasinabilir.
