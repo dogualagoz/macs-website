@@ -7,6 +7,7 @@ import Loading from '../../../shared/components/feedback/Loading';
 import ErrorMessage from '../../../shared/components/feedback/ErrorMessage';
 import { USE_MOCK_FALLBACK } from '../../../shared/utils/mockFallback';
 import { handleAvatarError, handleImageError } from '../../../utils/imageUtils';
+import SEO from '../../../shared/components/seo/SEO';
 
 /**
  * New ProjectDetailPage Component
@@ -92,6 +93,14 @@ const NewProjectDetailPage = () => {
   }
 
   return (
+    <>
+    <SEO
+      title={project.title}
+      description={(project.shortDescription || '').slice(0, 160)}
+      image={project.imageUrl}
+      url={`https://esogumacs.com/projeler/${id}`}
+      type="article"
+    />
     <div className="min-h-screen bg-[#07132b] text-slate-200 pt-32">
       
       {/* Hero Section with Blur Backdrop */}
@@ -253,6 +262,7 @@ const NewProjectDetailPage = () => {
       </div>
 
     </div>
+    </>
   );
 };
 

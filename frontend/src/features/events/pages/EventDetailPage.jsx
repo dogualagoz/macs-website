@@ -19,6 +19,7 @@ import { mockEvents } from '../data/mockEvents';
 import { getImageUrl } from '../../../utils/imageUtils';
 import { markdownishToHtml } from '../../../shared/utils/richText';
 import '../../../styles/pages/events2.css'
+import SEO from '../../../shared/components/seo/SEO';
 
 /**
  * MACS Etkinlik Sayfası – Plan A (arka plan beyaz, hero lacivert overlay, kartlar beyaz)
@@ -129,6 +130,14 @@ function EventPageView({ event }) {
   const { aboutHtml, programLines } = splitContent(event.content);
 
   return (
+    <>
+    <SEO
+      title={event.title}
+      description={(event.description || '').slice(0, 160)}
+      image={getImageUrl(event.image_url)}
+      url={`https://esogumacs.com/etkinlikler/${event.slug || ''}`}
+      type="article"
+    />
     <div className="min-h-screen bg-white text-[#07132b]">
       {/* Hero */}
       <section className="relative overflow-hidden">
@@ -356,6 +365,7 @@ function EventPageView({ event }) {
         MACS • Matematik ve Bilgisayar Bilimleri Topluluğu
       </footer>
     </div>
+    </>
   );
 }
 
