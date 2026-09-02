@@ -1,268 +1,229 @@
-/* Team Section */
+/* Team Section — hiyerarsik: Yonetim Kurulu (buyuk kartlar) + Koordinatorler (kompakt) */
+
 .team-section {
   background-color: #ffffff;
-  padding: 68px 0 36px;
+  padding: 72px 0 48px;
   border-bottom: 1px solid #e3e3e3;
+}
+
+.team-section .container {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 1rem;
 }
 
 .team-section .section-title {
   font-size: 32px;
-  margin-bottom: 17px;
+  margin-bottom: 12px;
   font-weight: 700;
-  color: #1e1e1e;
+  color: #07132b;
   text-align: center;
 }
 
 .team-section .section-subtitle {
   color: #454851;
-  margin-bottom: 72px;
+  margin-bottom: 48px;
   white-space: pre-line;
   text-align: center;
   font-size: 16px;
   line-height: 22px;
+  max-width: 640px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
-.team-grid {
+.team-group-title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6b7280;
+  margin: 0 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.team-group-title::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #e5e7eb;
+}
+
+/* native button reset (kartlar button elementi) */
+.team-board-card,
+.team-coord-card {
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+  text-align: center;
+}
+
+/* --- Yonetim Kurulu kartlari --- */
+.team-board {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 27px;
-  margin-bottom: 35px;
+  gap: 24px;
+  margin-bottom: 48px;
 }
 
-.team-member {
-  background-color: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.22);
-  border-radius: 12px 8px 8px 12px;
-  padding: 24px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
+.team-board-card {
+  border: 1px solid #e5e7eb;
+  border-radius: var(--radius-card, 16px);
+  background: #ffffff;
+  padding: 32px 24px 28px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
-.team-member:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
-  border-color: #07132b;
-}
-
-.team-member:hover .member-avatar {
-  transform: scale(1.05);
+.team-board-card:hover,
+.team-board-card:focus-visible {
+  transform: translateY(-4px);
+  border-color: rgba(7, 19, 43, 0.25);
+  box-shadow: 0 16px 32px rgba(7, 19, 43, 0.1);
 }
 
 .member-avatar {
-  width: 96px;
-  height: 96px;
-  background-color: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.11);
   border-radius: 50%;
-  margin: 0 auto 16px;
+  background-color: #f3f4f6;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  transition: transform 0.3s ease;
 }
 
-.member-name {
+.member-avatar--lg {
+  width: 112px;
+  height: 112px;
+  margin: 0 auto 18px;
+  border: 3px solid rgba(7, 19, 43, 0.08);
+  box-shadow: 0 6px 18px rgba(7, 19, 43, 0.12);
+}
+
+.team-board-card .member-name {
   font-size: 20px;
-  font-weight: 600;
-  line-height: 25px;
-  color: #101827;
-  margin-bottom: 5px;
-  font-family: var(--font-sans);
+  font-weight: 700;
+  line-height: 1.3;
+  color: #07132b;
+  margin: 0 0 10px;
 }
 
-.member-role {
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 16px;
-  color: #6b7280;
-  margin-bottom: 8px;
-  font-family: var(--font-sans);
-}
-
-.member-department {
+.member-role-pill {
+  display: inline-block;
+  padding: 5px 14px;
+  border-radius: var(--radius-pill, 9999px);
+  background: var(--bg-dark, #07132b);
+  color: #ffffff;
   font-size: 12px;
   font-weight: 600;
-  line-height: 15px;
-  color: #9ca3af;
-  margin-bottom: 10px;
-  font-family: var(--font-sans);
-}
-
-.member-bio {
-  font-size: 11px;
-  font-weight: 600;
-  line-height: 14px;
-  color: #6b7280;
+  letter-spacing: 0.01em;
   margin-bottom: 12px;
-  font-family: var(--font-sans);
 }
 
+.team-board-card .member-department {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.team-board-card .member-bio {
+  font-size: 13px;
+  color: #454851;
+  margin: 10px 0 0;
+  line-height: 1.5;
+}
+
+/* --- Koordinator kartlari --- */
+.team-coord-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.team-coord-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  text-align: left;
+  border: 1px solid #e5e7eb;
+  border-radius: var(--radius-card, 16px);
+  background: #ffffff;
+  padding: 16px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.team-coord-card:hover,
+.team-coord-card:focus-visible {
+  transform: translateY(-2px);
+  border-color: rgba(7, 19, 43, 0.25);
+  box-shadow: 0 10px 24px rgba(7, 19, 43, 0.08);
+}
+
+.member-avatar--sm {
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  border: 2px solid rgba(7, 19, 43, 0.08);
+}
+
+.team-coord-card__text {
+  min-width: 0;
+}
+
+.team-coord-card .member-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #07132b;
+  margin: 0 0 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.team-coord-card .member-role {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-blue, #0052cc);
+  margin: 0 0 2px;
+}
+
+.team-coord-card .member-department {
+  font-size: 12px;
+  color: #9ca3af;
+  margin: 0;
+}
+
+/* --- Modal ici sosyal linkler --- */
 .member-social {
   display: flex;
   justify-content: center;
-  gap: 8px;
+  gap: 12px;
+}
+
+.member-social .social-link {
+  width: 44px;
+  height: 44px;
+  background: #f3f4f6;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.member-social .social-link:hover {
+  background: #07132b;
+  transform: translateY(-2px);
+}
+
+.member-social .social-link:hover img {
+  filter: brightness(0) invert(1);
 }
 
 .member-social img {
-  width: 15px;
-  height: 15px;
-}
-
-.text-center {
-  cursor: pointer;
-  text-align: center;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .team-section {
-    padding: 40px 0 24px;
-  }
-
-  .team-section .section-title {
-    font-size: 26px;
-    margin-bottom: 12px;
-  }
-
-  .team-section .section-subtitle {
-    font-size: 14px;
-    margin-bottom: 40px;
-    padding: 0 1rem;
-  }
-
-  .team-grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
-    padding: 0 1rem;
-  }
-
-  .team-member {
-    padding: 18px;
-  }
-
-  .member-avatar {
-    width: 80px;
-    height: 80px;
-  }
-
-  .member-name {
-    font-size: 18px;
-  }
-}
-
-@media (max-width: 480px) {
-  .team-section {
-    padding: 32px 0 20px;
-  }
-
-  .team-section .section-title {
-    font-size: 22px;
-  }
-
-  .team-section .section-subtitle {
-    font-size: 13px;
-    line-height: 20px;
-    margin-bottom: 28px;
-  }
-
-  .team-grid {
-    gap: 12px;
-    padding: 0 0.75rem;
-  }
-
-  .team-member {
-    padding: 14px;
-    border-radius: 10px;
-  }
-
-  .member-avatar {
-    width: 72px;
-    height: 72px;
-    margin-bottom: 12px;
-  }
-
-  .member-name {
-    font-size: 16px;
-    line-height: 22px;
-  }
-
-  .member-role {
-    font-size: 12px;
-  }
-
-  .member-department {
-    font-size: 11px;
-  }
-
-  .view-more-team {
-    padding: 8px 14px;
-    font-size: 14px;
-  }
-}
-
-.view-more-team {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-self: center;
-  gap: 8px;
-  font-size: 16px;
-  font-weight: 500;
-  color: #333;
-  background: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 10px 16px;
-  cursor: pointer;
-  transition: all 0.3s ease-in-out;
-}
-
-.view-more-team span {
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.view-more-team img {
-  cursor: pointer;
-}
-
-/* Alt çizgi */
-.view-more-team::after {
-  content: "";
-  position: absolute;
-  bottom: 4px;
-  left: 0;
-  height: 2px;
-  width: 0;
-  background-color: #007bff;
-  transition: width 0.3s ease-in-out;
-}
-
-/* Hover efektleri */
-.view-more-team:hover {
-  transform: scale(1.05); /* hafif büyüme */
-  box-shadow: 0 0 12px rgba(0, 123, 255, 0.4); /* glow ışık */
-  color: #007bff;
-}
-
-.view-more-team:hover::after {
-  width: 100%;
-}
-
-/* İkon kayma */
-.view-more-team img {
-  transition: transform 0.3s ease;
-}
-
-.view-more-team:hover img {
-  transform: translateX(4px);
-}
-
-/* Basma efekti (aşağı kayma) */
-.view-more-team:active {
-  transform: translateY(2px) scale(1.02); /* hafif aşağı inme */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* gölge daha azalsın */
+  width: 20px;
+  height: 20px;
+  transition: filter 0.2s ease;
 }
 
 /* Team Member Modal */
@@ -392,38 +353,6 @@
   margin-bottom: 20px;
 }
 
-.team-modal-social {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-}
-
-.team-modal-social .social-link {
-  width: 44px;
-  height: 44px;
-  background: #f3f4f6;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-}
-
-.team-modal-social .social-link:hover {
-  background: #07132b;
-  transform: translateY(-2px);
-}
-
-.team-modal-social .social-link:hover img {
-  filter: brightness(0) invert(1);
-}
-
-.team-modal-social img {
-  width: 20px;
-  height: 20px;
-  transition: filter 0.2s ease;
-}
-
 /* Modal Responsive */
 @media (max-width: 480px) {
   .team-modal {
@@ -448,19 +377,44 @@
     font-size: 1.25rem;
   }
 
-  .team-modal-social .social-link {
+  .member-social .social-link {
     width: 40px;
     height: 40px;
   }
 }
 
-/* .team-member button elementine tasindi: native reset */
-button.team-member {
-  font: inherit;
-  color: inherit;
-  border: 0;
-  padding: 0;
-  text-align: inherit;
-  cursor: pointer;
-  background: transparent;
+/* --- Responsive kart duzenleri --- */
+@media (max-width: 900px) {
+  .team-board {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .team-coord-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .team-section {
+    padding: 48px 0 32px;
+  }
+
+  .team-section .section-title {
+    font-size: 26px;
+  }
+
+  .team-section .section-subtitle {
+    font-size: 14px;
+    margin-bottom: 36px;
+  }
+
+  .team-coord-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .member-avatar--lg {
+    width: 96px;
+    height: 96px;
+  }
 }
