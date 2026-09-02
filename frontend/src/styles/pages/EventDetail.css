@@ -1,6 +1,6 @@
 /* General */
 .event-detail-page {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-sans);
   background: #fafbfc;
   min-height: 100vh;
   color: #111;

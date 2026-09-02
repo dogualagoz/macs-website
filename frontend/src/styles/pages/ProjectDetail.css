@@ -6,7 +6,7 @@
 }
 
 .project-detail-page {
-  font-family: 'Roboto', sans-serif;
+  font-family: var(--font-sans);
   background-color: #f8f8f8;
   color: #191919;
 }

@@ -862,7 +862,7 @@
   border-radius: 10px;
   padding: 20px;
   text-align: center;
-  font-family: "Roboto", sans-serif;
+  font-family: var(--font-sans);
   color: #b00020;
 }
 

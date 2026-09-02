@@ -32,7 +32,7 @@
   text-align: center;
   color: #000000;
   margin-bottom: 21px;
-  font-family: "Roboto", sans-serif;
+  font-family: var(--font-sans);
 }
 
 .mission-text {
@@ -57,7 +57,7 @@
   text-align: center;
   color: #000000;
   margin-bottom: 17px;
-  font-family: "Roboto", sans-serif;
+  font-family: var(--font-sans);
 }
 
 .values-grid {

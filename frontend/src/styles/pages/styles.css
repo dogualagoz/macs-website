@@ -5,7 +5,7 @@
 }
 
 body {
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-sans);
   line-height: 1.6;
   color: #1e1e1e;
   background-color: #ffffff;
@@ -106,7 +106,7 @@ body {
   line-height: 88px;
   color: #1e1e1e;
   margin-bottom: 40px;
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-sans);
 }
 
 .hero-description {
@@ -142,7 +142,7 @@ body {
   text-align: center;
   color: #000000;
   margin-bottom: 14px;
-  font-family: "Roboto", sans-serif;
+  font-family: var(--font-sans);
 }
 
 .section-subtitle {
@@ -152,7 +152,7 @@ body {
   text-align: center;
   color: #454d6c;
   margin-bottom: 37px;
-  font-family: "Roboto", sans-serif;
+  font-family: var(--font-sans);
   white-space: pre-line;
 }
 
@@ -260,7 +260,7 @@ body {
   line-height: 26px;
   color: #000000;
   margin-bottom: 20px;
-  font-family: "Roboto", sans-serif;
+  font-family: var(--font-sans);
 }
 
 .event-description {
@@ -269,7 +269,7 @@ body {
   line-height: 17px;
   color: #585454;
   margin-bottom: 15px;
-  font-family: "Roboto", sans-serif;
+  font-family: var(--font-sans);
 }
 
 .event-details {
@@ -506,7 +506,7 @@ body {
   line-height: 21px;
   color: #4b5563;
   margin-bottom: 28px;
-  font-family: "Roboto", sans-serif;
+  font-family: var(--font-sans);
 }
 
 .project-tags {
@@ -523,7 +523,7 @@ body {
   border-radius: 11px;
   font-size: 12px;
   font-weight: 500;
-  font-family: "Roboto", sans-serif;
+  font-family: var(--font-sans);
 }
 
 .project-actions {
@@ -580,7 +580,7 @@ body {
   cursor: pointer;
   transition: all 0.3s ease;
   border: none;
-  font-family: "Roboto", sans-serif;
+  font-family: var(--font-sans);
 }
 
 .project-filter.active {
@@ -702,7 +702,7 @@ body {
   font-size: 12px;
   font-weight: 500;
   color: #6b7280;
-  font-family: "Roboto", sans-serif;
+  font-family: var(--font-sans);
 }
 
 .project-card-arrow {
@@ -725,7 +725,7 @@ body {
   transition: all 0.3s ease;
   border: none;
   cursor: pointer;
-  font-family: "Roboto", sans-serif;
+  font-family: var(--font-sans);
 }
 
 .view-all-projects-btn:hover {
@@ -787,7 +787,7 @@ body {
   font-weight: 600;
   line-height: 18px;
   color: #101827;
-  font-family: "Roboto", sans-serif;
+  font-family: var(--font-sans);
 }
 
 .blog-date {
@@ -795,7 +795,7 @@ body {
   font-weight: 700;
   line-height: 16px;
   color: #808693;
-  font-family: "Roboto", sans-serif;
+  font-family: var(--font-sans);
 }
 
 .blog-title {
@@ -804,7 +804,7 @@ body {
   line-height: 22px;
   color: #101827;
   margin-bottom: 9px;
-  font-family: "Roboto", sans-serif;
+  font-family: var(--font-sans);
 }
 
 .blog-excerpt {
@@ -813,7 +813,7 @@ body {
   line-height: 19px;
   color: #6b727e;
   margin-bottom: 17px;
-  font-family: "Roboto", sans-serif;
+  font-family: var(--font-sans);
 }
 
 .blog-footer {
@@ -834,7 +834,7 @@ body {
   border-radius: 4px;
   font-size: 11px;
   font-weight: 500;
-  font-family: "Roboto", sans-serif;
+  font-family: var(--font-sans);
 }
 
 .blog-read-more {
@@ -848,7 +848,7 @@ body {
   font-size: 13px;
   font-weight: 500;
   color: #101827;
-  font-family: "Roboto", sans-serif;
+  font-family: var(--font-sans);
 }
 
 .blog-read-more img {
@@ -932,7 +932,7 @@ body {
   line-height: 22px;
   color: #101827;
   margin-bottom: 13px;
-  font-family: "Roboto", sans-serif;
+  font-family: var(--font-sans);
 }
 
 .resource-description {
@@ -941,7 +941,7 @@ body {
   line-height: 15px;
   color: #5e6670;
   white-space: pre-line;
-  font-family: "Roboto", sans-serif;
+  font-family: var(--font-sans);
 }
 
 .resources-note {
@@ -1051,7 +1051,7 @@ body {
   font-size: 20px;
   font-weight: 400;
   color: rgba(53, 54, 59, 0.99);
-  font-family: "Roboto", sans-serif;
+  font-family: var(--font-sans);
 }
 
 .view-more-team img {
@@ -1094,7 +1094,7 @@ body {
   text-align: center;
   color: #000000;
   margin-bottom: 21px;
-  font-family: "Roboto", sans-serif;
+  font-family: var(--font-sans);
 }
 
 .mission-text {
@@ -1119,7 +1119,7 @@ body {
   text-align: center;
   color: #000000;
   margin-bottom: 17px;
-  font-family: "Roboto", sans-serif;
+  font-family: var(--font-sans);
 }
 
 .values-grid {
