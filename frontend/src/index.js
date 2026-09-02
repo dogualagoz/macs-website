@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 // Tailwind önce: proje CSS'i utility'leri ezebilsin.
 import './styles/tailwind.css';
 import './styles/global.css';
+import './styles/components/buttons.css';
 import App from './App';
 import { BrowserRouter } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
