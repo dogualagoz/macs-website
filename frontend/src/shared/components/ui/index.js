@@ -4,6 +4,7 @@ export { default as EventSlider } from './EventSlider';
 export { default as ProjectCard } from './ProjectCard';
 export { default as FeaturedProjectCard } from './FeaturedProjectCard';
 export { default as ProjectSlider } from './ProjectSlider';
+export { default as GradientBackground } from './GradientBackground';
 export { FormInput } from './FormInput';
 export { FormTextarea } from './FormTextarea';
 export { FormSelect } from './FormSelect';
