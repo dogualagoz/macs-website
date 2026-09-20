@@ -135,7 +135,7 @@ function EventPageView({ event }) {
       title={event.title}
       description={(event.description || '').slice(0, 160)}
       image={getImageUrl(event.image_url)}
-      url={`https://esogumacs.com/etkinlikler/${event.slug || ''}`}
+      url={`https://macsclub.com.tr/etkinlikler/${event.slug || ''}`}
       type="article"
     />
     <div className="min-h-screen bg-white text-[#07132b]">

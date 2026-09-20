@@ -98,7 +98,7 @@ const NewProjectDetailPage = () => {
       title={project.title}
       description={(project.shortDescription || '').slice(0, 160)}
       image={project.imageUrl}
-      url={`https://esogumacs.com/projeler/${id}`}
+      url={`https://macsclub.com.tr/projeler/${id}`}
       type="article"
     />
     <div className="min-h-screen bg-[#07132b] text-slate-200 pt-32">

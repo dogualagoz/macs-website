@@ -131,7 +131,7 @@ const NewProjectsPage = () => {
         title="Projeler"
         description="MACS topluluğu üyelerinin geliştirdiği yazılım projeleri: Web, mobil, yapay zeka ve oyun projeleri. Açık kaynak ve inovatif çalışmalar."
         keywords="MACS projeleri, yazılım projeleri, açık kaynak, web geliştirme, mobil uygulama, yapay zeka, ESOGÜ"
-        url="https://esogumacs.com/projeler"
+        url="https://macsclub.com.tr/projeler"
       />
       <div className="min-h-screen bg-[#07132b] text-white overflow-x-hidden relative">
         {/* Sayfa arkaplanı — içerikle birlikte kayar */}

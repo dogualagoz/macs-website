@@ -105,7 +105,7 @@ const AboutPage = () => {
         title="Hakkımızda - MACS"
         description="MACS, Eskişehir Osmangazi Üniversitesi Matematik ve Bilgisayar Bilimleri Bölümü öğrencilerinin kurduğu, yazılım projeleri ve etkinlikler düzenleyen aktif bir öğrenci topluluğudur."
         keywords="MACS, Hakkımızda, Matematik, Bilgisayar Bilimleri, ESOGÜ, topluluk"
-        url="https://esogumacs.com/hakkimizda"
+        url="https://macsclub.com.tr/hakkimizda"
       />
 
       <motion.div

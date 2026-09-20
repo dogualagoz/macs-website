@@ -16,7 +16,7 @@ export default function TeamPage() {
         title="Ekibimiz"
         description="MACS yönetim kurulu ve koordinatörleri: Eskişehir Osmangazi Üniversitesi Matematik ve Bilgisayar Bilimleri Bölümü'nden dokuz öğrenci."
         keywords="MACS ekip, yönetim kurulu, koordinatörler, ESOGÜ, Matematik ve Bilgisayar Bilimleri"
-        url="https://esogumacs.com/ekibimiz"
+        url="https://macsclub.com.tr/ekibimiz"
       />
       <div className="page-content fade-in team-page">
         <TeamSection as="h1" />

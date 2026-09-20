@@ -1,11 +1,11 @@
 # robots.txt for MACS Website
-# https://esogumacs.com
+# https://macsclub.com.tr
 
 User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://esogumacs.com/sitemap.xml
+Sitemap: https://macsclub.com.tr/sitemap.xml
 
 # Disallow admin pages
 Disallow: /admin

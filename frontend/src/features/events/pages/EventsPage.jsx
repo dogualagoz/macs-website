@@ -33,7 +33,7 @@ export default function Events() {
         title="Etkinlikler"
         description="MACS topluluğunun düzenlediği yazılım atölyeleri, seminerler, hackathonlar ve networking etkinlikleri. Öğrenmeye ve gelişmeye hazır mısın?"
         keywords="MACS etkinlikleri, yazılım atölyesi, hackathon, seminer, ESOGÜ etkinlik"
-        url="https://esogumacs.com/etkinlikler"
+        url="https://macsclub.com.tr/etkinlikler"
       />
       <div className="min-h-screen bg-white pt-20">
       {/* Header Section */}

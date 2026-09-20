@@ -110,7 +110,7 @@ export default function SponsorsPage() {
         title="Sponsorlarımız"
         description="MACS topluluğunu destekleyen değerli sponsorlar ve iş ortakları. Eskişehir'deki teknoloji ekosisteminin güçlü paydaşları."
         keywords="MACS sponsorları, sponsor, iş ortağı, Eskişehir teknoloji, destek"
-        url="https://esogumacs.com/sponsorluk"
+        url="https://macsclub.com.tr/sponsorluk"
       />
       <div className={`sponsors-page ${hasSplit ? 'sponsors-page--split' : ''}`}>
       {hasSplit ? (
