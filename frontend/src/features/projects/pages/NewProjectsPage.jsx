@@ -116,7 +116,7 @@ const NewProjectsPage = () => {
       }}
       className={`relative px-6 py-3 rounded-full flex items-center gap-2 transition-all duration-300 font-medium cursor-pointer ${
         activeTab === id
-          ? 'bg-macs-accent-500 text-white shadow-[0_0_20px_rgba(196,62,115,0.5)]'
+          ? 'bg-macs-accent-500 text-white shadow-[0_0_20px_rgba(242,49,124,0.5)]'
           : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
       }`}
     >

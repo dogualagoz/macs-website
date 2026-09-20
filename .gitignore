@@ -68,3 +68,8 @@ yarn-error.log*
 # DB dump (gercek kullanici e-postalari + bcrypt hash iceriyor, git'e girmemeli)
 macs_db.sql
 *.sql.gz
+
+# Ham fotograf kaynaklari (repoya girmez; islenmis webp'ler
+# frontend/public/assets/images/profiles/ altinda tutuluyor)
+photos/
+fotolar/

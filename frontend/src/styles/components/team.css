@@ -1,196 +1,310 @@
-/* Team Section — hiyerarsik: Yonetim Kurulu (buyuk kartlar) + Koordinatorler (kompakt) */
+/* Team Section — dokuz levha
+   Kart yok, golge yok, cerceve yok: fotograflarin kendisi bolumun govdesi.
+   Dokuz kare dokuz ayri telefonda, dokuz ayri isikta cekildi; bir arada
+   durmalarini saglayan sey CSS filtresi degil, dosyalarin kendisinin ayni
+   olcuye getirilmis olmasi (bkz. scripts/portraits.py). Uzerine geldiginiz
+   levhadan lacivert perde kalkar. */
 
 .team-section {
+  /* --- renk: hepsi global.css'ten ya da ondan turetilmis --- */
+  --navy: var(--bg-dark, #07132b);
+  --paper: #f2f5fa;                 /* murekkep rampasinin kagit ucu */
+  --blue: var(--accent-blue, #0052cc);
+  --blue-200: #9fc1ff;              /* lacivert uzerinde rol satiri (#0052CC 1.9:1, kullanilamaz) */
+  --rule: #e5e7eb;                  /* sitenin mevcut hairline'i */
+  --muted: #6b7280;
+  --lede: #515b69;                  /* about.css ile ayni govde grisi */
+
+  /* --- geometri --- */
+  --plate-ratio: 3 / 4;             /* kaynak dosyalarin gercek orani: 900x1200 */
+  --plate-gap: 24px;
+  --plate-radius: 6px;              /* About kartlari 7px; bunlar kart degil, baski */
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  /* dokuz levhanin tamamina giden TEK gren dokusu */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='150' height='150' filter='url(%23g)'/%3E%3C/svg%3E");
+
   background-color: #ffffff;
-  padding: 72px 0 48px;
-  border-bottom: 1px solid #e3e3e3;
+  padding: 72px 0 80px;
 }
 
-.team-section .container {
-  max-width: 1080px;
-  margin: 0 auto;
-  padding: 0 1rem;
-}
+/* Bolum sitenin kendi olcusunu kullanir (global .container = 1200 / 20px),
+   boylece izgaranin kenarlari ustteki Hakkimizda kartlariyla ayni cizgide durur.
+   Eski 1080px override'i bilerek kaldirildi. */
 
+/* --- Baslik: About ile birebir ayni ritim (ortali, 32/600) --- */
 .team-section .section-title {
   font-size: 32px;
-  margin-bottom: 12px;
-  font-weight: 700;
-  color: #07132b;
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--navy);
   text-align: center;
+  margin: 0 0 14px;
 }
 
-.team-section .section-subtitle {
-  color: #454851;
-  margin-bottom: 48px;
-  white-space: pre-line;
+.team-lede {
+  max-width: 640px;
+  margin: 0 auto 48px;
   text-align: center;
   font-size: 16px;
-  line-height: 22px;
-  max-width: 640px;
-  margin-left: auto;
-  margin-right: auto;
+  font-weight: 500;
+  line-height: 26px;
+  color: var(--lede);
 }
 
-.team-group-title {
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #6b7280;
-  margin: 0 0 16px;
+/* --- Kademe cizgisi: mevcut team.css'ten korunan tek yapisal oge --- */
+.team-rank {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
+  margin: 0 0 20px;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--navy);
 }
 
-.team-group-title::after {
+.team-rank::after {
   content: "";
   flex: 1;
   height: 1px;
-  background: #e5e7eb;
+  background: var(--rule);
 }
 
-/* native button reset (kartlar button elementi) */
-.team-board-card,
-.team-coord-card {
+/* --- Izgara: dokuz kisi, dokuz esit levha ---
+   Sinif adi bilerek .team-plates; .team-grid pages/about.css'te Hakkimizda
+   sayfasinin kendi ekip izgarasi icin zaten kullaniliyor ve CRA tum CSS'i tek
+   pakette topladigi icin iki bolum birbirinin kirilma noktalarini eziyordu. */
+.team-plates {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--plate-gap);
+  align-items: start;
+}
+
+.team-plates--kurul {
+  margin-bottom: 56px;
+}
+
+/* --- Kisi = button. Gorunur kutu yok. --- */
+.team-person {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
   font: inherit;
   color: inherit;
-  background: transparent;
+  text-align: left;
   cursor: pointer;
-  text-align: center;
 }
 
-/* --- Yonetim Kurulu kartlari --- */
-.team-board {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-  margin-bottom: 48px;
+.team-person:focus-visible {
+  outline: none;
 }
 
-.team-board-card {
-  border: 1px solid #e5e7eb;
-  border-radius: var(--radius-card, 16px);
-  background: #ffffff;
-  padding: 32px 24px 28px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+.team-person:focus-visible .team-plate {
+  outline: 3px solid var(--blue);
+  outline-offset: 3px;
 }
 
-.team-board-card:hover,
-.team-board-card:focus-visible {
-  transform: translateY(-4px);
-  border-color: rgba(7, 19, 43, 0.25);
-  box-shadow: 0 16px 32px rgba(7, 19, 43, 0.1);
+/* --- Levha --- */
+.team-plate {
+  position: relative;
+  display: block;
+  isolation: isolate;
+  aspect-ratio: var(--plate-ratio);
+  border-radius: var(--plate-radius);
+  overflow: hidden;
+  background: var(--paper);
 }
 
-.member-avatar {
-  border-radius: 50%;
-  background-color: #f3f4f6;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+.team-plate__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Dosyalar zaten 3:4 ve yuze gore kadrajli; kutu da 3:4 oldugu icin burada
+     kirpma olmuyor. object-position yalnizca oranin degistigi yerde is goruyor. */
+  object-position: 50% 42%;
 }
 
-.member-avatar--lg {
-  width: 112px;
-  height: 112px;
-  margin: 0 auto 18px;
-  border: 3px solid rgba(7, 19, 43, 0.08);
-  box-shadow: 0 6px 18px rgba(7, 19, 43, 0.12);
+/* 1) Murekkep: dokuz farkli isigi tek lacivert rampaya oturtur.
+      Radyal katman kalabalik arka planlari kosede sondurur, yuzu acik birakir. */
+.team-plate__ink {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 78% 62% at 50% 34%,
+      rgba(7, 19, 43, 0) 0%, rgba(7, 19, 43, 0) 46%, rgba(7, 19, 43, 0.44) 100%),
+    linear-gradient(180deg, rgba(7, 19, 43, 0.2) 0%, rgba(7, 19, 43, 0.46) 100%);
+  opacity: var(--press, 0.42);
+  transition: opacity 0.42s var(--ease);
 }
 
-.team-board-card .member-name {
-  font-size: 20px;
-  font-weight: 700;
-  line-height: 1.3;
-  color: #07132b;
-  margin: 0 0 10px;
+/* 2) Gren: dokuz sensorun gurultu tabanini esitler, hafif buyutmeyi baski
+      dokusu gibi gosterir. Overlay desteklenmezse yalnizca sonuk bir doku kalir. */
+.team-plate__grain {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background-image: var(--grain);
+  background-size: 150px 150px;
+  mix-blend-mode: overlay;
+  opacity: var(--grain-op, 0.18);
+  transition: opacity 0.42s var(--ease);
 }
 
-.member-role-pill {
+/* --- Kunye: kurul fotografin ICINDE, koordinatorler sayfanin USTUNDE --- */
+.team-plate__id {
+  position: absolute;
+  z-index: 3;
+  inset: auto 0 0 0;
+  padding: 96px 22px 20px;
+  background: linear-gradient(180deg,
+    rgba(7, 19, 43, 0) 0%, rgba(7, 19, 43, 0.55) 46%, rgba(7, 19, 43, 0.95) 100%);
+}
+
+.team-person__cap {
+  display: block;
+  padding: 14px 2px 0;
+}
+
+.team-person__name {
   display: inline-block;
-  padding: 5px 14px;
-  border-radius: var(--radius-pill, 9999px);
-  background: var(--bg-dark, #07132b);
-  color: #ffffff;
-  font-size: 12px;
+  margin: 0 0 4px;
+  font-size: 18px;
   font-weight: 600;
-  letter-spacing: 0.01em;
-  margin-bottom: 12px;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--navy);
 }
 
-.team-board-card .member-department {
-  font-size: 13px;
-  color: #6b7280;
+/* Kart olmadigi icin tiklanabilirligi soyleyen tek isaret */
+.team-person__name::after {
+  content: "";
+  display: block;
+  height: 1px;
+  margin-top: 3px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.22s var(--ease);
+}
+
+.team-person__role {
+  display: block;
+  margin: 0 0 2px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--blue);
+}
+
+.team-person__year {
+  display: block;
   margin: 0;
-}
-
-.team-board-card .member-bio {
   font-size: 13px;
-  color: #454851;
-  margin: 10px 0 0;
-  line-height: 1.5;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--muted);
 }
 
-/* --- Koordinator kartlari --- */
-.team-coord-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+.team-plate__id .team-person__name {
+  font-size: 22px;
+  font-weight: 700;
+  color: #ffffff;
 }
 
-.team-coord-card {
+.team-plate__id .team-person__role {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--blue-200);
+}
+
+.team-plate__id .team-person__year {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.66);
+}
+
+/* --- Etkilesim: hareket eden tek sey perde. Kalkma, olcek, golge yok. --- */
+.team-person:hover .team-plate__ink,
+.team-person:focus-visible .team-plate__ink {
+  opacity: 0;
+}
+
+.team-person:hover .team-plate__grain,
+.team-person:focus-visible .team-plate__grain {
+  opacity: 0.05;
+}
+
+.team-person:hover .team-person__name::after,
+.team-person:focus-visible .team-person__name::after {
+  transform: scaleX(1);
+}
+
+/* Kisi basi ton ayari burada YOK. Kadraj ve renk esitlemesi dosyalarin kendisinde
+   yapiliyor (scripts/portraits.py): yuz boyu dokuz karede ayni, poz ayni yerde,
+   isik ve doygunluk setin ortancasina cekilmis. CSS'te dokuz istisna tutmak,
+   ekibe onuncu kisi eklendiginde unutulacak dokuz istisna demekti.
+   Tek gercek istisna dosya tarafinda: ceren 482x642 ile kadrodaki en dusuk
+   cozunurluk, bilerek gogus-ustu genis plan birakildi. */
+
+/* --- Ana sayfanin kapanis notu --- */
+.team-join {
   display: flex;
   align-items: center;
-  gap: 16px;
-  text-align: left;
-  border: 1px solid #e5e7eb;
-  border-radius: var(--radius-card, 16px);
-  background: #ffffff;
-  padding: 16px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-top: 56px;
+  padding: 26px 32px;
+  border-radius: var(--plate-radius);
+  background: var(--paper);
 }
 
-.team-coord-card:hover,
-.team-coord-card:focus-visible {
-  transform: translateY(-2px);
-  border-color: rgba(7, 19, 43, 0.25);
-  box-shadow: 0 10px 24px rgba(7, 19, 43, 0.08);
-}
-
-.member-avatar--sm {
-  width: 64px;
-  height: 64px;
-  flex-shrink: 0;
-  border: 2px solid rgba(7, 19, 43, 0.08);
-}
-
-.team-coord-card__text {
+.team-join__text {
   min-width: 0;
 }
 
-.team-coord-card .member-name {
-  font-size: 16px;
+.team-join__title {
+  margin: 0 0 4px;
+  font-size: 19px;
   font-weight: 700;
-  color: #07132b;
-  margin: 0 0 2px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.25;
+  color: var(--navy);
 }
 
-.team-coord-card .member-role {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--accent-blue, #0052cc);
-  margin: 0 0 2px;
-}
-
-.team-coord-card .member-department {
-  font-size: 12px;
-  color: #9ca3af;
+.team-join__note {
   margin: 0;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.45;
+  color: var(--lede);
+}
+
+.team-join__btn {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 11px 22px;
+  border-radius: var(--radius-control, 8px);
+  background: var(--navy);
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+}
+
+.team-join__btn:hover {
+  background: #0d2452;
 }
 
 /* --- Modal ici sosyal linkler --- */
@@ -212,7 +326,7 @@
 }
 
 .member-social .social-link:hover {
-  background: #07132b;
+  background: var(--navy, #07132b);
   transform: translateY(-2px);
 }
 
@@ -226,7 +340,11 @@
   transition: filter 0.2s ease;
 }
 
-/* Team Member Modal */
+/* ==========================================================================
+   Modal — mevcut isaretleme ve sinif adlari korunur.
+   Tek degisiklik: 120px daire yerine tam renkli 3:4 portre.
+   Dokunmatikte "rengi geri getirme" jesti hover degil, bu modaldir.
+   ========================================================================== */
 .team-modal-overlay {
   position: fixed;
   inset: 0;
@@ -241,41 +359,32 @@
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .team-modal {
   position: relative;
   background: #ffffff;
   border-radius: 20px;
-  max-width: 400px;
+  max-width: 380px;
   width: 100%;
-  overflow: hidden;
+  max-height: 88vh;
+  overflow: auto;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   animation: slideUp 0.3s ease-out;
 }
 
 @keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .team-modal-close {
   position: absolute;
   top: 16px;
   right: 16px;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(7, 19, 43, 0.42);
   border: none;
   border-radius: 50%;
   width: 40px;
@@ -285,32 +394,40 @@
   justify-content: center;
   cursor: pointer;
   color: #ffffff;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease, transform 0.2s ease;
   z-index: 10;
 }
 
 .team-modal-close:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(7, 19, 43, 0.62);
   transform: rotate(90deg);
 }
 
 .team-modal-header {
   position: relative;
-  background: linear-gradient(135deg, #07132b 0%, #0a1a3a 100%);
-  padding: 40px 24px;
-  display: flex;
-  justify-content: center;
+  padding: 0;
+  background: var(--bg-dark, #07132b);
+}
+
+.team-modal-header::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 96px;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(7, 19, 43, 0.5) 0%, rgba(7, 19, 43, 0) 100%);
 }
 
 .team-modal-avatar {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border-radius: 0;
+  border: 0;
+  box-shadow: none;
   background-size: cover;
-  background-position: center;
+  background-position: 50% 30%;
   background-repeat: no-repeat;
-  border: 4px solid #ffffff;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  background-color: #0a1a3a;
 }
 
 .team-modal-body {
@@ -322,99 +439,80 @@
   font-size: 1.5rem;
   font-weight: 700;
   color: #07132b;
-  margin-bottom: 8px;
+  margin: 0 0 8px;
 }
 
 .team-modal-role {
   display: inline-block;
   padding: 6px 16px;
-  background: linear-gradient(
-    135deg,
-    rgba(7, 19, 43, 0.1) 0%,
-    rgba(10, 26, 58, 0.1) 100%
-  );
+  background: rgba(7, 19, 43, 0.08);
   color: #07132b;
   font-size: 0.875rem;
   font-weight: 600;
-  border-radius: 20px;
+  border-radius: var(--radius-pill, 9999px);
   margin-bottom: 16px;
 }
 
 .team-modal-graduate {
   font-size: 0.9375rem;
   color: #6b7280;
-  margin-bottom: 12px;
+  margin: 0 0 12px;
 }
 
 .team-modal-bio {
   font-size: 1rem;
   color: #374151;
   line-height: 1.6;
-  margin-bottom: 20px;
+  margin: 0 0 20px;
 }
 
-/* Modal Responsive */
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+/* Tablet: iki sutun. Levhalar burada masaustundekinden BUYUK olur (900px'te 420x560). */
+@media (max-width: 1023px) {
+  .team-section { --plate-gap: 20px; }
+  .team-plates { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* Telefon: kurul tam genislikte, koordinatorler ikili. */
+@media (max-width: 699px) {
+  .team-section { padding: 56px 0 64px; --plate-gap: 28px; }
+  .team-section .section-title { font-size: 26px; }
+  .team-lede { font-size: 15px; line-height: 24px; margin-bottom: 32px; }
+  /* Kurul tam genislikte, koordinatorler ikili. Masaustunde kademeyi kunyenin
+     yeri anlatiyordu; telefonda dokuz tam sayfa portre 5500px'lik bir kuyruk
+     yapiyordu, burada ayni kademeyi olcu anlatiyor. */
+  .team-plates--kurul { grid-template-columns: 1fr; margin-bottom: 40px; }
+  .team-plates--koordinator { grid-template-columns: repeat(2, 1fr); --plate-gap: 16px; }
+  .team-plates--koordinator .team-person__name { font-size: 16px; }
+  .team-plates--koordinator .team-person__role { font-size: 13px; }
+  .team-plate__id { padding: 80px 18px 18px; }
+  .team-plate__id .team-person__name { font-size: 20px; }
+  .team-join { margin-top: 40px; padding: 22px; }
+  .team-join__btn { width: 100%; justify-content: center; }
+}
+
+/* Dokunmatikte hover yok, yani perde kendiliginden kalkmiyor. Kurul telefonda
+   tek sutun ve kunye fotografin icinde durdugu icin perde orada okunabilirlik
+   isi de goruyor; koordinatorlerde kunye fotografin disinda, perdeyi hafifletip
+   yuzleri oldugu gibi birakiyoruz. */
+@media (hover: none) {
+  .team-plates--koordinator .team-plate__ink { opacity: 0.22; }
+}
+
 @media (max-width: 480px) {
-  .team-modal {
-    max-width: 90%;
-    border-radius: 16px;
-  }
-
-  .team-modal-header {
-    padding: 32px 20px;
-  }
-
-  .team-modal-avatar {
-    width: 100px;
-    height: 100px;
-  }
-
-  .team-modal-body {
-    padding: 20px;
-  }
-
-  .team-modal-name {
-    font-size: 1.25rem;
-  }
-
-  .member-social .social-link {
-    width: 40px;
-    height: 40px;
-  }
+  .team-modal { max-width: 100%; border-radius: 16px; }
+  .team-modal-avatar { aspect-ratio: 4 / 5; }
+  .team-modal-body { padding: 20px; }
+  .team-modal-name { font-size: 1.25rem; }
+  .member-social .social-link { width: 40px; height: 40px; }
 }
 
-/* --- Responsive kart duzenleri --- */
-@media (max-width: 900px) {
-  .team-board {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-
-  .team-coord-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 560px) {
-  .team-section {
-    padding: 48px 0 32px;
-  }
-
-  .team-section .section-title {
-    font-size: 26px;
-  }
-
-  .team-section .section-subtitle {
-    font-size: 14px;
-    margin-bottom: 36px;
-  }
-
-  .team-coord-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .member-avatar--lg {
-    width: 96px;
-    height: 96px;
-  }
+@media (prefers-reduced-motion: reduce) {
+  .team-plate__img,
+  .team-plate__ink,
+  .team-plate__grain,
+  .team-person__name::after { transition: none; }
 }

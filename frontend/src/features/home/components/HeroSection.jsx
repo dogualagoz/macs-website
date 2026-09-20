@@ -1,6 +1,6 @@
 /**
  * HeroSection Component
- * 
+ *
  * The main landing section of the website featuring:
  * - MACS logo
  * - Welcome message
@@ -68,15 +68,15 @@ const HeroSection = () => {
             initial={reduceMotion ? false : { x: '100%' }}
             animate={{ x: 0 }}
             exit={reduceMotion ? undefined : { x: '-100%' }}
-            transition={{ 
+            transition={{
               duration: reduceMotion ? 0 : 3, // Daha yavaş ve akıcı
               ease: [0.45, 0, 0.55, 1], // Kusursuz senkronizasyon için özel easing
             }}
             className="hero-slide-container"
           >
-            <div 
-              className="hero-background-image" 
-              style={{ backgroundImage: `url(${images[currentIndex]})` }} 
+            <div
+              className="hero-background-image"
+              style={{ backgroundImage: `url(${images[currentIndex]})` }}
             />
           </motion.div>
         </AnimatePresence>
@@ -86,20 +86,18 @@ const HeroSection = () => {
       <div className="hero-container">
         {/* Main logo */}
         <div className="hero-logo">
-          <img 
-            src="/assets/images/img_exclude.webp"   
-            alt="MACS Logo" 
-            className="main-logo" 
+          <img
+            src="/assets/images/img_exclude.webp"
+            alt="MACS Logo"
+            className="main-logo"
             width="170" height="170" fetchpriority="high"
           />
         </div>
 
         {/* Welcome message and description */}
-        <h1 className="hero-title">Matematik ve bilgisayarın buluşma noktası</h1>
+        <h1 className="hero-title">MACS'E HOŞ GELDİNİZ!</h1>
         <p className="hero-subtitle">
-          Eskişehir Osmangazi Üniversitesi Matematik ve Bilgisayar Bilimleri
-          bölümü öğrencilerinin kulübü MACS; projeler, etkinlikler ve atölyelerle
-          üretir.
+          BU SİTE ESKİŞEHİR OSMANGAZİ ÜNİVERSİTESİ MATEMATİK VE BİLGİSAYAR BİLİMLERİ BÖLÜMÜ ÖĞRENCİLERİNİN MATEMATİK VE BİLGİSAYAR TOPLULUĞU KULÜBÜNÜN RESMİ SAYFASIDIR.
         </p>
 
         {/* Primary calls to action */}
@@ -114,16 +112,16 @@ const HeroSection = () => {
 
         {/* Social media badges */}
         <div className="hero-badges">
-          <img 
-            src="/assets/images/img_920228d74c2145d3b604e2dfb42f2d3f1201a_1.png" 
-            alt="MACS rozeti" 
-            className="badge" 
+          <img
+            src="/assets/images/img_920228d74c2145d3b604e2dfb42f2d3f1201a_1.png"
+            alt="MACS rozeti"
+            className="badge"
             width="82" height="66" loading="lazy"
           />
-          <img 
+          <img
             src="/assets/images/img_esogulogo_1.png"
             alt="Eskişehir Osmangazi Üniversitesi rozeti"
-            className="badge" 
+            className="badge"
             width="67" height="67" loading="lazy"
           />
         </div>
@@ -132,4 +130,4 @@ const HeroSection = () => {
   );
 };
 
-export default HeroSection; 
+export default HeroSection;

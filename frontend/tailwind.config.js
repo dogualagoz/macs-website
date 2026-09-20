@@ -11,7 +11,27 @@ module.exports = {
     path.join(__dirname, 'public/index.html'),
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        // Projeler sayfasinin vurgu rengi. Merdiven #F2317C'e sabitlendi:
+        // 400 = verilen renk, digerleri ayni ton uzerinde Tailwind
+        // blue'nun aciklik basamaklarini takip ediyor, boylece blue-300/500/600
+        // yazan her yer birebir karsiligiyla degistirilebiliyor.
+        macs: {
+          accent: {
+            DEFAULT: '#F2317C',
+             50: '#FDF2F7',
+            100: '#FAE3EE',
+            300: '#DD84A8',
+            400: '#F2317C',
+            500: '#F2317C',
+            600: '#A63A65',
+            700: '#8E375A',
+            900: '#532638',
+          },
+        },
+      },
+    },
   },
   plugins: [],
 };

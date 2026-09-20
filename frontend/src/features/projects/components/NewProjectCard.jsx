@@ -14,7 +14,7 @@ const ProjectCard = ({ project }) => {
   return (
     <div 
       onClick={() => navigate(`/projeler/${project.slug}`)}
-      className="group relative bg-macs-card/80 border border-white/5 rounded-3xl overflow-hidden hover:border-blue-500/30 transition-all duration-300 hover:shadow-[0_0_30px_rgba(59,130,246,0.15)] cursor-pointer flex flex-col h-full"
+      className="group relative bg-macs-card/80 border border-white/5 rounded-3xl overflow-hidden hover:border-macs-accent/30 transition-all duration-300 hover:shadow-[0_0_30px_rgba(242,49,124,0.15)] cursor-pointer flex flex-col h-full"
     >
       {/* Image Container */}
       <div className="relative h-48 overflow-hidden">
@@ -26,7 +26,7 @@ const ProjectCard = ({ project }) => {
           className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
         loading="lazy" />
         <div className="absolute top-4 left-4 z-20">
-          <span className="px-3 py-1 text-xs font-semibold rounded-full bg-blue-600/20 text-blue-300 border border-blue-500/30 backdrop-blur-sm">
+          <span className="px-3 py-1 text-xs font-semibold rounded-full bg-macs-accent-500/20 text-macs-accent-300 border border-macs-accent/30 backdrop-blur-sm">
             {project.category}
           </span>
         </div>
@@ -34,7 +34,7 @@ const ProjectCard = ({ project }) => {
 
       {/* Content */}
       <div className="p-6 flex flex-col flex-grow relative z-20">
-        <h3 className="text-xl font-bold text-white mb-2 group-hover:text-blue-400 transition-colors">
+        <h3 className="text-xl font-bold text-white mb-2 group-hover:text-macs-accent transition-colors">
           {project.title}
         </h3>
         <p className="text-gray-400 text-sm mb-4 line-clamp-2 flex-grow">
@@ -69,7 +69,7 @@ const ProjectCard = ({ project }) => {
               loading="lazy" />
             ))}
           </div>
-          <button className="p-2 rounded-full bg-white/5 text-white hover:bg-blue-600 hover:text-white transition-colors">
+          <button className="p-2 rounded-full bg-white/5 text-white hover:bg-macs-accent-500 hover:text-white transition-colors">
             <ArrowRight size={18} />
           </button>
         </div>

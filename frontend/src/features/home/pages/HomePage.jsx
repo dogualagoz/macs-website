@@ -1,7 +1,6 @@
 import React from "react";
 import HeroSection from '../components/HeroSection';
 import AboutSection from '../components/AboutSection';
-import TeamSection from '../components/TeamSection';
 import Dashboard from "../components/DashBoard";
 import '../../../styles/pages/home.css';
 import SEO from "../../../shared/components/seo/SEO";
@@ -21,7 +20,6 @@ export default function Home() {
           {/* <EventsSection />
           <ProjectsSection /> */}
           <AboutSection />
-          <TeamSection />
       </div>
     </>
   );
