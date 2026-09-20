@@ -18,8 +18,9 @@
   transition: all 0.6s ease-in-out;
 }
 
-/* Projeler Sayfası için Koyu Tema Ayarları */
-.header.header-dark {
+/* Koyu Tema: Projeler sayfası ve Sponsorlar sayfasının tam ekran paneli */
+.header.header-dark,
+body.sponsors-split-visible .header {
   --header-bg: rgba(5, 11, 20, 0.9);
   --header-text: #ffffff;
   --header-border: rgba(255, 255, 255, 0.1);
@@ -96,43 +97,51 @@
   background-color: #e9ecef;
 }
 
-.header.header-dark .nav-menu a:hover {
+.header.header-dark .nav-menu a:hover,
+body.sponsors-split-visible .header .nav-menu a:hover {
   color: #ffffff;
   background-color: rgba(255, 255, 255, 0.1);
 }
 
-.header.header-dark .JoinUs {
+.header.header-dark .JoinUs,
+body.sponsors-split-visible .header .JoinUs {
   background-color: transparent;
   border-color: rgba(255, 255, 255, 0.5);
   color: #ffffff;
 }
 
-.header.header-dark .JoinUs:hover {
+.header.header-dark .JoinUs:hover,
+body.sponsors-split-visible .header .JoinUs:hover {
   background-color: #ffffff;
   color: #000000;
   border-color: #ffffff;
 }
 
 /* Koyu tema için mobil menü ikonu */
-.header.header-dark .menu-icon img {
+.header.header-dark .menu-icon img,
+body.sponsors-split-visible .header .menu-icon img {
   filter: brightness(0) invert(1);
 }
 
-.header.header-dark .close-icon {
+.header.header-dark .close-icon,
+body.sponsors-split-visible .header .close-icon {
   filter: brightness(0) invert(1);
 }
 
 /* Koyu tema için mobil menü arka planı */
-.header.header-dark .r-navbar {
+.header.header-dark .r-navbar,
+body.sponsors-split-visible .header .r-navbar {
   background: #0a1929 !important;
   box-shadow: -10px 0 40px rgba(0, 0, 0, 0.6);
 }
 
-.header.header-dark .r-navbar ul li a {
+.header.header-dark .r-navbar ul li a,
+body.sponsors-split-visible .header .r-navbar ul li a {
   color: #ffffff !important;
 }
 
-.header.header-dark .r-navbar ul li a:hover {
+.header.header-dark .r-navbar ul li a:hover,
+body.sponsors-split-visible .header .r-navbar ul li a:hover {
   background-color: rgba(255, 255, 255, 0.1);
 }
 
@@ -252,7 +261,8 @@
   }
 
   /* Koyu tema ise menü ikonunu beyaz yap */
-  .header.header-dark .menu-icon img {
+  .header.header-dark .menu-icon img,
+  body.sponsors-split-visible .header .menu-icon img {
     filter: brightness(0) invert(1) !important;
   }
 

@@ -1,21 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Map, { Marker, Popup, NavigationControl } from 'react-map-gl';
 import { mockSponsors, eskisehirCenter } from '../data/mockSponsors';
 import { sponsorService } from '../../../shared/services/api';
 import env from '../../../shared/config/env';
 import { handleAvatarError } from '../../../utils/imageUtils';
+import { GradientBackground } from '../../../shared/components/ui/GradientBackground';
+import { ChevronDown } from 'lucide-react';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import '../../../styles/pages/sponsors.css';
 
-import { PageHeaderSkeleton, EventGridSkeleton, SponsorRowSkeleton } from '../../../shared/components/feedback/Skeleton';
+
 import SEO from '../../../shared/components/seo/SEO';
 
 const MAPBOX_TOKEN = env.mapboxToken;
 
 const transformSponsorData = (sponsor) => {
   const mapped = sponsorService._mapSponsor(sponsor);
-  
+
   // Koordinatları güvenli bir şekilde sayıya çevir
   const lat = Number(sponsor.latitude || sponsor.location?.lat);
   const lng = Number(sponsor.longitude || sponsor.location?.lng);
@@ -45,7 +47,7 @@ export default function SponsorsPage() {
       try {
         setLoading(true);
         const data = await sponsorService.getAll({ is_active: true });
-        
+
         if (data && data.length > 0) {
           // Backend'den gelen veriyi dönüştür
           const transformedData = data.map(transformSponsorData);
@@ -74,40 +76,65 @@ export default function SponsorsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white pt-20">
-        <PageHeaderSkeleton />
-        <div className="mx-auto max-w-7xl px-4 py-12 grid gap-6 lg:grid-cols-[1fr_320px]">
-          <EventGridSkeleton count={3} />
-          <SponsorRowSkeleton count={6} />
-        </div>
+      <div className="sponsors-page sponsors-page--split">
+        <section
+          className="sponsors-split"
+          aria-busy="true"
+          aria-label="Sponsorlar yükleniyor"
+        >
+          <div className="sponsors-split__bg" aria-hidden="true">
+            <GradientBackground className="h-full w-full" />
+          </div>
+          <div className="sponsors-split__grid" style={{ '--split-count': 2 }}>
+            <div className="split-panel">
+              <span className="split-panel__plate split-panel__plate--loading" />
+            </div>
+            <div className="split-panel">
+              <span className="split-panel__plate split-panel__plate--loading" />
+            </div>
+          </div>
+        </section>
       </div>
     );
   }
 
+  // İlk girişte tam ekran gösterilecek büyük sponsorlar.
+  // Aynı sponsorlar aşağıdaki grid ve haritada da yer alır: öne çıkarma
+  // bir rozet/etiket değil, yalnızca sayfa girişindeki sunum sırası.
+  const featuredSponsors = sponsors.filter((s) => s.is_featured);
+  const hasSplit = featuredSponsors.length > 0;
+
   return (
     <>
-      <SEO 
+      <SEO
         title="Sponsorlarımız"
         description="MACS topluluğunu destekleyen değerli sponsorlar ve iş ortakları. Eskişehir'deki teknoloji ekosisteminin güçlü paydaşları."
         keywords="MACS sponsorları, sponsor, iş ortağı, Eskişehir teknoloji, destek"
         url="https://esogumacs.com/sponsorluk"
       />
-      <div className="sponsors-page">
-      <section className="sponsors-hero">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="sponsors-hero__content"
-        >
-          <h1 className="sponsors-hero__title">Sponsorlarımız</h1>
-          <p className="sponsors-hero__subtitle">
-            MACS Kulübü'nü destekleyen değerli kurumlar ve işletmeler
-          </p>
-        </motion.div>
-      </section>
+      <div className={`sponsors-page ${hasSplit ? 'sponsors-page--split' : ''}`}>
+      {hasSplit ? (
+        <FeaturedSplit
+          sponsors={featuredSponsors}
+          onSponsorClick={setSelectedSponsor}
+        />
+      ) : (
+        <section className="sponsors-hero">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="sponsors-hero__content"
+          >
+            <h1 className="sponsors-hero__title">Sponsorlarımız</h1>
+            <p className="sponsors-hero__subtitle">
+              MACS Kulübü'nü destekleyen değerli kurumlar ve işletmeler
+            </p>
+          </motion.div>
+        </section>
+      )}
 
-      <div className="sponsors-main">
+      <div className="sponsors-main" id="sponsorlar-icerik">
         {error && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -120,7 +147,7 @@ export default function SponsorsPage() {
           </motion.div>
         )}
 
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.2 }}
@@ -154,13 +181,13 @@ export default function SponsorsPage() {
         <div id="sponsors-content" role="tabpanel">
           <AnimatePresence mode="wait">
             {activeView === 'grid' ? (
-              <SponsorsGrid 
+              <SponsorsGrid
                 key="grid"
-                sponsors={sponsors} 
+                sponsors={sponsors}
                 onSponsorClick={setSelectedSponsor}
               />
             ) : (
-              <SponsorsMap 
+              <SponsorsMap
                 key="map"
                 sponsors={sponsors}
               />
@@ -191,8 +218,8 @@ export default function SponsorsPage() {
           <p className="sponsors-cta__desc">
             MACS Kulübü ile iş birliği yaparak Eskişehir'in teknoloji topluluğuna katkıda bulunun.
           </p>
-          <a 
-            href="mailto:mathandcomputersociety@gmail.com" 
+          <a
+            href="mailto:alagozdogu@gmail.com"
             className="sponsors-cta__btn"
           >
             İletişime Geçin
@@ -202,9 +229,9 @@ export default function SponsorsPage() {
 
       <AnimatePresence>
         {selectedSponsor && (
-          <SponsorModal 
-            sponsor={selectedSponsor} 
-            onClose={() => setSelectedSponsor(null)} 
+          <SponsorModal
+            sponsor={selectedSponsor}
+            onClose={() => setSelectedSponsor(null)}
           />
         )}
       </AnimatePresence>
@@ -239,17 +266,17 @@ function SponsorsGrid({ sponsors, onSponsorClick }) {
           <div className="sponsor-card__header">
             <div className="sponsor-card__circle sponsor-card__circle--top" />
             <div className="sponsor-card__circle sponsor-card__circle--bottom" />
-            
+
             {sponsor.category && (
               <span className="sponsor-card__category">
                 {sponsor.category}
               </span>
             )}
-            
+
             <div className="sponsor-card__avatar-wrapper">
               {sponsor.imageUrl ? (
-                <img 
-                  src={sponsor.imageUrl} 
+                <img
+                  src={sponsor.imageUrl}
                   alt={sponsor.name}
                   className="sponsor-card__avatar"
                   onError={(e) => handleAvatarError(e, sponsor.name)}
@@ -261,13 +288,13 @@ function SponsorsGrid({ sponsors, onSponsorClick }) {
               )}
             </div>
           </div>
-          
+
           <div className="sponsor-card__body">
             <h3 className="sponsor-card__name">
               {sponsor.name}
             </h3>
             <p className="sponsor-card__desc">{sponsor.description}</p>
-            
+
             {sponsor.discountInfo && (
               <div className="sponsor-card__discount">
                 <div className="sponsor-card__discount-icon">
@@ -276,7 +303,7 @@ function SponsorsGrid({ sponsors, onSponsorClick }) {
                 <p className="sponsor-card__discount-text">{sponsor.discountInfo}</p>
               </div>
             )}
-            
+
             {sponsor.location?.address && (
               <div className="sponsor-card__location">
                 <LocationIcon />
@@ -287,6 +314,107 @@ function SponsorsGrid({ sponsors, onSponsorClick }) {
         </motion.div>
       ))}
     </motion.div>
+  );
+}
+
+/**
+ * FeaturedSplit — sayfa girişindeki tam ekran ikili panel.
+ * İki büyük sponsor ekranı yarı yarıya paylaşır. Rozet/etiket yok:
+ * ayrıcalık sadece sunum sırası, sponsorlar aşağıdaki listede de görünür.
+ */
+function FeaturedSplit({ sponsors, onSponsorClick }) {
+  const sectionRef = useRef(null);
+
+  // Panel ekrandayken header koyu temaya geçsin: beyaz yarı saydam bar
+  // lacivert panelin üstünde açık bir şerit gibi duruyordu.
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return undefined;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        document.body.classList.toggle('sponsors-split-visible', entry.intersectionRatio > 0.55);
+      },
+      { threshold: [0, 0.55, 1] }
+    );
+    observer.observe(el);
+
+    return () => {
+      observer.disconnect();
+      document.body.classList.remove('sponsors-split-visible');
+    };
+  }, []);
+
+  const scrollToContent = () => {
+    document.getElementById('sponsorlar-icerik')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  return (
+    <section
+      ref={sectionRef}
+      className="sponsors-split"
+      aria-labelledby="sponsorlar-baslik"
+    >
+      <div className="sponsors-split__bg" aria-hidden="true">
+        <GradientBackground className="h-full w-full" />
+      </div>
+
+      <div className="sponsors-split__heading">
+        <h1 id="sponsorlar-baslik" className="sponsors-split__title">Sponsorlarımız</h1>
+        <p className="sponsors-split__subtitle">
+          MACS Kulübü'nü destekleyen değerli kurumlar ve işletmeler
+        </p>
+      </div>
+
+      <div
+        className="sponsors-split__grid"
+        style={{ '--split-count': Math.min(sponsors.length, 2) }}
+      >
+        {sponsors.map((sponsor, index) => (
+          <motion.button
+            type="button"
+            key={sponsor.id}
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.15 + index * 0.1 }}
+            onClick={() => onSponsorClick(sponsor)}
+            className="split-panel"
+            aria-label={`${sponsor.name} sponsor detaylarını görüntüle`}
+          >
+            <span className="split-panel__plate">
+              {sponsor.imageUrl ? (
+                <img
+                  src={sponsor.imageUrl}
+                  alt={sponsor.name}
+                  className="split-panel__logo"
+                  onError={(e) => handleAvatarError(e, sponsor.name)}
+                />
+              ) : (
+                <span className="split-panel__logo split-panel__logo--placeholder">
+                  {(sponsor.name || 'S').charAt(0).toUpperCase()}
+                </span>
+              )}
+            </span>
+            <span className="split-panel__name">{sponsor.name}</span>
+          </motion.button>
+        ))}
+      </div>
+
+      <motion.button
+        type="button"
+        onClick={scrollToContent}
+        className="sponsors-split__cue"
+        aria-label="Sponsor listesine kaydır"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.5 }}
+      >
+        <span className="sponsors-split__cue-text">Tüm sponsorlar</span>
+        <span className="sponsors-split__cue-icon">
+          <ChevronDown size={20} />
+        </span>
+      </motion.button>
+    </section>
   );
 }
 
@@ -387,7 +515,7 @@ function SponsorsMap({ sponsors }) {
           reuseMaps
         >
           <NavigationControl position="top-right" />
-          
+
           {sponsors.filter(s => s.location?.lat && s.location?.lng).map((sponsor) => (
             <Marker
               key={sponsor.id}
@@ -396,7 +524,7 @@ function SponsorsMap({ sponsors }) {
               anchor="bottom"
               onClick={(e) => handleMarkerClick(sponsor, e)}
             >
-              <div 
+              <div
                 className={`sponsors-map__marker ${popupInfo?.id === sponsor.id ? 'sponsors-map__marker--active' : ''}`}
                 role="button"
                 aria-label={`${sponsor.name} konumunu göster`}
@@ -404,8 +532,8 @@ function SponsorsMap({ sponsors }) {
                 onKeyDown={(e) => e.key === 'Enter' && handleMarkerClick(sponsor, e)}
               >
                 {sponsor.imageUrl ? (
-                  <img 
-                    src={sponsor.imageUrl} 
+                  <img
+                    src={sponsor.imageUrl}
                     alt={sponsor.name}
                     className="sponsors-map__marker-image"
                     onError={(e) => handleAvatarError(e, sponsor.name)}
@@ -432,8 +560,8 @@ function SponsorsMap({ sponsors }) {
               <div className="sponsor-popup__content">
                   <div className="sponsor-popup__header">
                     {popupInfo.imageUrl ? (
-                      <img 
-                        src={popupInfo.imageUrl} 
+                      <img
+                        src={popupInfo.imageUrl}
                         alt={popupInfo.name}
                         className="sponsor-popup__avatar"
                         onError={(e) => handleAvatarError(e, popupInfo.name)}
@@ -452,22 +580,22 @@ function SponsorsMap({ sponsors }) {
                       )}
                     </div>
                   </div>
-                  
+
                   {popupInfo.discountInfo && (
                     <div className="sponsor-popup__discount">
                       <p>{popupInfo.discountInfo}</p>
                     </div>
                   )}
-                  
+
                   {popupInfo.location?.address && (
                     <p className="sponsor-popup__location">
                       <LocationIcon />
                       {popupInfo.location.address}
                     </p>
                   )}
-                  
+
                   {popupInfo.location?.lat && popupInfo.location?.lng && (
-                    <a 
+                    <a
                       href={`https://www.google.com/maps?q=${popupInfo.location.lat},${popupInfo.location.lng}`}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -500,8 +628,8 @@ function SponsorsMap({ sponsors }) {
               <div className="sponsors-sidebar__item-content">
                 <div className={`sponsors-sidebar__item-avatar ${popupInfo?.id === sponsor.id ? 'sponsors-sidebar__item-avatar--active' : ''}`}>
                   {sponsor.imageUrl ? (
-                    <img 
-                      src={sponsor.imageUrl} 
+                    <img
+                      src={sponsor.imageUrl}
                       alt={sponsor.name}
                       className="sponsors-sidebar__item-avatar-image"
                       onError={(e) => handleAvatarError(e, sponsor.name)}
@@ -530,7 +658,7 @@ function SponsorsMap({ sponsors }) {
 }
 
 function SponsorModal({ sponsor, onClose }) {
-  const googleMapsLink = sponsor.location?.lat && sponsor.location?.lng 
+  const googleMapsLink = sponsor.location?.lat && sponsor.location?.lng
     ? `https://www.google.com/maps?q=${sponsor.location.lat},${sponsor.location.lng}`
     : null;
 
@@ -542,7 +670,7 @@ function SponsorModal({ sponsor, onClose }) {
     document.addEventListener('keydown', handleEscape);
     return () => document.removeEventListener('keydown', handleEscape);
   }, [onClose]);
-  
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -562,7 +690,7 @@ function SponsorModal({ sponsor, onClose }) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="sponsor-modal__header">
-          <button 
+          <button
             onClick={onClose}
             className="sponsor-modal__close"
             aria-label="Modalı kapat"
@@ -570,8 +698,8 @@ function SponsorModal({ sponsor, onClose }) {
             <CloseIcon />
           </button>
           {sponsor.imageUrl ? (
-            <img 
-              src={sponsor.imageUrl} 
+            <img
+              src={sponsor.imageUrl}
               alt={sponsor.name}
               className="sponsor-modal__avatar"
               onError={(e) => handleAvatarError(e, sponsor.name)}
@@ -593,13 +721,13 @@ function SponsorModal({ sponsor, onClose }) {
           {sponsor.description && (
             <p className="sponsor-modal__desc">{sponsor.description}</p>
           )}
-          
+
           {sponsor.discountInfo && (
             <div className="sponsor-modal__discount">
               <p>{sponsor.discountInfo}</p>
             </div>
           )}
-          
+
           {sponsor.location?.address && (
             <div className="sponsor-modal__location-wrapper">
               <div className="sponsor-modal__location">
@@ -610,9 +738,9 @@ function SponsorModal({ sponsor, onClose }) {
           )}
 
           {googleMapsLink && (
-            <a 
+            <a
               href={googleMapsLink}
-              target="_blank" 
+              target="_blank"
               rel="noopener noreferrer"
               className="sponsor-modal__btn"
             >

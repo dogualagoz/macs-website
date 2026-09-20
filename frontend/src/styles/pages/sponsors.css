@@ -84,11 +84,277 @@
   }
 }
 
+/* Featured Split — sayfa girişindeki tam ekran ikili sponsor paneli */
+.sponsors-page--split {
+  padding-top: 0;
+}
+
+.sponsors-split {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100svh;
+  background: #07132b;
+  overflow: hidden;
+}
+
+.sponsors-split__bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.sponsors-split__heading {
+  position: relative;
+  z-index: 1;
+  padding: 7rem 1.5rem 0;
+  text-align: center;
+}
+
+.sponsors-split__title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: #ffffff;
+}
+
+.sponsors-split__subtitle {
+  margin: 0.4rem 0 0;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.sponsors-split__grid {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(var(--split-count, 2), minmax(0, 1fr));
+}
+
+.split-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 3rem 1.5rem 7rem;
+  background: transparent;
+  border: 0;
+  font: inherit;
+  color: inherit;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.35s ease;
+}
+
+/* Panelleri ayıran ince dikey çizgi (uçlara doğru sönüyor) */
+.split-panel + .split-panel::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 14%;
+  bottom: 14%;
+  width: 1px;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0),
+    rgba(255, 255, 255, 0.18),
+    rgba(255, 255, 255, 0)
+  );
+}
+
+.split-panel:hover {
+  background-color: rgba(255, 255, 255, 0.045);
+}
+
+.split-panel:focus-visible {
+  outline: 2px solid #f2317c;
+  outline-offset: -4px;
+}
+
+/* Logo zemini: yüklenen logolar koyu renkli olabiliyor, lacivert
+   üstünde kaybolmasınlar diye beyaz bir taban veriliyor. */
+.split-panel__plate {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: min(76%, 26rem);
+  min-height: 11rem;
+  padding: 2.25rem 2.75rem;
+  background: #ffffff;
+  border-radius: 1.25rem;
+  box-shadow: 0 24px 60px -30px rgba(0, 0, 0, 0.75);
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+}
+
+.split-panel:hover .split-panel__plate {
+  transform: translateY(-4px) scale(1.03);
+  box-shadow: 0 30px 70px -26px rgba(0, 0, 0, 0.85);
+}
+
+.split-panel__plate--loading {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: none;
+  animation: sponsors-split-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes sponsors-split-pulse {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 0.85; }
+}
+
+.split-panel__logo {
+  max-width: 100%;
+  max-height: 8rem;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+.split-panel__logo--placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 5rem;
+  height: 5rem;
+  max-height: none;
+  border-radius: 1rem;
+  background: #07132b;
+  color: #ffffff;
+  font-size: 2.25rem;
+  font-weight: 700;
+}
+
+.split-panel__name {
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.sponsors-split__cue {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  background: transparent;
+  border: 0;
+  font: inherit;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.sponsors-split__cue:hover {
+  color: #ffffff;
+}
+
+.sponsors-split__cue:focus-visible {
+  outline: 2px solid #f2317c;
+  outline-offset: 4px;
+  border-radius: 0.5rem;
+}
+
+.sponsors-split__cue-text {
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+.sponsors-split__cue-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: sponsors-split-bounce 1.8s ease-in-out infinite;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.sponsors-split__cue:hover .sponsors-split__cue-icon {
+  border-color: rgba(242, 49, 124, 0.6);
+  background: rgba(242, 49, 124, 0.18);
+}
+
+@keyframes sponsors-split-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(4px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sponsors-split__cue-icon,
+  .split-panel__plate--loading {
+    animation: none;
+  }
+}
+
+/* Mobil: iki panel alt alta, ayraç yatay çizgiye dönüyor */
+@media (max-width: 767px) {
+  .sponsors-split__heading {
+    padding-top: 5.5rem;
+  }
+
+  .sponsors-split__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .split-panel {
+    min-height: 34vh;
+    min-height: 34svh;
+    padding: 2.5rem 1.25rem;
+  }
+
+  .split-panel:last-child {
+    padding-bottom: 6rem;
+  }
+
+  .split-panel + .split-panel::before {
+    top: 0;
+    bottom: auto;
+    left: 14%;
+    right: 14%;
+    width: auto;
+    height: 1px;
+    background: linear-gradient(
+      to right,
+      rgba(255, 255, 255, 0),
+      rgba(255, 255, 255, 0.18),
+      rgba(255, 255, 255, 0)
+    );
+  }
+
+  .split-panel__plate {
+    width: min(88%, 20rem);
+    min-height: 7rem;
+    padding: 1.5rem;
+  }
+
+  .split-panel__logo {
+    max-height: 4.5rem;
+  }
+}
+
 /* Main Content */
 .sponsors-main {
   max-width: 1280px;
   margin: 0 auto;
   padding: 3rem 1rem;
+  scroll-margin-top: 80px;
 }
 
 @media (max-width: 480px) {
