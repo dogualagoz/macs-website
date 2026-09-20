@@ -1,0 +1,8 @@
+/* Ekibimiz sayfasi.
+   Bolum (.team-section) Hakkimizda icinde de kullaniliyor; oradaki bosluk
+   dogru oldugu icin bolumun kendi padding'ine dokunulmuyor. Sayfa olarak
+   tek basina durdugunda sabit header basligin uzerine biniyordu
+   (1440px'te 9px, 375px'te 7px), fark burada kapatiliyor. */
+.team-page {
+  padding-top: 2.5rem;
+}

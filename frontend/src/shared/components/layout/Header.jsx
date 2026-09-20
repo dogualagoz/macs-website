@@ -50,6 +50,7 @@ const Header = ({ isScrolled = false }) => {
             <li><Link to="/projeler">Projeler</Link></li>
             <li><Link to="/sponsorluk">Sponsorlarımız</Link></li>
             <li><Link to="/hakkimizda">Hakkımızda</Link></li>
+            <li><Link to="/ekibimiz">Ekibimiz</Link></li>
             <li><a href="#contact" onClick={handleContactClick}>İletişim</a></li>
           </ul>
         </nav>
@@ -76,6 +77,7 @@ const Header = ({ isScrolled = false }) => {
               <li><Link to="/projeler" onClick={() => setMenuOpen(false)}>Projeler</Link></li>
               <li><Link to="/sponsorluk" onClick={() => setMenuOpen(false)}>Sponsorlarımız</Link></li>
               <li><Link to="/hakkimizda" onClick={() => setMenuOpen(false)}>Hakkımızda</Link></li>
+              <li><Link to="/ekibimiz" onClick={() => setMenuOpen(false)}>Ekibimiz</Link></li>
               <li><a href="#contact" onClick={handleContactClick}>İletişim</a></li>
               <li><a href="https://forms.gle/MXaCH1YG3qE4rsX36" target="_blank" rel="noopener noreferrer" onClick={() => setMenuOpen(false)}>Bize Katıl</a></li>
           </ul>

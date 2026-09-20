@@ -17,6 +17,7 @@ const Footer = () => {
               <li><a href="/etkinlikler">Etkinlikler</a></li>
               <li><a href="/projeler">Projeler</a></li>
               <li><a href="/sponsorluk">Sponsorlarımız</a></li>
+              <li><a href="/ekibimiz">Ekibimiz</a></li>
               <li><a href="#blog">Blog</a></li>
               <li><a href="#resources">Kaynaklar</a></li>
             </ul>
@@ -49,7 +50,7 @@ const Footer = () => {
               {/* <img src="/assets/images/img_logo_youtube.svg" alt="YouTube" /> */}
               <a href="https://www.instagram.com/esogumacs/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
                 <img
-               
+
                   src="/assets/images/img_icon_gray_50_01.svg"
                   alt="Instagram"
                 />
@@ -70,5 +71,3 @@ const Footer = () => {
 };
 
 export default Footer;
-
-

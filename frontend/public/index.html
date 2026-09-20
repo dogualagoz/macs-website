@@ -47,8 +47,9 @@
       content="MACS - Matematik ve Bilgisayar Bilimleri Topluluğu"
     />
     <meta name="twitter:site" content="@esogumacs" />
-<!-- Canonical URL -->
-    <link rel="canonical" href="https://esogumacs.com" />
+<!-- Canonical URL: sayfa basina SEO bileseni (react-helmet-async) basiyor.
+         Burada sabit bir tane durursa her sayfada iki canonical oluyor ve
+         statik olan -ana sayfaya isaret eden- once geliyordu. -->
 
     <!-- Manifest (PWA) -->
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
@@ -73,7 +74,7 @@
         },
         "contactPoint": {
           "@type": "ContactPoint",
-          "email": "mathandcomputersociety@gmail.com",
+          "email": "alagozdogu@gmail.com",
           "telephone": "+90-538-329-6386",
           "contactType": "customer service"
         },

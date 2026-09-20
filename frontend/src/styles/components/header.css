@@ -3,19 +3,39 @@
   --header-text: #000000;
   --header-border: rgba(233, 236, 239, 0.5); /* Daha hafif border */
   --header-logo-filter: none;
+  --header-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --header-motion: 0.45s;
 
   position: fixed;
   top: 0;
+  /* Ortalama transform ile DEGIL, otomatik margin ile yapiliyor:
+     transform'lu ata, position:fixed cocuklar icin containing block yaratir
+     ve mobil cekmece (.r-navbar) viewport yerine header'a yapisirdi. */
   left: 0;
+  right: 0;
   width: 100%;
+  margin-inline: auto;
   padding: 0.75rem 2rem;
   background-color: var(--header-bg);
   backdrop-filter: blur(12px); /* Buzlu cam efekti */
   -webkit-backdrop-filter: blur(12px);
   z-index: var(--z-nav);
-  border-bottom: 1px solid var(--header-border);
+  border: 1px solid transparent;
+  border-bottom-color: var(--header-border);
+  border-radius: 0;
+  box-shadow: none;
   cursor: default;
-  transition: all 0.6s ease-in-out;
+  will-change: width, padding;
+  /* `all` yerine adli liste: backdrop-filter her karede yeniden
+     hesaplanmasin. */
+  transition:
+    width var(--header-motion) var(--header-ease),
+    top var(--header-motion) var(--header-ease),
+    padding var(--header-motion) var(--header-ease),
+    border-radius var(--header-motion) var(--header-ease),
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 /* Koyu Tema: Projeler sayfası ve Sponsorlar sayfasının tam ekran paneli */
@@ -42,18 +62,19 @@ body.sponsors-split-visible .header {
 }
 
 .nav-menu {
+  transition: margin-left var(--header-motion) var(--header-ease);
   display: flex;
   flex-direction: row;
   justify-content: space-evenly;
   align-items: center;
   flex: 1;
-  margin-left: 2.4rem;
-  /* margin: 0 auto; */
+  margin-left: clamp(1rem, 1.6vw, 2.4rem);
 }
 
 .logo {
   justify-content: flex-end;
   height: 55px;
+  transition: height var(--header-motion) var(--header-ease);
 }
 
 .logo img {
@@ -64,11 +85,15 @@ body.sponsors-split-visible .header {
 }
 
 .nav-menu ul {
+  transition: gap var(--header-motion) var(--header-ease);
   display: flex;
   list-style: none;
   margin: 0;
   padding: 0;
-  gap: 5rem;
+  /* Sabit 5rem, 7 linkle 1025-1280 arasinda header'i tasiriyordu (logo ve
+     Bize Katil butonu ekran disina cikiyordu). Akiskan: 1000px'te 24px,
+     1440px'te ~35px. */
+  gap: clamp(1rem, 2.4vw, 3.5rem);
   flex-wrap: nowrap;
 }
 
@@ -229,15 +254,12 @@ body.sponsors-split-visible .header .r-navbar ul li a:hover {
 
 /* Mobil görünüm */
 @media only screen and (max-width: 1024px) {
-  .nav-menu ul {
-    gap: 2rem;
-  }
   .header {
     padding: 0.75rem 1rem;
   }
 }
 
-@media only screen and (max-width: 768px) {
+@media only screen and (max-width: 999px) {
   .header-container {
     display: none;
   }
@@ -400,4 +422,96 @@ body.sponsors-split-visible .header .r-navbar ul li a:hover {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+/* ---------------------------------------------------------------
+   Scroll durumu: "dynamic island" pill
+   App.js'teki scroll dinleyicisi .header-scrolled sinifini basiyor.
+   Kurallar dosyanin sonunda: 1024px bloktaki padding'i kaynak sirasiyla
+   gecsin.
+   --------------------------------------------------------------- */
+
+/* Pill sadece yatay barin gorundugu genisliklerde (>=1000px). Altinda
+   hamburger var; ayrica .header'daki backdrop-filter position:fixed
+   cocuklar icin containing block yaratiyor, header daralirsa .r-navbar
+   cekmecesi de onunla birlikte kayardi. */
+@media only screen and (min-width: 1000px) {
+  .header-scrolled {
+    top: 0.65rem;
+    width: min(94%, 1080px);
+    padding: 0.4rem 1rem 0.4rem 1.25rem;
+    border-color: var(--header-border);
+    border-radius: 999px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    --header-bg: rgba(255, 255, 255, 0.78);
+  }
+
+  .header-scrolled .header-container {
+    width: 100%;
+  }
+
+  .header-scrolled .nav-menu {
+    margin-left: 1.4rem;
+  }
+
+  .header-scrolled .nav-menu ul {
+    gap: 1.6rem;
+  }
+
+  .header-scrolled .logo {
+    height: 38px;
+  }
+
+  .header-scrolled .JoinUs {
+    width: 108px;
+    height: 34px;
+    font-size: 0.85rem;
+  }
+
+  .header.header-dark.header-scrolled,
+  body.sponsors-split-visible .header.header-scrolled {
+    --header-bg: rgba(5, 11, 20, 0.82);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+  }
+}
+
+/* Mobil: pill yok, sadece hafif incelme. */
+@media only screen and (max-width: 999px) {
+  .header-scrolled {
+    padding: 0.35rem 1rem;
+  }
+
+  .header-scrolled .responsive-navbar {
+    height: 42px;
+  }
+
+  .header-scrolled .r-logo img {
+    height: 2.9rem;
+    width: 2.9rem;
+  }
+}
+
+@media only screen and (max-width: 480px) {
+  .header-scrolled {
+    padding: 0.3rem 0.75rem;
+  }
+
+  .header-scrolled .responsive-navbar {
+    height: 40px;
+  }
+
+  .header-scrolled .r-logo img {
+    height: 2.4rem;
+    width: 2.4rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header,
+  .header .logo,
+  .header .nav-menu,
+  .header .nav-menu ul,
+  .header .JoinUs {
+    transition: none;
+  }
 }

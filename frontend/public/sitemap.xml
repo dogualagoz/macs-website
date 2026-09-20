@@ -32,6 +32,14 @@
     <priority>0.7</priority>
   </url>
 
+  <!-- Ekibimiz -->
+  <url>
+    <loc>https://esogumacs.com/ekibimiz</loc>
+    <lastmod>2026-09-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
   <!-- Hakkımızda (Ana sayfa bölümü) -->
   <url>
     <loc>https://esogumacs.com/#about</loc>

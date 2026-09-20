@@ -3,7 +3,7 @@ import { GraduationCap, Lightbulb, Handshake, Target, Heart, Sparkles, Rocket, U
 import { motion } from 'framer-motion';
 import '../../../styles/pages/about.css';
 import SEO from '../../../shared/components/seo/SEO';
-import TeamSection from '../../home/components/TeamSection';
+import TeamSection from '../../team/components/TeamSection';
 import { getInitialsAvatar } from '../../../shared/utils/media';
 import { handleAvatarError } from '../../../utils/imageUtils';
 
@@ -53,8 +53,8 @@ const websiteTeam = [
 // Scroll animasyon varyantları
 const fadeInUp = {
   hidden: { opacity: 0, y: 60 },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     y: 0,
     transition: { duration: 0.6, ease: "easeOut" }
   }
@@ -62,8 +62,8 @@ const fadeInUp = {
 
 const fadeInLeft = {
   hidden: { opacity: 0, x: -60 },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     x: 0,
     transition: { duration: 0.6, ease: "easeOut" }
   }
@@ -71,8 +71,8 @@ const fadeInLeft = {
 
 const fadeInRight = {
   hidden: { opacity: 0, x: 60 },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     x: 0,
     transition: { duration: 0.6, ease: "easeOut" }
   }
@@ -91,8 +91,8 @@ const staggerContainer = {
 
 const scaleIn = {
   hidden: { opacity: 0, scale: 0.8 },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     scale: 1,
     transition: { duration: 0.5, ease: "easeOut" }
   }
@@ -101,13 +101,13 @@ const scaleIn = {
 const AboutPage = () => {
   return (
     <>
-      <SEO 
+      <SEO
         title="Hakkımızda - MACS"
         description="MACS, Eskişehir Osmangazi Üniversitesi Matematik ve Bilgisayar Bilimleri Bölümü öğrencilerinin kurduğu, yazılım projeleri ve etkinlikler düzenleyen aktif bir öğrenci topluluğudur."
         keywords="MACS, Hakkımızda, Matematik, Bilgisayar Bilimleri, ESOGÜ, topluluk"
         url="https://esogumacs.com/hakkimizda"
       />
-      
+
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -116,21 +116,17 @@ const AboutPage = () => {
             <div className="about-page">
               {/* Hero Section */}
               <section className="about-hero">
-                <motion.div 
+                <motion.div
                   className="about-hero-content"
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.2 }}
                 >
-                  <div className="about-hero-badge">
-                    <Sparkles size={16} />
-                    <span>Öğrenci Topluluğu</span>
-                  </div>
                   <h1 className="about-hero-title">
                     <span className="text-gradient">MACS</span> Topluluğu
                   </h1>
                   <p className="about-hero-subtitle">
-                    Matematik ve Bilgisayar Bilimleri tutkusuyla bir araya gelen öğrencilerin 
+                    Matematik ve Bilgisayar Bilimleri tutkusuyla bir araya gelen öğrencilerin
                     oluşturduğu, yenilikçi ve dinamik bir topluluk.
                   </p>
                 </motion.div>
@@ -144,9 +140,9 @@ const AboutPage = () => {
               {/* About Content */}
               <section className="about-content">
                 <div className="about-container">
-                  
+
                   {/* Biz Kimiz */}
-                  <motion.div 
+                  <motion.div
                     className="about-intro-card"
                     variants={fadeInUp}
                     initial="hidden"
@@ -159,21 +155,21 @@ const AboutPage = () => {
                     <div className="about-intro-text">
                       <h2>Biz Kimiz?</h2>
                       <p>
-                        MACS; matematik, bilgisayar bilimi ve teknolojiye ilgi duyan öğrencileri 
-                        bir araya getiren öğrenci odaklı bir topluluktur. Amacımız, sınıf ortamının 
+                        MACS; matematik, bilgisayar bilimi ve teknolojiye ilgi duyan öğrencileri
+                        bir araya getiren öğrenci odaklı bir topluluktur. Amacımız, sınıf ortamının
                         ötesine geçen, ilham verici ve iş birliğine açık bir öğrenme alanı oluşturmaktır.
                       </p>
                       <p>
-                        Uygulamalı atölyelerden vizyon açıcı seminerlere kadar birçok etkinlikle, 
-                        fikirlerin gerçeğe dönüştüğü bir alan sunuyoruz. Eskişehir Osmangazi Üniversitesi'nde 
-                        faaliyet gösteren topluluğumuz, öğrencilerin potansiyellerini keşfetmelerine 
+                        Uygulamalı atölyelerden vizyon açıcı seminerlere kadar birçok etkinlikle,
+                        fikirlerin gerçeğe dönüştüğü bir alan sunuyoruz. Eskişehir Osmangazi Üniversitesi'nde
+                        faaliyet gösteren topluluğumuz, öğrencilerin potansiyellerini keşfetmelerine
                         ve geliştirmelerine yardımcı olmaktadır.
                       </p>
                     </div>
                   </motion.div>
 
                   {/* Misyon & Vizyon */}
-                  <motion.div 
+                  <motion.div
                     className="about-mission-vision"
                     variants={staggerContainer}
                     initial="hidden"
@@ -186,10 +182,10 @@ const AboutPage = () => {
                       </div>
                       <h3>Misyonumuz</h3>
                       <p>
-                        Akademik bilgi ile gerçek dünya uygulamaları arasındaki köprüyü kurarak 
-                        sürekli öğrenme, yaratıcılık ve ekip çalışmasını teşvik eden bir kültür 
-                        oluşturmaktır. Öğrencileri matematik ve bilgisayar biliminin dinamik 
-                        dünyasını keşfetmeye, güçlü bağlar kurmaya ve birlikte teknolojik 
+                        Akademik bilgi ile gerçek dünya uygulamaları arasındaki köprüyü kurarak
+                        sürekli öğrenme, yaratıcılık ve ekip çalışmasını teşvik eden bir kültür
+                        oluşturmaktır. Öğrencileri matematik ve bilgisayar biliminin dinamik
+                        dünyasını keşfetmeye, güçlü bağlar kurmaya ve birlikte teknolojik
                         yenilikler üretmeye teşvik ediyoruz.
                       </p>
                     </motion.div>
@@ -199,16 +195,16 @@ const AboutPage = () => {
                       </div>
                       <h3>Vizyonumuz</h3>
                       <p>
-                        Türkiye'nin önde gelen teknik toplulukları arasında yer almak ve 
-                        üyelerimizi sektörün aranan profesyonelleri haline getirmek. 
-                        Yenilikçi projeler ve güçlü bir network ile öğrenci topluluklarına 
+                        Türkiye'nin önde gelen teknik toplulukları arasında yer almak ve
+                        üyelerimizi sektörün aranan profesyonelleri haline getirmek.
+                        Yenilikçi projeler ve güçlü bir network ile öğrenci topluluklarına
                         ilham kaynağı olmak.
                       </p>
                     </motion.div>
                   </motion.div>
 
                   {/* Değerlerimiz */}
-                  <motion.div 
+                  <motion.div
                     className="about-values-section"
                     variants={fadeInUp}
                     initial="hidden"
@@ -219,7 +215,7 @@ const AboutPage = () => {
                       <Heart size={24} className="section-icon" />
                       <h2>Değerlerimiz</h2>
                     </div>
-                    <motion.div 
+                    <motion.div
                       className="values-grid"
                       variants={staggerContainer}
                       initial="hidden"
@@ -232,7 +228,7 @@ const AboutPage = () => {
                         </div>
                         <h4>Topluluk</h4>
                         <p>
-                          MACS kendini ait ve güvende hissedebileceğin, destekleyici bir 
+                          MACS kendini ait ve güvende hissedebileceğin, destekleyici bir
                           ortam ve birlikte büyüdüğümüz bir topluluktur.
                         </p>
                       </motion.div>
@@ -243,7 +239,7 @@ const AboutPage = () => {
                         </div>
                         <h4>Öğrenme</h4>
                         <p>
-                          Merak ederiz, araştırırız ve paylaşırız. Her etkinlikte 
+                          Merak ederiz, araştırırız ve paylaşırız. Her etkinlikte
                           birbirimizden öğrenmeye önem veririz.
                         </p>
                       </motion.div>
@@ -254,7 +250,7 @@ const AboutPage = () => {
                         </div>
                         <h4>Yenilik</h4>
                         <p>
-                          Yeni fikirlere açığız. Denemekten korkmadan, yaratıcılığı 
+                          Yeni fikirlere açığız. Denemekten korkmadan, yaratıcılığı
                           destekleriz.
                         </p>
                       </motion.div>
@@ -265,7 +261,7 @@ const AboutPage = () => {
                         </div>
                         <h4>İş Birliği</h4>
                         <p>
-                          Birlikte üretmenin gücüne inanırız. Ekip çalışmasıyla daha büyük 
+                          Birlikte üretmenin gücüne inanırız. Ekip çalışmasıyla daha büyük
                           işler başarırız.
                         </p>
                       </motion.div>
@@ -283,7 +279,7 @@ const AboutPage = () => {
                   </motion.div>
 
                   {/* İstatistikler */}
-                    <motion.div className="about-stats" 
+                    <motion.div className="about-stats"
                     variants={staggerContainer}
                     initial="hidden"
                     whileInView="visible"
@@ -308,7 +304,7 @@ const AboutPage = () => {
                   </motion.div>
 
                   {/* Emeği Geçenler */}
-                  <motion.div 
+                  <motion.div
                     className="about-team-section"
                     variants={fadeInUp}
                     initial="hidden"
@@ -322,7 +318,7 @@ const AboutPage = () => {
                     <p className="team-section-subtitle">
                       Bu web sitesinin geliştirilmesinde emeği geçen ekip üyelerimiz
                     </p>
-                    <motion.div 
+                    <motion.div
                       className="team-grid"
                       variants={staggerContainer}
                       initial="hidden"
@@ -330,14 +326,14 @@ const AboutPage = () => {
                       viewport={{ once: true, amount: 0.2 }}
                     >
                       {websiteTeam.map((uye) => (
-                        <motion.div 
-                          className="team-card" 
+                        <motion.div
+                          className="team-card"
                           key={uye.id}
                           variants={scaleIn}
                         >
                           <div className="team-avatar">
-                            <img 
-                              src={uye.profil_resmi || getInitialsAvatar(uye.ad_soyad)} 
+                            <img
+                              src={uye.profil_resmi || getInitialsAvatar(uye.ad_soyad)}
                               alt={uye.ad_soyad}
                               onError={(e) => handleAvatarError(e, uye.ad_soyad)}
                             loading="lazy" />
@@ -350,7 +346,7 @@ const AboutPage = () => {
                   </motion.div>
 
                   {/* CTA Section */}
-                  <motion.div 
+                  <motion.div
                     className="about-cta"
                     variants={fadeInUp}
                     initial="hidden"
@@ -361,9 +357,9 @@ const AboutPage = () => {
                     <p>
                       MACS ailesinin bir parçası olun ve teknoloji dünyasında yerinizi alın!
                     </p>
-                    <a 
-                      href="https://forms.gle/MXaCH1YG3qE4rsX36" 
-                      target="_blank" 
+                    <a
+                      href="https://forms.gle/MXaCH1YG3qE4rsX36"
+                      target="_blank"
                       rel="noopener noreferrer"
                       className="cta-button"
                     >
