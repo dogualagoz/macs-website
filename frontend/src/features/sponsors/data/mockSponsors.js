@@ -10,6 +10,7 @@ export const mockSponsors = [
     description: "açıklama 1",
     category: "Kafe",
     discountInfo: "MACS üyelerine %15 indirim",
+    is_featured: true,
     imageUrl: null,
     location: {
       address: "Eskişehir Teknopark, No: 15",
@@ -23,6 +24,7 @@ export const mockSponsors = [
     description: "açıklama 2",
     category: "Restoran",
     discountInfo: "Öğrenci kartı ile %10 indirim",
+    is_featured: true,
     imageUrl: null,
     location: {
       address: "Odunpazarı, Merkez Mah.",

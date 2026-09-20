@@ -115,16 +115,18 @@
 
 .sponsors-split__title {
   margin: 0;
-  font-size: 1.125rem;
-  font-weight: 600;
-  letter-spacing: 0.01em;
+  font-size: clamp(1.75rem, 2.6vw, 2.5rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
   color: #ffffff;
 }
 
 .sponsors-split__subtitle {
-  margin: 0.4rem 0 0;
-  font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.55);
+  margin: 0.65rem 0 0;
+  font-size: clamp(0.95rem, 1.05vw, 1.125rem);
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .sponsors-split__grid {
@@ -140,16 +142,10 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 1.5rem;
-  padding: 3rem 1.5rem 7rem;
-  background: transparent;
-  border: 0;
-  font: inherit;
-  color: inherit;
+  padding: clamp(3rem, 13vh, 8rem) 2rem 7rem;
   text-align: center;
-  cursor: pointer;
-  transition: background-color 0.35s ease;
 }
 
 /* Panelleri ayıran ince dikey çizgi (uçlara doğru sönüyor) */
@@ -168,33 +164,19 @@
   );
 }
 
-.split-panel:hover {
-  background-color: rgba(255, 255, 255, 0.045);
-}
-
-.split-panel:focus-visible {
-  outline: 2px solid #f2317c;
-  outline-offset: -4px;
-}
-
-/* Logo zemini: yüklenen logolar koyu renkli olabiliyor, lacivert
-   üstünde kaybolmasınlar diye beyaz bir taban veriliyor. */
+/* Logo zemini: yuklenen logolar koyu renkli ve saydam, lacivert uzerinde
+   okunmuyorlar. Olculer SABIT - logo en/boy orani ne olursa olsun iki levha
+   ayni boyda kaliyor, yoksa altlarindaki isimler farkli hizaya dusuyor. */
 .split-panel__plate {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: min(76%, 26rem);
-  min-height: 11rem;
-  padding: 2.25rem 2.75rem;
+  width: min(82%, 28rem);
+  height: 12.5rem;
+  padding: 1.75rem 3.25rem;
   background: #ffffff;
-  border-radius: 1.25rem;
-  box-shadow: 0 24px 60px -30px rgba(0, 0, 0, 0.75);
-  transition: transform 0.35s ease, box-shadow 0.35s ease;
-}
-
-.split-panel:hover .split-panel__plate {
-  transform: translateY(-4px) scale(1.03);
-  box-shadow: 0 30px 70px -26px rgba(0, 0, 0, 0.85);
+  border-radius: 1.15rem;
+  box-shadow: 0 20px 50px -30px rgba(0, 0, 0, 0.65);
 }
 
 .split-panel__plate--loading {
@@ -210,7 +192,7 @@
 
 .split-panel__logo {
   max-width: 100%;
-  max-height: 8rem;
+  max-height: 100%;
   width: auto;
   height: auto;
   object-fit: contain;
@@ -231,9 +213,18 @@
 }
 
 .split-panel__name {
-  font-size: 1.05rem;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.85);
+  margin: 0;
+  font-size: clamp(1.25rem, 1.45vw, 1.5rem);
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.split-panel__desc {
+  margin: -0.75rem 0 0;
+  max-width: 32rem;
+  font-size: clamp(0.95rem, 1vw, 1.05rem);
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.62);
 }
 
 .sponsors-split__cue {
@@ -266,7 +257,7 @@
 }
 
 .sponsors-split__cue-text {
-  font-size: 0.8rem;
+  font-size: 0.875rem;
   font-weight: 500;
   letter-spacing: 0.04em;
 }
@@ -275,8 +266,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
+  width: 2.75rem;
+  height: 2.75rem;
   border-radius: 9999px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   background: rgba(255, 255, 255, 0.06);
@@ -340,12 +331,17 @@
 
   .split-panel__plate {
     width: min(88%, 20rem);
-    min-height: 7rem;
-    padding: 1.5rem;
+    height: 8rem;
+    padding: 1.1rem 1.5rem;
   }
 
-  .split-panel__logo {
-    max-height: 4.5rem;
+  .split-panel__name {
+    font-size: 1.1rem;
+  }
+
+  .split-panel__desc {
+    font-size: 0.875rem;
+    line-height: 1.6;
   }
 }
 
@@ -912,6 +908,16 @@
 
 .sponsors-sidebar__item--active .sponsors-sidebar__item-address {
   color: rgba(255, 255, 255, 0.7);
+}
+
+/* Koordinati olmayan sponsor: haritada gosterilemiyor, tiklama da yapmiyor */
+.sponsors-sidebar__item--no-location {
+  cursor: default;
+}
+
+.sponsors-sidebar__item-address--muted {
+  font-style: italic;
+  color: #9ca3af;
 }
 
 /* Modal */

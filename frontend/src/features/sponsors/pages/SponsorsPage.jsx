@@ -114,10 +114,7 @@ export default function SponsorsPage() {
       />
       <div className={`sponsors-page ${hasSplit ? 'sponsors-page--split' : ''}`}>
       {hasSplit ? (
-        <FeaturedSplit
-          sponsors={featuredSponsors}
-          onSponsorClick={setSelectedSponsor}
-        />
+        <FeaturedSplit sponsors={featuredSponsors} />
       ) : (
         <section className="sponsors-hero">
           <motion.div
@@ -322,7 +319,7 @@ function SponsorsGrid({ sponsors, onSponsorClick }) {
  * İki büyük sponsor ekranı yarı yarıya paylaşır. Rozet/etiket yok:
  * ayrıcalık sadece sunum sırası, sponsorlar aşağıdaki listede de görünür.
  */
-function FeaturedSplit({ sponsors, onSponsorClick }) {
+function FeaturedSplit({ sponsors }) {
   const sectionRef = useRef(null);
 
   // Panel ekrandayken header koyu temaya geçsin: beyaz yarı saydam bar
@@ -371,15 +368,12 @@ function FeaturedSplit({ sponsors, onSponsorClick }) {
         style={{ '--split-count': Math.min(sponsors.length, 2) }}
       >
         {sponsors.map((sponsor, index) => (
-          <motion.button
-            type="button"
+          <motion.div
             key={sponsor.id}
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.15 + index * 0.1 }}
-            onClick={() => onSponsorClick(sponsor)}
             className="split-panel"
-            aria-label={`${sponsor.name} sponsor detaylarını görüntüle`}
           >
             <span className="split-panel__plate">
               {sponsor.imageUrl ? (
@@ -395,8 +389,11 @@ function FeaturedSplit({ sponsors, onSponsorClick }) {
                 </span>
               )}
             </span>
-            <span className="split-panel__name">{sponsor.name}</span>
-          </motion.button>
+            <h2 className="split-panel__name">{sponsor.name}</h2>
+            {sponsor.description && (
+              <p className="split-panel__desc">{sponsor.description}</p>
+            )}
+          </motion.div>
         ))}
       </div>
 
@@ -449,16 +446,18 @@ function SponsorsMap({ sponsors }) {
   };
 
   const handleSidebarClick = (sponsor) => {
+    // Koordinatsiz sponsorun popup'i zaten cizilemiyor; secili isaretlemek
+    // tiklamayi cevapsiz birakirdi. Bu yuzden hic secilmiyor.
+    if (!sponsor.location?.lat || !sponsor.location?.lng) return;
+
     setIsClosing(false);
     setPopupInfo(sponsor);
-    if (sponsor.location?.lng && sponsor.location?.lat) {
-      setViewState(prev => ({
-        ...prev,
-        longitude: sponsor.location.lng,
-        latitude: sponsor.location.lat,
-        zoom: 14
-      }));
-    }
+    setViewState(prev => ({
+      ...prev,
+      longitude: sponsor.location.lng,
+      latitude: sponsor.location.lat,
+      zoom: 14
+    }));
   };
 
   const mapFallback = mapError || !MAPBOX_TOKEN;
@@ -617,13 +616,16 @@ function SponsorsMap({ sponsors }) {
           <p className="sponsors-sidebar__count">{sponsors.length} sponsor</p>
         </div>
         <div className="sponsors-sidebar__list">
-          {sponsors.map((sponsor) => (
+          {sponsors.map((sponsor) => {
+            const hasLocation = Boolean(sponsor.location?.lat && sponsor.location?.lng);
+
+            return (
             <motion.div
               key={sponsor.id}
               onClick={() => handleSidebarClick(sponsor)}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className={`sponsors-sidebar__item ${popupInfo?.id === sponsor.id ? 'sponsors-sidebar__item--active' : ''}`}
+              whileHover={hasLocation ? { scale: 1.02 } : undefined}
+              whileTap={hasLocation ? { scale: 0.98 } : undefined}
+              className={`sponsors-sidebar__item ${hasLocation ? '' : 'sponsors-sidebar__item--no-location'} ${popupInfo?.id === sponsor.id ? 'sponsors-sidebar__item--active' : ''}`}
             >
               <div className="sponsors-sidebar__item-content">
                 <div className={`sponsors-sidebar__item-avatar ${popupInfo?.id === sponsor.id ? 'sponsors-sidebar__item-avatar--active' : ''}`}>
@@ -642,15 +644,20 @@ function SponsorsMap({ sponsors }) {
                   <p className="sponsors-sidebar__item-name">
                     {sponsor.name}
                   </p>
-                  {sponsor.location?.address && (
+                  {sponsor.location?.address ? (
                     <p className="sponsors-sidebar__item-address">
                       {sponsor.location.address}
+                    </p>
+                  ) : !hasLocation && (
+                    <p className="sponsors-sidebar__item-address sponsors-sidebar__item-address--muted">
+                      Konum bilgisi yok
                     </p>
                   )}
                 </div>
               </div>
             </motion.div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </motion.div>
