@@ -117,11 +117,14 @@ export const SponsorForm = ({ editData = null, onUpdateSuccess = null, onCancelE
           value={formData.discountInfo}
           onChange={(e) => handleChange('discountInfo', e.target.value)}
           rows={2}
-          required
         />
 
         <div className="form-section">
           <h4 className="form-section-title">Konum Bilgileri</h4>
+          <p className="form-section-hint">
+            Opsiyonel. Fiziksel adresi olmayan kurumsal sponsorlarda boş bırakın —
+            sponsor listede görünür, haritada gösterilmez.
+          </p>
           
           <div className="address-input-group">
             <FormInput
@@ -148,7 +151,6 @@ export const SponsorForm = ({ editData = null, onUpdateSuccess = null, onCancelE
               placeholder="39.7767"
               value={formData.latitude}
               onChange={(e) => handleChange('latitude', e.target.value)}
-              required
             />
             <FormInput
               label="Boylam (Longitude)"
@@ -157,7 +159,6 @@ export const SponsorForm = ({ editData = null, onUpdateSuccess = null, onCancelE
               placeholder="30.5206"
               value={formData.longitude}
               onChange={(e) => handleChange('longitude', e.target.value)}
-              required
             />
           </div>
 
@@ -195,6 +196,12 @@ export const SponsorForm = ({ editData = null, onUpdateSuccess = null, onCancelE
             label="Aktif mi?"
             checked={formData.isActive}
             onChange={(e) => handleChange('isActive', e.target.checked)}
+          />
+          <FormCheckbox
+            id="featured-sponsor"
+            label="Öne çıkar (sponsorlar sayfasının en üstünde büyük gösterilir)"
+            checked={formData.isFeatured}
+            onChange={(e) => handleChange('isFeatured', e.target.checked)}
           />
         </div>
 

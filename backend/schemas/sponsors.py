@@ -8,11 +8,12 @@ class SponsorBase(BaseModel):
     description: Optional[str] = Field(None, description="Açıklama")
     image_url: Optional[str] = Field(None, max_length=500, description="Resim URL")
     category: str = Field(..., min_length=2, max_length=100, description="Kategori (Kafe, Restoran, vs)")
-    discount_info: str = Field(..., min_length=2, description="İndirim bilgisi")
-    latitude: float = Field(..., ge=-90, le=90, description="Enlem")
-    longitude: float = Field(..., ge=-180, le=180, description="Boylam")
+    discount_info: Optional[str] = Field(None, min_length=2, max_length=500, description="İndirim bilgisi (opsiyonel)")
+    latitude: Optional[float] = Field(None, ge=-90, le=90, description="Enlem (konumsuz sponsorlarda bos)")
+    longitude: Optional[float] = Field(None, ge=-180, le=180, description="Boylam (konumsuz sponsorlarda bos)")
     address: Optional[str] = Field(None, description="Adres")
     is_active: bool = Field(True, description="Aktif mi?")
+    is_featured: bool = Field(False, description="Sponsorlar sayfasının en üstünde öne çıksın mı?")
 
 class SponsorCreate(SponsorBase):
     """Yeni sponsor oluşturulurken kullanılır"""
@@ -29,6 +30,7 @@ class SponsorUpdate(BaseModel):
     longitude: Optional[float] = Field(None, ge=-180, le=180)
     address: Optional[str] = None
     is_active: Optional[bool] = None
+    is_featured: Optional[bool] = None
 
 
 class Sponsor(SponsorBase):

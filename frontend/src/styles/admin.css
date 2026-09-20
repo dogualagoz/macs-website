@@ -478,6 +478,13 @@ body, html {
   border-bottom: 1px solid #e5e7eb;
 }
 
+.form-section-hint {
+  margin: -0.5rem 0 1rem;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: #6b7280;
+}
+
 .address-input-group {
   display: flex;
   gap: 0.75rem;

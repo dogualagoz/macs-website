@@ -23,7 +23,8 @@ export const useSponsorForm = (editData = null, onUpdateSuccess = null) => {
     address: '',
     latitude: '',
     longitude: '',
-    isActive: true
+    isActive: true,
+    isFeatured: false
   });
   
   const [image, setImage] = useState(null);
@@ -49,7 +50,8 @@ export const useSponsorForm = (editData = null, onUpdateSuccess = null) => {
         address: editData.address || '',
         latitude: editData.latitude?.toString() || '',
         longitude: editData.longitude?.toString() || '',
-        isActive: editData.is_active ?? true
+        isActive: editData.is_active ?? true,
+        isFeatured: editData.is_featured ?? false
       });
       
       // Mevcut resmi önizlemeye ekle
@@ -110,12 +112,16 @@ export const useSponsorForm = (editData = null, onUpdateSuccess = null) => {
     
     try {
       // validasyon
-      if (!formData.name || !formData.category || !formData.discountInfo) {
+      if (!formData.name || !formData.category) {
         throw new Error('Lütfen zorunlu alanları doldurun');
       }
 
-      if (!formData.latitude || !formData.longitude) {
-        throw new Error('Koordinat bilgisi gerekli. Adres girin ve "Koordinat Al" butonuna tıklayın veya manuel girin.');
+      // Koordinat opsiyonel: kurumsal sponsorlarin fiziksel adresi olmayabilir,
+      // bunlar haritada gosterilmez. Ama yarim koordinat gecersiz.
+      const hasLat = formData.latitude !== '' && formData.latitude !== null;
+      const hasLng = formData.longitude !== '' && formData.longitude !== null;
+      if (hasLat !== hasLng) {
+        throw new Error('Enlem ve boylamın ikisini birden girin ya da ikisini de boş bırakın.');
       }
 
       // görsel yükle (yeni resim seçildiyse)
@@ -129,11 +135,12 @@ export const useSponsorForm = (editData = null, onUpdateSuccess = null) => {
         name: formData.name,
         description: formData.description || null,
         category: formData.category,
-        discount_info: formData.discountInfo,
+        discount_info: formData.discountInfo ? formData.discountInfo : null,
         address: formData.address || null,
-        latitude: parseFloat(formData.latitude),
-        longitude: parseFloat(formData.longitude),
-        is_active: formData.isActive
+        latitude: hasLat ? parseFloat(formData.latitude) : null,
+        longitude: hasLng ? parseFloat(formData.longitude) : null,
+        is_active: formData.isActive,
+        is_featured: formData.isFeatured
       };
       
       // Sadece yeni resim yüklendiyse image_url ekle
@@ -179,7 +186,8 @@ export const useSponsorForm = (editData = null, onUpdateSuccess = null) => {
       address: '',
       latitude: '',
       longitude: '',
-      isActive: true
+      isActive: true,
+      isFeatured: false
     });
     setImage(null);
     setImagePreview(null);

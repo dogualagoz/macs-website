@@ -26,17 +26,20 @@ class Sponsor(Base):
     #Kategori (Kafe, Restoran, Market, vs)
     category = Column(String(100), nullable=False, index=True)
 
-    #İndirim Bilgisi
-    discount_info = Column(Text, nullable=False)
+    #İndirim Bilgisi (kurumsal sponsorlarda boş olabilir)
+    discount_info = Column(Text, nullable=True)
 
-    #Konum Bilgileri
-    latitude = Column(Float, nullable=False)
-    longitude = Column(Float, nullable=False)
+    #Konum Bilgileri (kurumsal sponsorlarin fiziksel adresi olmayabilir)
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
     address = Column(Text, nullable=True)
 
 
     #Durum 
     is_active = Column(Boolean, default=True)
+
+    #Öne Çıkan (sponsorlar sayfasının en üstünde büyük gösterilir)
+    is_featured = Column(Boolean, default=False)
 
     #Tarihler
     created_at = Column(DateTime(timezone=True), server_default=func.now())
