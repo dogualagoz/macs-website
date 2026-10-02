@@ -14,7 +14,7 @@ import { LoginPage, ProtectedRoute, AuthProvider } from './features/auth';
 import { AdminPanel } from './features/admin';
 import Page404 from './shared/components/Page404';
 import ErrorBoundary from './shared/components/feedback/ErrorBoundary';
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import './styles/App.css';
 import ScrollToTop from './shared/components/navigation/ScrollToTop';
 
@@ -105,6 +105,7 @@ function App() {
             <Route path="/projeler/:id" element={<ProjectDetailPage />} />
             {/* Sponsorluklar geçici olarak ComingSoon sayfasına yönlendirildi. Sadece bu satırı değiştirerek eski haline dönebilir. */}
             <Route path="/sponsorluk" element={<SponsorsPage />} />
+            <Route path="/qr" element={<Navigate to="/sponsorluk" replace />} />
             <Route path="/hakkimizda" element={<AboutPage />} />
             <Route path="/ekibimiz" element={<TeamPage />} />
             <Route path="/login" element={<LoginPage />} />
