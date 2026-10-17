@@ -35,7 +35,7 @@ export default function FeaturedEventCard({ event }) {
 
   return (
     <Link to={`/etkinlikler/${event.slug}`} style={{ textDecoration: 'none' }}>
-      <div className="group relative overflow-hidden rounded-2xl bg-white shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200">
+      <div className="hw-card hw-card--featured group relative overflow-hidden rounded-2xl bg-white shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-0 h-full">
           {/* Image Container - Left Side */}
           <div className="relative h-64 md:h-80 overflow-hidden bg-gray-100 col-span-1">

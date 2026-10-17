@@ -1,0 +1,982 @@
+/* ===================================================================
+   Halloween temasi (sadece design/halloween branch'i)
+
+   Her kural :root[data-theme="halloween"] ile basliyor. Ozniteligi
+   HalloweenLayer basiyor; admin ve login'de kaldiriyor. Bu on ek
+   (0,2,0) ozgulluk ekliyor, boylece bu dosya bilesen CSS'lerinden once
+   yuklense de onlari eziyor. Mevcut CSS dosyalarina dokunulmadi; temayi
+   kaldirmak icin bu dosyanin import edilmemesi yeterli.
+   =================================================================== */
+
+:root[data-theme="halloween"] {
+  --hw-night: #140b22;
+  --hw-night-2: #1f1233;
+  --hw-night-3: #2c1a47;
+  --hw-ground: #0d0717;
+  --hw-pumpkin: #ff7a1a;
+  --hw-pumpkin-hot: #ff9a3d;
+  /* Beyaz metinle 5.2:1; kucuk yazili rozet ve butonlar bunu kullaniyor. */
+  --hw-pumpkin-deep: #c2410c;
+  --hw-bone: #f2ecfb;
+  --hw-bone-muted: #c9bfdc;
+  --hw-mist: 205, 190, 235;
+  --hw-header-h: 78px;
+
+  /* Sitenin kendi token'lari: bunlari kullanan her yer otomatik donusuyor. */
+  --bg-dark: var(--hw-night);
+  --bg-dark-elevated: var(--hw-night-2);
+  --accent-blue: var(--hw-pumpkin-deep);
+  --focus-ring: 0 0 0 2px #ffffff, 0 0 0 4px var(--hw-pumpkin-deep);
+}
+
+@media (max-width: 999px) {
+  :root[data-theme="halloween"] {
+    --hw-header-h: 74px;
+  }
+}
+
+@media (max-width: 480px) {
+  :root[data-theme="halloween"] {
+    --hw-header-h: 61px;
+  }
+}
+
+:root[data-theme="halloween"] ::selection {
+  background: rgba(255, 122, 26, 0.35);
+}
+
+/* ---------------------------------------------------------------
+   Header: her sayfada gece moru; logonun yaninda balkabagi.
+   Scroll'da (dynamic island) balkabaginin gozleri yaniyor.
+   --------------------------------------------------------------- */
+
+:root[data-theme="halloween"] .header {
+  /* Acik sayfalarda header beyaz zeminin ustunde kaliyor; daha saydam
+     olunca griye donuyordu. */
+  --header-bg: rgba(20, 11, 34, 0.95);
+  --header-text: var(--hw-bone);
+  --header-border: rgba(255, 122, 26, 0.18);
+  --header-logo-filter: none;
+}
+
+:root[data-theme="halloween"] .header.header-scrolled {
+  --header-bg: rgba(20, 11, 34, 0.88);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45), 0 0 24px rgba(255, 122, 26, 0.12);
+}
+
+:root[data-theme="halloween"] .header .nav-menu a:hover {
+  color: var(--hw-bone);
+  background-color: rgba(255, 122, 26, 0.16);
+}
+
+:root[data-theme="halloween"] .header .JoinUs {
+  background-color: var(--hw-pumpkin);
+  border-color: var(--hw-pumpkin);
+  color: var(--hw-night);
+}
+
+:root[data-theme="halloween"] .header .JoinUs:hover {
+  background-color: var(--hw-pumpkin-hot);
+  border-color: var(--hw-pumpkin-hot);
+  color: var(--hw-night);
+}
+
+:root[data-theme="halloween"] .header .menu-icon img,
+:root[data-theme="halloween"] .header .close-icon {
+  filter: brightness(0) invert(1) !important;
+}
+
+/* header.css mobil cekmecede !important kullaniyor. */
+:root[data-theme="halloween"] .header .r-navbar {
+  background: var(--hw-night) !important;
+  box-shadow: -10px 0 40px rgba(0, 0, 0, 0.6);
+}
+
+:root[data-theme="halloween"] .header .r-navbar ul li a {
+  color: var(--hw-bone) !important;
+}
+
+:root[data-theme="halloween"] .header .r-navbar ul li a:hover {
+  background-color: rgba(255, 122, 26, 0.16);
+}
+
+:root[data-theme="halloween"] .header .logo,
+:root[data-theme="halloween"] .header .r-logo {
+  position: relative;
+}
+
+:root[data-theme="halloween"] .header .logo::after,
+:root[data-theme="halloween"] .header .r-logo::after {
+  content: '';
+  position: absolute;
+  right: -10px;
+  bottom: -3px;
+  width: 24px;
+  height: 22px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 30'%3E%3Cpath fill='%234f7a28' d='M15 7c0-3 1-5 4-6l1 2c-2 1-2.5 2.5-2.5 4z'/%3E%3Cellipse cx='9.5' cy='18' rx='7.5' ry='9.5' fill='%23d9600f'/%3E%3Cellipse cx='22.5' cy='18' rx='7.5' ry='9.5' fill='%23d9600f'/%3E%3Cellipse cx='16' cy='18' rx='8.5' ry='10.5' fill='%23ff7a1a'/%3E%3Cpath fill='%233a1606' d='M9.5 16.5L12 12.5L14.5 16.5ZM17.5 16.5L20 12.5L22.5 16.5ZM8.5 20Q16 28 23.5 20L21.6 21.2L20.2 19.7L18.6 21.6L16 20.2L13.4 21.6L11.8 19.7L10.4 21.2Z'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  pointer-events: none;
+  transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.4s ease;
+}
+
+:root[data-theme="halloween"] .header.header-scrolled .logo::after,
+:root[data-theme="halloween"] .header.header-scrolled .r-logo::after {
+  width: 18px;
+  height: 17px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 30'%3E%3Cpath fill='%234f7a28' d='M15 7c0-3 1-5 4-6l1 2c-2 1-2.5 2.5-2.5 4z'/%3E%3Cellipse cx='9.5' cy='18' rx='7.5' ry='9.5' fill='%23d9600f'/%3E%3Cellipse cx='22.5' cy='18' rx='7.5' ry='9.5' fill='%23d9600f'/%3E%3Cellipse cx='16' cy='18' rx='8.5' ry='10.5' fill='%23ff7a1a'/%3E%3Cpath fill='%23ffd27a' d='M9.5 16.5L12 12.5L14.5 16.5ZM17.5 16.5L20 12.5L22.5 16.5ZM8.5 20Q16 28 23.5 20L21.6 21.2L20.2 19.7L18.6 21.6L16 20.2L13.4 21.6L11.8 19.7L10.4 21.2Z'/%3E%3C/svg%3E");
+  filter: drop-shadow(0 0 5px rgba(255, 170, 60, 0.95));
+}
+
+/* ---------------------------------------------------------------
+   Hero: mor gece, ufukta balkabagi isigi, ay, yarasalar, sis
+   --------------------------------------------------------------- */
+
+:root[data-theme="halloween"] .hero-background-image {
+  filter: blur(4px) brightness(0.62) saturate(0.5);
+}
+
+:root[data-theme="halloween"] .hero-overlay {
+  background:
+    radial-gradient(ellipse 80% 45% at 50% 108%, rgba(255, 122, 26, 0.3), transparent 70%),
+    linear-gradient(
+      180deg,
+      rgba(20, 11, 34, 0.66) 0%,
+      rgba(30, 14, 52, 0.76) 55%,
+      rgba(20, 11, 34, 0.94) 100%
+    );
+}
+
+:root[data-theme="halloween"] .hero-title {
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5), 0 0 36px rgba(255, 122, 26, 0.35);
+}
+
+:root[data-theme="halloween"] .hero-subtitle {
+  color: #e9e1f7;
+}
+
+:root[data-theme="halloween"] .hero-btn--primary {
+  background: var(--hw-pumpkin);
+  color: var(--hw-night);
+}
+
+:root[data-theme="halloween"] .hero-btn--primary:hover {
+  background: var(--hw-pumpkin-hot);
+}
+
+:root[data-theme="halloween"] .hero-btn--ghost {
+  color: var(--hw-bone);
+  border-color: rgba(242, 236, 251, 0.6);
+}
+
+:root[data-theme="halloween"] .hero-btn--ghost:hover {
+  border-color: var(--hw-pumpkin);
+  background: rgba(255, 122, 26, 0.1);
+}
+
+.hw-haunt {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.hw-moon {
+  position: absolute;
+  top: 16%;
+  right: 11%;
+  width: clamp(72px, 13vw, 190px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 63% 30%, rgba(176, 134, 74, 0.32) 0 7%, transparent 8%),
+    radial-gradient(circle at 38% 63%, rgba(176, 134, 74, 0.28) 0 10%, transparent 11%),
+    radial-gradient(circle at 70% 67%, rgba(176, 134, 74, 0.25) 0 5%, transparent 6%),
+    radial-gradient(circle at 38% 35%, #fff7e0 0%, #f6dfa8 55%, #e3b86c 100%);
+  box-shadow: 0 0 60px 12px rgba(255, 214, 140, 0.26),
+    0 0 160px 60px rgba(255, 160, 60, 0.1);
+  opacity: 0.92;
+}
+
+.hw-hero-bat {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 64px;
+  color: #0b0613;
+  filter: drop-shadow(0 0 2px rgba(255, 190, 120, 0.45));
+  transform: translate(-15vw, var(--y0)) scale(var(--s));
+  animation: hw-fly var(--dur) linear var(--delay) infinite backwards;
+}
+
+/* Gecis surenin ilk %22'sinde; kalan surede yarasa ekran disinda bekliyor,
+   boylece hero hic bos kalmiyor ama hic de kalabalik olmuyor. */
+@keyframes hw-fly {
+  0% {
+    transform: translate(-15vw, var(--y0)) scale(var(--s));
+  }
+  6% {
+    transform: translate(20vw, calc(var(--y0) - 5vh)) scale(var(--s));
+  }
+  11% {
+    transform: translate(50vw, calc((var(--y0) + var(--y1)) / 2 + 3vh)) scale(var(--s));
+  }
+  16% {
+    transform: translate(80vw, calc(var(--y1) - 4vh)) scale(var(--s));
+  }
+  22%,
+  100% {
+    transform: translate(115vw, var(--y1)) scale(var(--s));
+  }
+}
+
+.hw-bat-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  transform-origin: 50% 40%;
+  animation: hw-flap 0.2s ease-in-out infinite alternate;
+}
+
+@keyframes hw-flap {
+  from {
+    transform: scaleY(1);
+  }
+  to {
+    transform: scaleY(0.35);
+  }
+}
+
+.hw-web {
+  position: absolute;
+  width: clamp(76px, 10vw, 150px);
+  height: auto;
+  color: rgba(235, 225, 255, 0.38);
+  pointer-events: none;
+}
+
+.hw-haunt .hw-web--left,
+.hw-404 .hw-web--left {
+  top: var(--hw-header-h);
+  left: 0;
+}
+
+.hw-haunt .hw-web--right,
+.hw-404 .hw-web--right {
+  top: var(--hw-header-h);
+  right: 0;
+  transform: scaleX(-1);
+}
+
+/* Orumcek sag agdan sarkiyor; ipi uzayip kisaliyor, ayin onunde sallaniyor. */
+.hw-spider {
+  position: absolute;
+  top: var(--hw-header-h);
+  right: calc(11% + clamp(72px, 13vw, 190px) * 0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform-origin: 50% 0;
+  animation: hw-sway 7s ease-in-out infinite;
+}
+
+.hw-spider__thread {
+  display: block;
+  width: 1px;
+  height: clamp(70px, 14vh, 150px);
+  background: rgba(235, 225, 255, 0.45);
+  transform-origin: 50% 0;
+  animation: hw-dangle 5s ease-in-out infinite;
+}
+
+.hw-spider__body {
+  display: block;
+  width: 22px;
+  height: 22px;
+  margin-top: -3px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cg stroke='%230b0613' stroke-width='1.4' fill='none' stroke-linecap='round'%3E%3Cpath d='M7 9L2 5M7 10L1 10M7 11L2 15M8 12L5 18M13 9L18 5M13 10L19 10M13 11L18 15M12 12L15 18'/%3E%3C/g%3E%3Cellipse cx='10' cy='11' rx='3.6' ry='4.2' fill='%230b0613'/%3E%3Ccircle cx='10' cy='6.4' r='2.4' fill='%230b0613'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  filter: drop-shadow(0 0 2px rgba(255, 190, 120, 0.5));
+  animation: hw-dangle-body 5s ease-in-out infinite;
+}
+
+@keyframes hw-sway {
+  0%,
+  100% {
+    transform: rotate(-3deg);
+  }
+  50% {
+    transform: rotate(3deg);
+  }
+}
+
+@keyframes hw-dangle {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(1.35);
+  }
+}
+
+/* Govde ipin ucunda kalsin: ip uzadikca govde de asagi iniyor. */
+@keyframes hw-dangle-body {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(calc(clamp(70px, 14vh, 150px) * 0.35));
+  }
+}
+
+/* Sis: karo genisligi = kap genisligi, -50% kaydirma = bir karo; dikissiz dongu. */
+.hw-fog {
+  position: absolute;
+  left: 0;
+  width: 200%;
+  pointer-events: none;
+  background-image:
+    radial-gradient(ellipse 22% 60% at 12% 70%, rgba(var(--hw-mist), 0.22), transparent 70%),
+    radial-gradient(ellipse 18% 50% at 34% 82%, rgba(var(--hw-mist), 0.18), transparent 70%),
+    radial-gradient(ellipse 25% 55% at 58% 74%, rgba(var(--hw-mist), 0.2), transparent 70%),
+    radial-gradient(ellipse 20% 60% at 84% 80%, rgba(var(--hw-mist), 0.18), transparent 70%);
+  background-size: 50% 100%;
+  background-repeat: repeat-x;
+  filter: blur(10px);
+  animation: hw-drift 70s linear infinite;
+}
+
+.hw-haunt .hw-fog--back {
+  bottom: -4%;
+  height: 46%;
+  opacity: 0.7;
+}
+
+.hw-haunt .hw-fog--front {
+  bottom: -10%;
+  height: 34%;
+  animation-duration: 45s;
+  animation-direction: reverse;
+}
+
+@keyframes hw-drift {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* ---------------------------------------------------------------
+   Lacivert yuzeyler -> gece moru
+   --------------------------------------------------------------- */
+
+:root[data-theme="halloween"] .bg-\[\#07132b\] {
+  background-color: var(--hw-night);
+}
+
+:root[data-theme="halloween"] .bg-\[\#07132b\]\/70 {
+  background-color: rgba(20, 11, 34, 0.7);
+}
+
+:root[data-theme="halloween"] .text-\[\#07132b\] {
+  color: var(--hw-night-3);
+}
+
+/* from- hem from hem to degiskenini yaziyor; to- override'i ondan sonra gelmeli. */
+:root[data-theme="halloween"] .from-\[\#07132b\] {
+  --tw-gradient-from: var(--hw-night) var(--tw-gradient-from-position);
+  --tw-gradient-to: rgb(20 11 34 / 0) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+
+:root[data-theme="halloween"] .to-\[\#0a1a3a\] {
+  --tw-gradient-to: var(--hw-night-3) var(--tw-gradient-to-position);
+}
+
+:root[data-theme="halloween"] .about-hero,
+:root[data-theme="halloween"] .about-stats,
+:root[data-theme="halloween"] .about-intro-logo,
+:root[data-theme="halloween"] .value-icon-wrapper,
+:root[data-theme="halloween"] .team-avatar,
+:root[data-theme="halloween"] .skeleton-band,
+:root[data-theme="halloween"] .sponsors-hero {
+  background: linear-gradient(135deg, var(--hw-night) 0%, var(--hw-night-2) 55%, var(--hw-night-3) 100%);
+}
+
+:root[data-theme="halloween"] .text-gradient {
+  background: linear-gradient(135deg, var(--hw-pumpkin-hot) 0%, #ffd27a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+:root[data-theme="halloween"] .sponsors-split,
+:root[data-theme="halloween"] .split-panel__logo--placeholder,
+:root[data-theme="halloween"] .sponsors-view-toggle__btn--active,
+:root[data-theme="halloween"] .sponsors-map__marker,
+:root[data-theme="halloween"] .sponsors-sidebar__item--active,
+:root[data-theme="halloween"] .sponsors-sidebar__item-avatar,
+:root[data-theme="halloween"] .sponsor-popup__btn,
+:root[data-theme="halloween"] .sponsor-modal__btn,
+:root[data-theme="halloween"] .First-button-sign,
+:root[data-theme="halloween"] .error-boundary__actions button {
+  background: var(--hw-night);
+}
+
+:root[data-theme="halloween"] .sponsor-popup__btn:hover,
+:root[data-theme="halloween"] .sponsor-modal__btn:hover {
+  background: var(--hw-night-3);
+}
+
+:root[data-theme="halloween"] .sponsor-card__header,
+:root[data-theme="halloween"] .sponsor-modal__header,
+:root[data-theme="halloween"] .sponsor-popup__avatar--placeholder {
+  background: linear-gradient(to bottom right, var(--hw-night), var(--hw-night-3), #4a2360);
+}
+
+/* Ekip levhalari: kunye seridi lacivertten gece moruna, rol satiri
+   acik maviden acik turuncuya (gece morunun ustunde 9:1). */
+:root[data-theme="halloween"] .team-section {
+  --blue-200: #ffc499;
+}
+
+:root[data-theme="halloween"] .team-plate__id {
+  background: linear-gradient(180deg,
+    rgba(20, 11, 34, 0) 0%, rgba(20, 11, 34, 0.55) 46%, rgba(20, 11, 34, 0.95) 100%);
+}
+
+/* GradientBackground stilini inline veriyor; ezmek icin !important sart.
+   Isimalar pembe/maviden balkabagi/mora. Gren katmani burada tekrarlanmadi:
+   cssnano'nun SVG kucultmesi feTurbulence filtresini siliyor. Bilesenin
+   ayrica cizdigi inline <svg> gren zaten duruyor. Katman sayisi degistigi
+   icin boyut ve karisim modu da sifirlaniyor. */
+:root[data-theme="halloween"] .macs-shimmer-base {
+  background-color: var(--hw-night) !important;
+  background-image:
+    radial-gradient(1000px 620px at 50% -120px, rgba(255, 122, 26, 0.32) 0%, rgba(255, 122, 26, 0) 70%),
+    radial-gradient(820px 600px at 88% 300px, rgba(124, 58, 237, 0.22) 0%, rgba(124, 58, 237, 0) 70%),
+    radial-gradient(780px 560px at 6% 420px, rgba(168, 60, 140, 0.16) 0%, rgba(168, 60, 140, 0) 70%),
+    radial-gradient(1000px 560px at 50% 58%, rgba(255, 122, 26, 0.08) 0%, rgba(255, 122, 26, 0) 70%) !important;
+  background-size: auto !important;
+  background-blend-mode: normal !important;
+}
+
+/* Sayfa sonu cagri butonlari: turuncu. */
+:root[data-theme="halloween"] .cta-button,
+:root[data-theme="halloween"] .sponsors-cta__btn {
+  background: var(--hw-pumpkin);
+  color: var(--hw-night);
+}
+
+:root[data-theme="halloween"] .cta-button:hover,
+:root[data-theme="halloween"] .sponsors-cta__btn:hover {
+  background: var(--hw-pumpkin-hot);
+}
+
+/* ---------------------------------------------------------------
+   Kartlar: one cikan rozetleri turuncu, hover'da turuncu isik
+   ve tek seferlik kucuk bir sallanti.
+   --------------------------------------------------------------- */
+
+:root[data-theme="halloween"] .First-come-span {
+  background: var(--hw-pumpkin-deep);
+  color: #ffffff;
+}
+
+:root[data-theme="halloween"] .hw-card--featured .bg-blue-600 {
+  background-color: var(--hw-pumpkin-deep);
+}
+
+:root[data-theme="halloween"] .hw-card--featured .text-blue-600 {
+  color: var(--hw-pumpkin-deep);
+}
+
+:root[data-theme="halloween"] .hw-card--featured.group:hover .group-hover\:text-blue-700 {
+  color: var(--hw-pumpkin-deep);
+}
+
+:root[data-theme="halloween"] .hw-card--featured .bg-gray-900 {
+  background-color: var(--hw-night);
+}
+
+:root[data-theme="halloween"] .hw-card--featured .hover\:bg-gray-800:hover {
+  background-color: var(--hw-night-3);
+}
+
+:root[data-theme="halloween"] .hw-card--featured .bg-blue-50 {
+  background-color: #fff4ec;
+  border-color: #ffd0ad;
+  color: #9a3412;
+}
+
+:root[data-theme="halloween"] .hw-card--featured .hover\:bg-blue-100:hover {
+  background-color: #ffe6d2;
+}
+
+/* One cikan etkinlik kartinin sol ust kosesinde ag (gorselin uzerinde). */
+:root[data-theme="halloween"] .hw-card--featured::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  width: 104px;
+  height: 104px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Cpath fill='none' stroke='%23ffffff' stroke-opacity='0.6' stroke-width='0.9' stroke-linecap='round' d='M0 0L118 0M0 0L114 30.5M0 0L100.1 62.5M0 0L75.8 90.4M0 0L44.2 109.4M0 0L0 118M14 0Q11.1 1.5 13.5 3.6Q10.3 4.5 11.9 7.4Q8.5 7.3 9 10.7Q5.8 9.6 5.2 13Q2.1 11 0 14M28 0Q22.2 2.9 27 7.2Q20.5 8.9 23.7 14.8Q16.9 14.7 18 21.4Q11.5 19.2 10.5 26Q4.3 22 0 28M44 0Q34.9 4.6 42.5 11.4Q32.3 14 37.3 23.3Q26.6 23.1 28.3 33.7Q18.1 30.2 16.5 40.8Q6.7 34.6 0 44M62 0Q49.2 6.5 59.9 16Q45.5 19.8 52.6 32.9Q37.4 32.5 39.9 47.5Q25.5 42.5 23.2 57.5Q9.5 48.7 0 62M82 0Q65 8.6 79.2 21.2Q60.2 26.2 69.5 43.5Q49.5 43 52.7 62.8Q33.8 56.2 30.7 76Q12.5 64.4 0 82M104 0Q82.5 10.9 100.5 26.9Q76.3 33.2 88.2 55.1Q62.8 54.6 66.8 79.7Q42.9 71.3 39 96.4Q15.9 81.7 0 104'/%3E%3C/svg%3E")
+    top left / contain no-repeat;
+  pointer-events: none;
+}
+
+:root[data-theme="halloween"] .event-card:hover,
+:root[data-theme="halloween"] .MoreEventCard:hover,
+:root[data-theme="halloween"] .First-2:hover,
+:root[data-theme="halloween"] .hw-card:hover {
+  box-shadow: 0 0 0 1px rgba(255, 122, 26, 0.5),
+    0 14px 36px -10px rgba(255, 122, 26, 0.55);
+  animation: hw-wobble 0.5s ease-in-out 1;
+}
+
+/* Genis kartlarda ayni aci fazla goze batiyor. */
+:root[data-theme="halloween"] .First-2,
+:root[data-theme="halloween"] .hw-card--featured {
+  --hw-wobble: 0.3deg;
+}
+
+/* transform degil rotate: kartlarin kendi transform'larina (slider vs.) dokunmuyor. */
+@keyframes hw-wobble {
+  0%,
+  100% {
+    rotate: 0deg;
+  }
+  30% {
+    rotate: calc(var(--hw-wobble, 0.7deg) * -1);
+  }
+  65% {
+    rotate: calc(var(--hw-wobble, 0.7deg) * 0.7);
+  }
+}
+
+/* ---------------------------------------------------------------
+   Yukleme gostergeleri
+   --------------------------------------------------------------- */
+
+:root[data-theme="halloween"] .spinner {
+  --spinner-color: var(--hw-pumpkin);
+}
+
+:root[data-theme="halloween"] .loader-light {
+  --spinner-color: var(--hw-pumpkin-deep);
+}
+
+:root[data-theme="halloween"] .loader-dark {
+  background-color: var(--hw-night);
+}
+
+/* ---------------------------------------------------------------
+   Footer + kod mezarligi
+   --------------------------------------------------------------- */
+
+:root[data-theme="halloween"] .footer {
+  background-color: var(--hw-ground);
+}
+
+:root[data-theme="halloween"] .footer-divider {
+  background-color: rgba(242, 236, 251, 0.08);
+}
+
+:root[data-theme="halloween"] .footer-section p,
+:root[data-theme="halloween"] .footer-links a,
+:root[data-theme="halloween"] .contact-item span {
+  color: var(--hw-bone-muted);
+}
+
+:root[data-theme="halloween"] .footer-links a:hover {
+  color: var(--hw-pumpkin);
+}
+
+.hw-graveyard {
+  position: relative;
+  overflow: hidden;
+  padding-top: 72px;
+  background: linear-gradient(180deg, var(--hw-night) 0%, var(--hw-night-2) 70%, var(--hw-night-3) 100%);
+}
+
+.hw-graveyard .hw-web--graveyard {
+  top: 0;
+  right: 0;
+  width: clamp(70px, 8vw, 120px);
+  transform: scaleX(-1);
+}
+
+.hw-graveyard__row {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: clamp(10px, 2.4vw, 34px);
+  max-width: 1200px;
+  margin: 0 auto -14px;
+  padding: 0 20px;
+}
+
+.hw-stone {
+  position: relative;
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 148px;
+  min-height: 172px;
+  padding: 26px 12px 32px;
+  text-align: center;
+  color: #ddd3f0;
+  background: linear-gradient(180deg, #4a3a68 0%, #352851 55%, #281d3e 100%);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -12px 18px rgba(0, 0, 0, 0.28);
+  rotate: var(--tilt, 0deg);
+  transform-origin: 50% 100%;
+}
+
+.hw-stone--round {
+  border-radius: 74px 74px 6px 6px;
+  padding-top: 34px;
+}
+
+.hw-stone--arch {
+  min-height: 190px;
+  border-radius: 40% 40% 6px 6px / 26% 26% 6px 6px;
+}
+
+.hw-stone--slab {
+  width: 140px;
+  min-height: 154px;
+  border-radius: 10px 10px 4px 4px;
+}
+
+.hw-stone__rip {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  color: #a99bc6;
+}
+
+.hw-stone__name {
+  margin-top: 6px;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--hw-bone);
+  overflow-wrap: anywhere;
+}
+
+.hw-stone__years {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #b9acd4;
+}
+
+.hw-stone__epitaph {
+  margin-top: auto;
+  padding-top: 8px;
+  font-size: 12px;
+  font-style: italic;
+  line-height: 1.35;
+  color: var(--hw-bone-muted);
+}
+
+.hw-graveyard__pumpkin {
+  flex: 0 0 auto;
+  width: 54px;
+  height: auto;
+  margin-bottom: 16px;
+  animation: hw-flicker 2.6s ease-in-out infinite;
+}
+
+@keyframes hw-flicker {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 14px rgba(255, 140, 40, 0.55));
+  }
+  35% {
+    filter: drop-shadow(0 0 8px rgba(255, 140, 40, 0.4));
+  }
+  55% {
+    filter: drop-shadow(0 0 18px rgba(255, 150, 50, 0.7));
+  }
+}
+
+.hw-graveyard__ground {
+  position: relative;
+  z-index: 2;
+  height: 26px;
+  background: var(--hw-ground);
+}
+
+.hw-graveyard__ground::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -11px;
+  height: 12px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 12' preserveAspectRatio='none'%3E%3Cpath fill='%230d0717' d='M0 12V8l3-6 2 6 3-8 3 8 2-5 3 5 3-7 3 7 2-4 3 4 3-8 3 8 2-5 3 5 2-6v10z'/%3E%3C/svg%3E")
+    repeat-x left top / 40px 12px;
+}
+
+.hw-graveyard .hw-fog--graveyard {
+  z-index: 3;
+  bottom: 0;
+  height: 90px;
+  opacity: 0.8;
+  animation-duration: 55s;
+}
+
+@media (max-width: 900px) {
+  div.hw-stone:nth-of-type(n + 5) {
+    display: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .hw-graveyard {
+    padding-top: 56px;
+  }
+
+  div.hw-stone:nth-of-type(n + 4) {
+    display: none;
+  }
+
+  .hw-stone {
+    width: 100px;
+    min-height: 132px;
+    padding: 20px 8px 28px;
+  }
+
+  .hw-stone--round {
+    padding-top: 26px;
+  }
+
+  .hw-stone--arch {
+    min-height: 146px;
+  }
+
+  .hw-stone--slab {
+    width: 96px;
+    min-height: 120px;
+  }
+
+  .hw-stone__name {
+    font-size: 12px;
+  }
+
+  .hw-stone__years,
+  .hw-stone__epitaph {
+    font-size: 10.5px;
+  }
+
+  .hw-graveyard__pumpkin {
+    width: 40px;
+  }
+}
+
+/* ---------------------------------------------------------------
+   404
+   --------------------------------------------------------------- */
+
+.hw-404 {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: calc(var(--hw-header-h) + 48px) 20px 80px;
+  text-align: center;
+  color: var(--hw-bone);
+  background:
+    radial-gradient(ellipse 60% 45% at 50% 40%, rgba(255, 122, 26, 0.12), transparent 70%),
+    linear-gradient(180deg, var(--hw-night) 0%, var(--hw-night-2) 100%);
+}
+
+.hw-404__code {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(6px, 1.6vw, 18px);
+  margin-bottom: 32px;
+  font-size: clamp(5rem, 16vw, 10rem);
+  font-weight: 800;
+  line-height: 1;
+  color: var(--hw-pumpkin);
+  text-shadow: 0 0 40px rgba(255, 122, 26, 0.35);
+}
+
+.hw-404__ghost {
+  position: relative;
+  display: inline-block;
+  width: 0.7em;
+  height: 0.8em;
+}
+
+.hw-404__ghost-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  color: var(--hw-bone);
+  filter: drop-shadow(0 0 22px rgba(242, 236, 251, 0.35));
+  animation: hw-bob 3.2s ease-in-out infinite;
+}
+
+.hw-404__ghost-shadow {
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  bottom: -0.14em;
+  height: 0.05em;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  filter: blur(4px);
+  animation: hw-ghost-shadow 3.2s ease-in-out infinite;
+}
+
+@keyframes hw-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-0.08em);
+  }
+}
+
+@keyframes hw-ghost-shadow {
+  0%,
+  100% {
+    transform: scaleX(1);
+    opacity: 0.55;
+  }
+  50% {
+    transform: scaleX(0.72);
+    opacity: 0.3;
+  }
+}
+
+.hw-404__title {
+  margin-bottom: 12px;
+  font-size: clamp(1.6rem, 3.6vw, 2.4rem);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--hw-bone);
+}
+
+.hw-404__text {
+  max-width: 46ch;
+  margin-bottom: 32px;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--hw-bone-muted);
+}
+
+.hw-404__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 12px 28px;
+  border-radius: var(--radius-pill);
+  font-weight: 700;
+  color: var(--hw-night);
+  background: var(--hw-pumpkin);
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.hw-404__btn:hover {
+  background: var(--hw-pumpkin-hot);
+}
+
+.hw-404__btn:active {
+  transform: scale(0.98);
+}
+
+.hw-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------------------------------------------------------------
+   Konami: yarasa surusu
+   --------------------------------------------------------------- */
+
+.hw-swarm {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-loader) + 1);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.hw-swarm__bat {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 72px;
+  margin-left: -36px;
+  color: #0b0613;
+  filter: drop-shadow(0 0 3px rgba(255, 150, 60, 0.6));
+  transform: translate(var(--x0), 110vh) scale(var(--s));
+  animation: hw-swarm var(--dur) cubic-bezier(0.3, 0.1, 0.6, 1) var(--delay) 1 both;
+}
+
+@keyframes hw-swarm {
+  0% {
+    transform: translate(var(--x0), 110vh) scale(var(--s));
+  }
+  45% {
+    transform: translate(calc((var(--x0) + var(--x1)) / 2), 55vh) scale(var(--s));
+  }
+  100% {
+    transform: translate(var(--x1), -20vh) scale(var(--s));
+  }
+}
+
+/* ---------------------------------------------------------------
+   Hareket azaltma: global.css animasyonlari 0.01ms'e cekiyor; o zaman
+   yarasalar rotalarinin sonuna (ekran disina) atlardi. Onun yerine
+   sabit konumlarinda dursunlar, sis ve orumcek kipirdamasin.
+   --------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .hw-hero-bat {
+    animation: none;
+    transform: translate(var(--rx), var(--ry)) scale(var(--s));
+  }
+
+  .hw-bat-svg,
+  .hw-fog,
+  .hw-spider,
+  .hw-spider__thread,
+  .hw-spider__body,
+  .hw-graveyard__pumpkin,
+  .hw-404__ghost-svg,
+  .hw-404__ghost-shadow {
+    animation: none;
+  }
+}

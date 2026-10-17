@@ -34,7 +34,7 @@ export default function EventCard({ event }) {
 
   return (
     <Link to={`/etkinlikler/${event.slug}`}>
-      <div className="group relative overflow-hidden rounded-xl bg-white shadow-md hover:shadow-xl transition-all duration-300 h-full flex flex-col">
+      <div className="hw-card group relative overflow-hidden rounded-xl bg-white shadow-md hover:shadow-xl transition-all duration-300 h-full flex flex-col">
         {/* Image */}
         <div className="relative h-48 overflow-hidden">
           <img

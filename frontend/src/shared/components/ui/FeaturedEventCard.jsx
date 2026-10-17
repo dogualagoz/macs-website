@@ -51,7 +51,7 @@ const FeaturedEventCard = ({ title, date, location, description, image, startTim
   return (
     <div 
       onClick={handleCardClick} 
-      className="featured-event-card-wrapper group relative overflow-hidden rounded-2xl bg-white shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200 cursor-pointer"
+      className="featured-event-card-wrapper hw-card hw-card--featured group relative overflow-hidden rounded-2xl bg-white shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200 cursor-pointer"
     >
       <div className="featured-event-card-grid">
         {/* Image Container - Left Side */}

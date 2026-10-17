@@ -39,7 +39,7 @@ const ProjectCard = ({
 
   return (
     <Link to={`/projeler/${slug}`}>
-      <div className="group relative overflow-hidden rounded-xl bg-white shadow-md hover:shadow-xl transition-all duration-300 h-full flex flex-col">
+      <div className="hw-card group relative overflow-hidden rounded-xl bg-white shadow-md hover:shadow-xl transition-all duration-300 h-full flex flex-col">
         {/* Image */}
         <div className="relative h-48 overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200">
           <img 

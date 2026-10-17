@@ -35,6 +35,7 @@ export function GradientBackground({ className = '', style = {} }) {
       }}
     >
       <div
+        className="macs-shimmer-base"
         style={{
           position: 'absolute',
           inset: 0,

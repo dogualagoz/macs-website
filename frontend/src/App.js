@@ -12,7 +12,7 @@ import { AboutPage } from './features/about';
 import { TeamPage } from './features/team';
 import { LoginPage, ProtectedRoute, AuthProvider } from './features/auth';
 import { AdminPanel } from './features/admin';
-import Page404 from './shared/components/Page404';
+import { HalloweenLayer, HalloweenPage404, Graveyard } from './shared/components/halloween';
 import ErrorBoundary from './shared/components/feedback/ErrorBoundary';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import './styles/App.css';
@@ -84,6 +84,7 @@ function App() {
   return (
     <AuthProvider>
       <ScrollToTop />
+      <HalloweenLayer />
       <div className="app">
         {/* Header'ı sadece admin ve login sayfalarında gösterme */}
         <Routes>
@@ -116,7 +117,7 @@ function App() {
             </Route>
             
             {/* 404 page */}
-            <Route path="*" element={<Page404 />} />
+            <Route path="*" element={<HalloweenPage404 />} />
           </Routes>
           </ErrorBoundary>
         </main>
@@ -125,7 +126,7 @@ function App() {
         <Routes>
           <Route path="/admin/*" element={null} />
           <Route path="/login" element={null} />
-          <Route path="*" element={<Footer />} />
+          <Route path="*" element={<><Graveyard /><Footer /></>} />
         </Routes>
       </div>
     </AuthProvider>

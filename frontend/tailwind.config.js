@@ -13,21 +13,20 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Projeler sayfasinin vurgu rengi. Merdiven #F2317C'e sabitlendi:
-        // 400 = verilen renk, digerleri ayni ton uzerinde Tailwind
-        // blue'nun aciklik basamaklarini takip ediyor, boylece blue-300/500/600
-        // yazan her yer birebir karsiligiyla degistirilebiliyor.
+        // Halloween sezonu (design/halloween): pembe #F2317C merdiveni
+        // balkabagi turuncusuna cevrildi. Basamak isimleri ayni kaldi,
+        // boylece macs-accent-* yazan her yer dokunulmadan donusuyor.
         macs: {
           accent: {
-            DEFAULT: '#F2317C',
-             50: '#FDF2F7',
-            100: '#FAE3EE',
-            300: '#DD84A8',
-            400: '#F2317C',
-            500: '#F2317C',
-            600: '#A63A65',
-            700: '#8E375A',
-            900: '#532638',
+            DEFAULT: '#FF7A1A',
+             50: '#FFF4EC',
+            100: '#FFE6D2',
+            300: '#FFAA6B',
+            400: '#FF7A1A',
+            500: '#FF7A1A',
+            600: '#C2410C',
+            700: '#9A3412',
+            900: '#5A1F08',
           },
         },
       },

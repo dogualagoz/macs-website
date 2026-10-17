@@ -11,6 +11,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import '../../../styles/components/hero.css';
+import { HeroHaunt } from '../../../shared/components/halloween';
 
 const images = [
   '/assets/heroimages/codedrink.webp',
@@ -82,6 +83,8 @@ const HeroSection = () => {
         </AnimatePresence>
         <div className="hero-overlay" />
       </div>
+
+      <HeroHaunt />
 
       <div className="hero-container">
         {/* Main logo */}
