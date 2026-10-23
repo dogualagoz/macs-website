@@ -168,14 +168,19 @@ const NewProjectsPage = () => {
                 resultCount={filteredProjects.length}
               />
 
-              <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4 [grid-auto-flow:dense]">
+              {/* key: sekme veya kategori değişince ızgara yeniden kurulur, kartlar baştan sırayla girer. */}
+              <div
+                key={`${activeTab}|${selectedCategory}`}
+                className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4 [grid-auto-flow:dense]"
+              >
                 {featuredProject && (
-                  <NewProjectCard key={featuredProject.id} project={featuredProject} variant="featured" />
+                  <NewProjectCard key={featuredProject.id} project={featuredProject} variant="featured" index={0} />
                 )}
                 {gridProjects.map((project, index) => (
                   <NewProjectCard
                     key={project.id}
                     project={project}
+                    index={index + 1}
                     variant={index % WIDE_EVERY === WIDE_OFFSET ? 'wide' : 'default'}
                   />
                 ))}

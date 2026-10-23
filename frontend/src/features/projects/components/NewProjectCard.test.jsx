@@ -2,6 +2,15 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import NewProjectCard from './NewProjectCard';
 
+// jsdom'da IntersectionObserver yok; whileInView bunu ister. Giriş hiç tetiklenmez.
+beforeAll(() => {
+  window.IntersectionObserver = class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  };
+});
+
 const project = {
   id: 1,
   slug: 'ai-chatbot',
@@ -41,4 +50,12 @@ test('öne çıkan kutu rozet taşır, geniş kutu taşımaz; ikisi de blur kull
   const wide = renderCard('wide');
   expect(screen.queryByText('ÖNE ÇIKAN')).toBeNull();
   expect(wide.container.innerHTML).not.toMatch(/backdrop-blur/);
+});
+
+test('kart ekrana girmeden önce gizli başlar, böylece girişte yaylı animasyonla gelir', () => {
+  renderCard();
+  // Sahte gözlemci hiç tetiklenmez: kart başlangıç halinde kalır.
+  const link = screen.getByRole('link', { name: /AI Chatbot/ });
+  expect(link.style.opacity).toBe('0');
+  expect(link.style.transform).toMatch(/translateY\(56px\)/);
 });
