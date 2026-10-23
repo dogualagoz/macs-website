@@ -126,6 +126,7 @@ function App() {
         <Routes>
           <Route path="/admin/*" element={null} />
           <Route path="/login" element={null} />
+          <Route path="/projeler/*" element={<Footer variant="projects" />} />
           <Route path="*" element={<><Graveyard /><Footer /></>} />
         </Routes>
       </div>

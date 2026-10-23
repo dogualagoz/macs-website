@@ -1,9 +1,9 @@
 import React from "react";
 import '../../../styles/components/footer.css';
 
-const Footer = () => {
+const Footer = ({ variant = 'default' }) => {
   return (
-    <footer id="contact" className="footer">
+    <footer id="contact" className={`footer${variant === 'projects' ? ' footer--projects' : ''}`}>
       <div className="container">
         <div className="footer-content">
           <div className="footer-section">

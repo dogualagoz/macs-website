@@ -117,6 +117,27 @@
 }
 
 /* Responsive Design */
+/* Projeler rotası sezon temasından bağımsız, sade footer kullanır. */
+/* Sabit shader katmanı (isolate bağlamı) normal akıştaki footer'ın üstüne biniyordu. */
+.footer.footer--projects {
+  position: relative;
+  z-index: 1;
+}
+:root[data-theme="halloween"] .footer.footer--projects {
+  background-color: #06081e;
+}
+:root[data-theme="halloween"] .footer--projects .footer-divider {
+  background-color: #1a2333;
+}
+:root[data-theme="halloween"] .footer--projects .footer-section p,
+:root[data-theme="halloween"] .footer--projects .footer-links a,
+:root[data-theme="halloween"] .footer--projects .contact-item span {
+  color: #c9cdd3;
+}
+:root[data-theme="halloween"] .footer--projects .footer-links a:hover {
+  color: #fff;
+}
+
 @media (max-width: 768px) {
   .footer {
     padding: 40px 0 28px;
