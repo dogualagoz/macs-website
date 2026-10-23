@@ -1,5 +1,5 @@
 import React from 'react';
-import { GraduationCap, Lightbulb, Handshake, Target, Heart, Sparkles, Rocket, Users } from 'lucide-react';
+import { GraduationCap, Lightbulb, Handshake, Target, Heart, Rocket, Users } from 'lucide-react';
 import { motion } from 'framer-motion';
 import '../../../styles/pages/about.css';
 import SEO from '../../../shared/components/seo/SEO';
