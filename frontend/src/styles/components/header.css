@@ -51,6 +51,13 @@ body.sponsors-split-visible .header {
   -webkit-backdrop-filter: blur(12px);
 }
 
+/* Projeler: header canli shader'in ve kayan iceriğin ustunde duruyor; blur her
+   karede yeniden hesaplaniyordu. Zemin zaten %90+ opak, fark gorunmez. */
+.header.header-dark {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
 .header-container {
   /* max-width: 1200px; */
   width: 95%;

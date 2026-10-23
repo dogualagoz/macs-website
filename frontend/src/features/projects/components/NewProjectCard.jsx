@@ -1,96 +1,148 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { useNavigate } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
-import { handleAvatarError, handleImageError } from '../../../utils/imageUtils';
+import { Link } from 'react-router-dom';
+import { ArrowRight, Sparkles } from 'lucide-react';
+import { handleImageError } from '../../../utils/imageUtils';
+
+const MAX_TAGS = 3;
+const MAX_AVATARS = 3;
+
+const initialsOf = (name = '') =>
+  name.trim().split(/\s+/).slice(0, 2).map((word) => word.charAt(0)).join('').toLocaleUpperCase('tr-TR') || '?';
 
 /**
- * ProjectCard Component
- * Modern card design for project grid
+ * ProjectCard
+ *
+ * Alt bölümün kartı. Düz renkli yüzey kullanır: backdrop-filter, büyük gölge
+ * geçişi ve ağ üzerinden avatar yok, çünkü arkadaki canlı shader'ın üstünde
+ * her biri kare başına yeniden bulanıklaştırılıyordu.
+ *
+ * variant:
+ *  - default: görsel üstte, içerik altta
+ *  - wide / featured: görsel kartı doldurur, yazı altta (mozaikte büyük kutular)
  */
-const ProjectCard = ({ project }) => {
-  const navigate = useNavigate();
+const ProjectCard = ({ project, variant = 'default' }) => {
+  const tags = project.tags || [];
+  const team = project.team || [];
+  const href = `/projeler/${project.slug}`;
+  // Liste verisi detay sayfasına taşınır: detay yükleme ekranı beklemeden açılır.
+  const link = { to: href, state: { project } };
+
+  if (variant !== 'default') {
+    const featured = variant === 'featured';
+    return (
+      <Link
+        {...link}
+        className={`group relative block overflow-hidden rounded-3xl border border-white/10 bg-[#1a2333] hover:border-macs-accent/50 transition-colors ${
+          featured
+            ? 'sm:col-span-2 xl:row-span-2 min-h-[380px]'
+            : 'sm:col-span-2 min-h-[260px]'
+        }`}
+      >
+        <img
+          src={project.imageUrl}
+          alt=""
+          loading={featured ? 'eager' : 'lazy'}
+          decoding="async"
+          onError={handleImageError}
+          className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/10" />
+        {featured && (
+          <span className="absolute top-5 left-5 inline-flex items-center gap-2 rounded-full border border-yellow-500/40 bg-black/60 px-4 py-1.5 text-sm font-bold text-yellow-300">
+            <Sparkles size={14} fill="currentColor" aria-hidden="true" />
+            ÖNE ÇIKAN
+          </span>
+        )}
+        <div className="absolute inset-x-0 bottom-0 p-6 sm:p-8">
+          <h3 className={`font-bold text-white mb-2 ${featured ? 'text-3xl md:text-4xl' : 'text-2xl'}`}>{project.title}</h3>
+          <p className={`text-gray-300 max-w-2xl mb-4 ${featured ? 'line-clamp-3' : 'line-clamp-2'}`}>{project.shortDescription}</p>
+          <div className="flex flex-wrap gap-2">
+            {tags.slice(0, MAX_TAGS + 1).map((tag) => (
+              <span key={tag} className="rounded-md border border-white/10 bg-white/10 px-3 py-1 text-xs text-white">{tag}</span>
+            ))}
+          </div>
+        </div>
+      </Link>
+    );
+  }
 
   return (
-    <div 
-      onClick={() => navigate(`/projeler/${project.slug}`)}
-      className="group relative bg-macs-card/80 border border-white/5 rounded-3xl overflow-hidden hover:border-macs-accent/30 transition-all duration-300 hover:shadow-[0_0_30px_rgba(242,49,124,0.15)] cursor-pointer flex flex-col h-full"
+    <Link
+      {...link}
+      className="group flex h-full flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#1a2333] hover:border-macs-accent/40 transition-colors [content-visibility:auto] [contain-intrinsic-size:auto_400px]"
     >
-      {/* Image Container */}
-      <div className="relative h-48 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-t from-macs-card to-transparent z-10 opacity-60" />
-        <img 
+      <div className="relative h-48 shrink-0 overflow-hidden">
+        <img
           src={project.imageUrl}
-        onError={handleImageError} 
-          alt={project.title} 
-          className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
-        loading="lazy" />
-        <div className="absolute top-4 left-4 z-20">
-          <span className="px-3 py-1 text-xs font-semibold rounded-full bg-macs-accent-500/20 text-macs-accent-300 border border-macs-accent/30 backdrop-blur-sm">
-            {project.category}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          onError={handleImageError}
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#1a2333] to-transparent opacity-60" />
+        <span className="absolute top-4 left-4 rounded-full border border-macs-accent/30 bg-black/55 px-3 py-1 text-xs font-semibold text-macs-accent-300">
+          {project.category}
+        </span>
+      </div>
+
+      <div className="flex flex-grow flex-col p-6">
+        <h3 className="mb-2 text-xl font-bold text-white transition-colors group-hover:text-macs-accent">{project.title}</h3>
+        <p className="mb-4 flex-grow text-sm text-gray-400 line-clamp-2">{project.shortDescription}</p>
+
+        {tags.length > 0 && (
+          <div className="mb-4 flex flex-wrap gap-2">
+            {tags.slice(0, MAX_TAGS).map((tag) => (
+              <span key={tag} className="rounded-md border border-white/5 bg-white/5 px-2 py-1 text-xs text-gray-400">{tag}</span>
+            ))}
+            {tags.length > MAX_TAGS && (
+              <span className="rounded-md border border-white/5 bg-white/5 px-2 py-1 text-xs text-gray-400">+{tags.length - MAX_TAGS}</span>
+            )}
+          </div>
+        )}
+
+        <div className="mt-auto flex items-center justify-between border-t border-white/5 pt-4">
+          <div className="flex -space-x-2" aria-label={team.length ? `${team.length} ekip üyesi` : undefined}>
+            {team.slice(0, MAX_AVATARS).map((member) => (
+              <span
+                key={member.id}
+                title={member.name}
+                className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#1a2333] bg-white/10 text-[11px] font-semibold text-gray-200"
+              >
+                {initialsOf(member.name)}
+              </span>
+            ))}
+            {team.length > MAX_AVATARS && (
+              <span className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#1a2333] bg-white/5 text-[11px] text-gray-400">
+                +{team.length - MAX_AVATARS}
+              </span>
+            )}
+          </div>
+          <span className="rounded-full bg-white/5 p-2 text-white transition-colors group-hover:bg-macs-accent-500" aria-hidden="true">
+            <ArrowRight size={18} />
           </span>
         </div>
       </div>
-
-      {/* Content */}
-      <div className="p-6 flex flex-col flex-grow relative z-20">
-        <h3 className="text-xl font-bold text-white mb-2 group-hover:text-macs-accent transition-colors">
-          {project.title}
-        </h3>
-        <p className="text-gray-400 text-sm mb-4 line-clamp-2 flex-grow">
-          {project.shortDescription}
-        </p>
-
-        {/* Tags */}
-        <div className="flex flex-wrap gap-2 mb-4">
-          {project.tags.slice(0, 3).map((tag) => (
-            <span key={tag} className="text-xs text-gray-500 bg-white/5 px-2 py-1 rounded-md border border-white/5">
-              {tag}
-            </span>
-          ))}
-          {project.tags.length > 3 && (
-            <span className="text-xs text-gray-500 bg-white/5 px-2 py-1 rounded-md border border-white/5">
-              +{project.tags.length - 3}
-            </span>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="flex items-center justify-between mt-auto pt-4 border-t border-white/5">
-          <div className="flex -space-x-2">
-            {project.team.map((member, i) => (
-              <img 
-                key={i}
-                src={member.avatar} 
-                alt={member.name}
-                className="w-8 h-8 rounded-full border-2 border-macs-card"
-                title={member.name}
-                onError={(e) => handleAvatarError(e, member.name)}
-              loading="lazy" />
-            ))}
-          </div>
-          <button className="p-2 rounded-full bg-white/5 text-white hover:bg-macs-accent-500 hover:text-white transition-colors">
-            <ArrowRight size={18} />
-          </button>
-        </div>
-      </div>
-    </div>
+    </Link>
   );
 };
 
 ProjectCard.propTypes = {
+  variant: PropTypes.oneOf(['default', 'wide', 'featured']),
   project: PropTypes.shape({
-    id: PropTypes.string.isRequired,
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+    slug: PropTypes.string.isRequired,
     title: PropTypes.string.isRequired,
-    shortDescription: PropTypes.string.isRequired,
-    imageUrl: PropTypes.string.isRequired,
-    category: PropTypes.string.isRequired,
-    tags: PropTypes.arrayOf(PropTypes.string).isRequired,
+    shortDescription: PropTypes.string,
+    imageUrl: PropTypes.string,
+    category: PropTypes.string,
+    tags: PropTypes.arrayOf(PropTypes.string),
     team: PropTypes.arrayOf(PropTypes.shape({
-      name: PropTypes.string.isRequired,
-      avatar: PropTypes.string.isRequired
-    })).isRequired
-  }).isRequired
+      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+      name: PropTypes.string,
+    })),
+  }).isRequired,
 };
 
 export default ProjectCard;

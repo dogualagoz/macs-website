@@ -1,26 +1,34 @@
-import React, { useState, useMemo } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Search, Trophy, Sparkles, Filter, Code, Heart, UserCircle, ChevronDown } from 'lucide-react';
+import React, { useState, useMemo, useRef } from 'react';
+import { Code, Heart, UserCircle } from 'lucide-react';
 import { MOCK_USERS } from '../data/mockProjectsData';
 import { mockProjects, mockProjectCategories } from '../data/mockProjects';
 import { projectService, memberService } from '../../../shared/services/api';
 import NewProjectCard from '../components/NewProjectCard';
-import StatsCounter from '../components/StatsCounter';
-import { GradientBackground } from '../../../shared/components/ui/GradientBackground';
-import { getMediaUrl } from '../../../shared/utils/media';
-import { handleAvatarError, handleImageError } from '../../../utils/imageUtils';
+import ProjectsToolbar from '../components/ProjectsToolbar';
+import TopContributors from '../components/TopContributors';
+import ProjectsPageSkeleton from '../components/ProjectsPageSkeleton';
+import { ProjectShowcase } from '../components/ProjectShowcase';
+import { GlassFold } from 'components/ui/glass-fold';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Skeleton, EventGridSkeleton } from '../../../shared/components/feedback/Skeleton';
 import ErrorMessage from '../../../shared/components/feedback/ErrorMessage';
 import SEO from '../../../shared/components/seo/SEO';
 import { USE_MOCK_FALLBACK } from '../../../shared/utils/mockFallback';
 
+const TABS = [
+  { id: 'developed', label: 'Developed by MACS', icon: Code },
+  { id: 'supported', label: 'Supported by MACS', icon: Heart },
+  { id: 'showcase', label: 'Member Showcase', icon: UserCircle },
+];
+
+/** Mozaikte her 5 kartta bir geniş kutu: ritim verir, boşluk bırakmaz (grid-flow dense). */
+const WIDE_EVERY = 5;
+const WIDE_OFFSET = 3;
+
 /**
  * New ProjectsPage Component
- * Modern tab-based project showcase with filters
+ * Üstte canlı vitrin, altında düz renkli filtre çubuğu ve mozaik proje listesi.
  */
 const NewProjectsPage = () => {
-  const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [categories, setCategories] = useState(['All']);
   const [loading, setLoading] = useState(true);
@@ -29,27 +37,21 @@ const NewProjectsPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [leaderboard, setLeaderboard] = useState([]);
-  const [memberCount, setMemberCount] = useState(0);
-
-  // Hero tam ekran olduğu için içerik bölümüne yumuşak kaydırma
-  const scrollToContent = () => {
-    document.getElementById('projeler-icerik')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
+  // Vitrin hareketi ve vurgu rengi arka plan shader'ına state'siz, karede bir okunur.
+  const backdropSignal = useRef({ energy: 0 });
 
   // Backend'den projeleri ve kategorileri çek
   const fetchData = React.useCallback(async () => {
     const startTime = Date.now();
     try {
       setLoading(true);
-      const [projectsData, categoriesData, leaderboardData, membersData] = await Promise.all([
+      const [projectsData, categoriesData, leaderboardData] = await Promise.all([
         projectService.getAll(),
         projectService.getCategories(),
-        memberService.getLeaderboard(5),
-        memberService.getAll({ limit: 200 }).catch(() => [])
+        memberService.getLeaderboard(5)
       ]);
 
       setLeaderboard(leaderboardData || []);
-      setMemberCount(membersData.length);
 
       // Boş liste geçerli bir yanıt: "henüz proje yok" demek, hata değil.
       setProjects(projectsData || []);
@@ -61,7 +63,6 @@ const NewProjectsPage = () => {
       if (USE_MOCK_FALLBACK) {
         setProjects(mockProjects.map(projectService._mapProject));
         setCategories(['All', ...mockProjectCategories.map(c => c.name)]);
-        setMemberCount(MOCK_USERS.length);
         setError(null);
       } else {
         setProjects([]);
@@ -105,25 +106,15 @@ const NewProjectsPage = () => {
     });
   }, [projects, activeTab, searchQuery, selectedCategory]);
 
-  const featuredProject = projects.find(p => (p.is_featured || p.featured) && p.tab === activeTab) || filteredProjects[0];
+  // Öne çıkan da filtrelere uyar; aksi halde arama/kategori dışı bir proje üstte kalırdı.
+  const featuredProject = filteredProjects.find(p => p.is_featured || p.featured) || filteredProjects[0];
   const gridProjects = filteredProjects.filter(p => p.id !== featuredProject?.id);
+  const contributors = leaderboard.length > 0 ? leaderboard : (USE_MOCK_FALLBACK ? MOCK_USERS : []);
 
-  const TabButton = ({ id, label, icon: Icon }) => (
-    <button
-      onClick={() => {
-        setActiveTab(id);
-        setSelectedCategory('All');
-      }}
-      className={`relative px-6 py-3 rounded-full flex items-center gap-2 transition-all duration-300 font-medium cursor-pointer ${
-        activeTab === id
-          ? 'bg-macs-accent-500 text-white shadow-[0_0_20px_rgba(242,49,124,0.5)]'
-          : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
-      }`}
-    >
-      <Icon size={18} />
-      {label}
-    </button>
-  );
+  const handleTabChange = (id) => {
+    setActiveTab(id);
+    setSelectedCategory('All');
+  };
 
   return (
     <>
@@ -133,23 +124,23 @@ const NewProjectsPage = () => {
         keywords="MACS projeleri, yazılım projeleri, açık kaynak, web geliştirme, mobil uygulama, yapay zeka, ESOGÜ"
         url="https://macsclub.com.tr/projeler"
       />
-      <div className="min-h-screen bg-[#07132b] text-white overflow-x-hidden relative">
-        {/* Sayfa arkaplanı — içerikle birlikte kayar */}
-        <div aria-hidden="true" className="absolute inset-0 z-0 pointer-events-none">
-          <GradientBackground className="h-full w-full" />
+      {/* overflow-x-clip: overflow-x-hidden kaydırma kutusu yaratıp yapışkan (sticky) öğeleri kırar. */}
+      <div className="min-h-screen bg-[#140b22] text-white overflow-x-clip relative isolate">
+        {/* Tek viewport boyutunda canvas: sayfa uzadıkça desen gerilmez. */}
+        <div aria-hidden="true" className="fixed inset-0 z-0 pointer-events-none bg-[#140b22]">
+          {/* Geçici Halloween paleti; GlassFold varsayılanları mavi kalır. */}
+          <GlassFold color1="#783517" color2="#140b22" color3="#ff9a3d" live={backdropSignal} />
         </div>
         <div className="relative z-10">
         <AnimatePresence mode="wait">
         {loading ? (
-          <div className="w-full max-w-[1760px] mx-auto px-4 sm:px-6 lg:px-10 py-12 pt-32">
-            <div className="mb-16 flex flex-col md:flex-row justify-between gap-8">
-              <div className="space-y-4">
-                <Skeleton className="skeleton-line skeleton-line--title" style={{ background: 'rgba(255,255,255,0.1)' }} />
-                <Skeleton className="skeleton-line skeleton-line--med" style={{ background: 'rgba(255,255,255,0.08)' }} />
-              </div>
-            </div>
-            <EventGridSkeleton count={9} dark />
-          </div>
+          <motion.div
+            key="skeleton"
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <ProjectsPageSkeleton />
+          </motion.div>
         ) : error ? (
           <div className="pt-32 pb-16 px-4">
             <ErrorMessage message={error} onRetry={fetchData} />
@@ -161,280 +152,64 @@ const NewProjectsPage = () => {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
           >
-            {/* HERO — tam ekran sunum. Projeler scroll ile aşağıda geliyor. */}
-            <section
-              aria-labelledby="projeler-baslik"
-              className="relative min-h-[100svh] flex flex-col items-center justify-center overflow-hidden px-4 sm:px-6"
-            >
-              <div className="relative z-10 flex flex-col items-center text-center max-w-3xl mx-auto pt-28 pb-24">
-                <motion.div
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.1 }}
-                  className="flex flex-col items-center"
-                >
-                  <span className="mb-6 inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium bg-white/10 border border-white/15 backdrop-blur-md text-macs-accent-100">
-                    <Sparkles size={14} />
-                    Matematik ve Bilgisayar Bilimleri Topluluğu
-                  </span>
-                  <h1 id="projeler-baslik" className="text-6xl md:text-8xl font-bold tracking-tight mb-6">
-                    <span className="text-white">MACS</span>
-                    <span className="text-macs-accent font-medium"> Projeleri</span>
-                  </h1>
-                  <p className="text-gray-300 max-w-xl mx-auto text-lg md:text-xl leading-relaxed">
-                    Matematik ve Bilgisayar Bilimleri topluluğu olarak geliştirdiğimiz yenilikçi çözümler ve öğrenci projeleri.
-                  </p>
-                </motion.div>
+            <ProjectShowcase projects={projects} live={backdropSignal} />
 
-                {/* Stats */}
-                <motion.div
-                  className="flex flex-wrap justify-center gap-6 mt-10"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.25 }}
-                >
-                  <StatsCounter end={projects.length} label="Toplam Proje" />
-                  <StatsCounter end={memberCount} label="Katılımcı" />
-                </motion.div>
+            {/* İÇERİK: vitrinden sonra, arka planın durduğu bölge. Düz yüzeyler, blur yok. */}
+            <div id="projeler-icerik" className="w-full max-w-[1760px] mx-auto px-4 sm:px-6 lg:px-10 pb-16 relative z-10 scroll-mt-20">
+              <ProjectsToolbar
+                tabs={TABS}
+                activeTab={activeTab}
+                onTabChange={handleTabChange}
+                categories={categories}
+                selectedCategory={selectedCategory}
+                onCategoryChange={setSelectedCategory}
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+                resultCount={filteredProjects.length}
+              />
 
-                {/* Scroll cue */}
-                <motion.button
-                  type="button"
-                  onClick={scrollToContent}
-                  aria-label="Projelere kaydır"
-                  className="mt-14 flex flex-col items-center gap-2 text-gray-300 hover:text-white transition-colors cursor-pointer group"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.6, delay: 0.5 }}
-                >
-                  <span className="text-sm font-medium tracking-wide">Projeleri keşfet</span>
-                  <span className="flex items-center justify-center w-12 h-12 rounded-full border border-white/20 bg-white/5 backdrop-blur-md group-hover:border-macs-accent/60 group-hover:bg-macs-accent-500/20 transition-all">
-                    <ChevronDown size={22} className="animate-bounce" />
-                  </span>
-                </motion.button>
+              <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4 [grid-auto-flow:dense]">
+                {featuredProject && (
+                  <NewProjectCard key={featuredProject.id} project={featuredProject} variant="featured" />
+                )}
+                {gridProjects.map((project, index) => (
+                  <NewProjectCard
+                    key={project.id}
+                    project={project}
+                    variant={index % WIDE_EVERY === WIDE_OFFSET ? 'wide' : 'default'}
+                  />
+                ))}
+                {!featuredProject && (
+                  <div className="col-span-full rounded-3xl border border-white/10 bg-[#1a2333] py-12 text-center text-gray-400">
+                    Proje bulunamadı.
+                  </div>
+                )}
               </div>
-            </section>
 
-            {/* İÇERİK — scroll ile ekrana geliyor */}
-            <div id="projeler-icerik" className="w-full max-w-[1760px] mx-auto px-4 sm:px-6 lg:px-10 py-16 relative z-10 scroll-mt-20">
+              <div className="mt-10 space-y-6">
+                <TopContributors users={contributors} />
 
-              {/* Tabs */}
-              <motion.div
-                className="flex flex-wrap justify-center gap-4 mb-12"
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-80px' }}
-                transition={{ duration: 0.5 }}
-              >
-                <TabButton id="developed" label="Developed by MACS" icon={Code} />
-                <TabButton id="supported" label="Supported by MACS" icon={Heart} />
-                <TabButton id="showcase" label="Member Showcase" icon={UserCircle} />
-              </motion.div>
-
-              <div className="flex flex-col lg:flex-row lg:items-start gap-8">
-
-                {/* Left Sidebar - Filters - Soldan giriş */}
-                <motion.div
-                  className="hidden lg:block lg:w-[260px] lg:shrink-0 space-y-8 sticky top-24 h-fit"
-                  initial={{ opacity: 0, x: -40 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true, margin: '-80px' }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <div className="bg-[#1A2332]/50 backdrop-blur-md rounded-3xl p-6 border border-white/5">
-                    <div className="relative mb-6">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                      <input
-                        type="search"
-                        aria-label="Proje ara"
-                        placeholder="Proje ara..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white focus:outline-none focus:border-macs-accent/50 focus:ring-1 focus:ring-macs-accent/50 transition-all placeholder:text-gray-600"
-                      />
-                    </div>
-
-                    <div className="flex items-center gap-2 mb-4 text-macs-accent font-semibold">
-                      <Filter size={20} />
-                      <span>Kategoriler</span>
-                    </div>
-
-                    <div className="space-y-2">
-                      {categories.map(cat => (
-                        <button
-                          key={cat}
-                          onClick={() => setSelectedCategory(cat)}
-                          className={`w-full text-left px-4 py-3 rounded-xl transition-all duration-200 flex justify-between items-center group cursor-pointer ${
-                            selectedCategory === cat
-                              ? 'bg-macs-accent-500/20 text-macs-accent-300 border border-macs-accent/30'
-                              : 'hover:bg-white/5 text-gray-400 hover:text-white'
-                          }`}
-                        >
-                          {cat}
-                          {selectedCategory === cat && <Sparkles size={16} />}
-                        </button>
-                      ))}
-                    </div>
+                <div className="flex flex-col items-center gap-4 rounded-3xl bg-gradient-to-br from-macs-accent-500 to-macs-accent-700 p-6 text-center sm:flex-row sm:text-left">
+                  <img
+                    src="/assets/images/img_920228d74c2145d3b604e2dfb42f2d3f1201a_1.png"
+                    alt="MACS Logo"
+                    loading="lazy"
+                    decoding="async"
+                    className="h-12 w-12 shrink-0 object-contain"
+                  />
+                  <div className="flex-1">
+                    <h2 className="text-xl font-bold">Projelere Katıl!</h2>
+                    <p className="text-sm text-macs-accent-100">Fikirlerinle katkıda bulun veya ekibimize katıl.</p>
                   </div>
-                </motion.div>
-
-                {/* Main Content - Aşağıdan yukarı giriş */}
-                <motion.div
-                  className="flex-1 min-w-0 space-y-8"
-                  initial={{ opacity: 0, y: 50 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-80px' }}
-                  transition={{ duration: 0.6 }}
-                >
-
-                  {/* Mobile Search/Filter */}
-                  <div className="lg:hidden bg-[#1A2332]/50 backdrop-blur-md rounded-2xl p-4 border border-white/5 mb-6">
-                    <div className="relative mb-4">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                      <input
-                        type="search"
-                        aria-label="Proje ara"
-                        placeholder="Proje ara..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white"
-                      />
-                    </div>
-                    <div className="flex gap-2 overflow-x-auto pb-2">
-                      {categories.map(cat => (
-                          <button
-                            key={cat}
-                            onClick={() => setSelectedCategory(cat)}
-                            className={`whitespace-nowrap px-4 py-2 rounded-lg text-sm ${
-                              selectedCategory === cat ? 'bg-macs-accent-500 text-white' : 'bg-white/10 text-gray-400'
-                            }`}
-                          >
-                            {cat}
-                          </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Featured Project */}
-                  {featuredProject && (
-                    <motion.div
-                      onClick={() => navigate(`/projeler/${featuredProject.slug}`)}
-                      className="relative group w-full h-[400px] rounded-[2rem] overflow-hidden cursor-pointer border border-white/5 hover:border-macs-accent/50 transition-all duration-500 shadow-2xl"
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      whileInView={{ opacity: 1, scale: 1 }}
-                      viewport={{ once: true, margin: '-80px' }}
-                      transition={{ duration: 0.6 }}
-                    >
-                      <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-all z-10" />
-                      <img
-                        src={featuredProject.imageUrl}
-                        alt={featuredProject.title}
-                        onError={handleImageError}
-                        className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
-                      />
-
-                      <div className="absolute top-6 left-6 z-20">
-                        <span className="flex items-center gap-2 bg-yellow-500/20 text-yellow-300 border border-yellow-500/30 px-4 py-1.5 rounded-full text-sm font-bold backdrop-blur-md">
-                          <Sparkles size={14} fill="currentColor" />
-                          ÖNE ÇIKAN
-                        </span>
-                      </div>
-
-                      <div className="absolute bottom-0 left-0 w-full p-8 bg-gradient-to-t from-black via-black/80 to-transparent z-20">
-                        <Link to={`/projeler/${featuredProject.slug}`} className="hover:underline">
-                          <h2 className="text-3xl md:text-4xl font-bold text-white mb-2">{featuredProject.title}</h2>
-                        </Link>
-                        <p className="text-gray-300 line-clamp-2 max-w-2xl mb-4">{featuredProject.shortDescription}</p>
-                        <div className="flex gap-2">
-                          {featuredProject.tags.map(t => (
-                            <span key={t} className="px-3 py-1 bg-white/10 rounded-md text-xs backdrop-blur-sm border border-white/5">{t}</span>
-                          ))}
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-
-                  {/* Grid Projects */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 min-[1700px]:grid-cols-3 gap-6">
-                    {gridProjects.length > 0 ? (
-                      gridProjects.map(project => (
-                        <NewProjectCard key={project.id} project={project} />
-                      ))
-                    ) : (
-                      <div className="col-span-full text-center py-12 text-gray-500 bg-[#1A2332]/30 rounded-3xl border border-white/5">
-                        Proje bulunamadı.
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
-
-                {/* Right Sidebar - Leaderboard - Sağdan giriş */}
-                <motion.div
-                  className="lg:w-[300px] lg:shrink-0 space-y-6"
-                  initial={{ opacity: 0, x: 40 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true, margin: '-80px' }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <div className="sticky top-24 space-y-6">
-
-                    {/* Leaderboard Card */}
-                    <div className="bg-[#1A2332]/50 backdrop-blur-md rounded-3xl border border-white/5 overflow-hidden">
-                      <div className="p-5 bg-gradient-to-r from-macs-accent-900/30 to-purple-900/30 border-b border-white/5 flex items-center gap-2">
-                        <Trophy className="text-yellow-400" />
-                        <h3 className="font-bold text-lg">Top Contributors</h3>
-                      </div>
-                      <div className="p-4 space-y-4">
-                        {(leaderboard.length > 0 ? leaderboard : MOCK_USERS).slice(0, 5).map((user, idx) => (
-                          <div key={user.id} className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 transition-colors">
-                            <div className={`
-                              w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold
-                              ${idx === 0 ? 'bg-yellow-500 text-black' :
-                                idx === 1 ? 'bg-gray-300 text-black' :
-                                idx === 2 ? 'bg-amber-700 text-white' : 'bg-gray-700 text-gray-300'}
-                            `}>
-                              {idx + 1}
-                            </div>
-                            <img
-                              src={user.avatar_url || user.avatar || getMediaUrl(user.profile_image, user.full_name || user.name)}
-                              alt={user.full_name || user.name}
-                              className="w-10 h-10 rounded-full border border-white/10 object-cover"
-                              onError={(e) => handleAvatarError(e, user.full_name || user.name)}
-                            />
-                            <div className="flex-1">
-                              <p className="text-sm font-semibold text-white">{user.full_name || user.name}</p>
-                              <p className="text-xs text-gray-500">{user.project_count || user.projectCount || 0} Proje</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* CTA Card */}
-                    <div className="bg-gradient-to-br from-macs-accent-500 to-macs-accent-700 rounded-3xl p-6 text-center relative overflow-hidden shadow-lg group">
-                      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-                      <div className="relative z-10">
-                        <img
-                          src="/assets/images/img_920228d74c2145d3b604e2dfb42f2d3f1201a_1.png"
-                          alt="MACS Logo"
-                          className="mx-auto mb-4 w-12 h-12 object-contain opacity-90 drop-shadow-[0_4px_12px_rgba(255,255,255,0.3)] group-hover:animate-bounce"
-                        />
-                        <h3 className="text-xl font-bold mb-2">Projelere Katıl!</h3>
-                        <p className="text-macs-accent-100 text-sm mb-4">Fikirlerinle katkıda bulun veya ekibimize katıl.</p>
-                        <a
-                          href="https://forms.gle/MXaCH1YG3qE4rsX36"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="block w-full bg-white text-macs-accent-600 py-3 rounded-xl font-bold hover:bg-macs-accent-50 transition-colors shadow-lg cursor-pointer"
-                        >
-                          Bize Ulaş
-                        </a>
-                      </div>
-                    </div>
-
-                  </div>
-                </motion.div>
-
+                  <a
+                    href="https://forms.gle/MXaCH1YG3qE4rsX36"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="shrink-0 rounded-xl bg-white px-6 py-3 font-bold text-macs-accent-600 transition-colors hover:bg-macs-accent-50"
+                  >
+                    Bize Ulaş
+                  </a>
+                </div>
               </div>
             </div>
           </motion.div>
