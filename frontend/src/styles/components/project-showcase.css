@@ -1,0 +1,340 @@
+/*
+ * V vitrini. Kart duruşu ProjectShowcase.tsx'ten gelen sayısal değişkenlerle
+ * sürülür, geometri burada hesaplanır:
+ *   --offset  merkeze göre işaretli (kesirli) uzaklık
+ *   --depth   |offset|, en fazla 3
+ *   --lift    V'nin eğrilmiş yüksekliği
+ *   --focus   merkeze yakınlık, 1 = tam ortada
+ *   --fade    kenarlara doğru solma, 0 = görünmez
+ *   --blur    uzak kartların bulanıklığı (px)
+ *   --reveal  açılış animasyonu, 0 = merkezde üst üste, 1 = V'de
+ *   --tilt-x/-y, --glow  aktif kartta fare eğimi ve parlaması
+ */
+.project-showcase {
+  --showcase-width: clamp(300px, 29vw, 460px);
+  --showcase-step: clamp(170px, 22vw, 350px);
+  --showcase-rise: 72px;
+  --showcase-accent: #ff9a3d;
+  --showcase-ease: cubic-bezier(.22, .61, .36, 1);
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 100px 0 32px;
+}
+
+.project-showcase__stage {
+  position: relative;
+  width: 100%;
+  height: clamp(480px, 58svh, 610px);
+  touch-action: pan-y;
+  column-gap: var(--showcase-step);
+  perspective: 1400px;
+  perspective-origin: 50% 30%;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.project-showcase__stage[data-dragging="true"] { cursor: grabbing; }
+
+/* Başlık: harf harf maskeden yükselir. */
+.project-showcase__title {
+  margin: 0;
+  padding: 16px 24px 0;
+  color: #fff;
+  font-size: 60px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -.025em;
+  text-align: center;
+}
+
+.project-showcase__word { display: inline-block; white-space: nowrap; }
+
+.project-showcase__char {
+  display: inline-block;
+  animation: showcase-char-in 800ms var(--showcase-ease) both;
+  animation-delay: calc(var(--i) * 48ms + 80ms);
+}
+
+@keyframes showcase-char-in {
+  from { opacity: 0; transform: translateY(.45em) rotateX(-80deg); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: blur(0); }
+}
+
+@media (min-width: 768px) {
+  .project-showcase__title { font-size: 96px; }
+}
+
+.project-showcase__card {
+  --offset: 0;
+  --depth: 0;
+  --lift: 0;
+  --focus: 1;
+  --fade: 1;
+  --blur: 0;
+  --reveal: 1;
+  --tilt-x: 0;
+  --tilt-y: 0;
+  --glow: 0;
+  --accent: var(--showcase-accent);
+  position: absolute;
+  left: 50%;
+  top: 10%;
+  width: var(--showcase-width);
+  aspect-ratio: 1.75;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, calc(.22 + var(--focus) * .34));
+  border-radius: 16px;
+  background: #111a28;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .3);
+  box-shadow:
+    0 calc(16px + var(--focus) * 14px) calc(40px + var(--focus) * 30px) rgba(0, 0, 0, .3),
+    0 0 calc(var(--focus) * 54px) color-mix(in srgb, var(--accent) calc(var(--focus) * 38% + var(--glow) * 22%), transparent);
+  /* V: orta alçak, kollar yukarı; kartlar kolun eğimini izler ve merkeze döner. */
+  transform:
+    translate3d(
+      calc(-50% + var(--offset) * var(--showcase-step) * var(--reveal)),
+      calc((2 - var(--lift)) * var(--showcase-rise) + (1 - var(--reveal)) * 90px - var(--focus) * 14px),
+      0
+    )
+    rotate(calc(var(--offset) * -5deg * var(--reveal)))
+    rotateX(calc(var(--tilt-x) * 1deg))
+    rotateY(calc(var(--offset) * -16deg + var(--tilt-y) * 1deg))
+    scale(calc((1 - var(--depth) * .07 + var(--focus) * .04) * (.84 + .16 * var(--reveal))));
+  opacity: calc(var(--fade) * var(--reveal));
+  filter: brightness(calc(1 - var(--depth) * .2)) blur(calc(var(--blur) * 1px));
+  transform-origin: 50% 60%;
+  backface-visibility: hidden;
+}
+
+.project-showcase__card[data-visible="true"] { will-change: transform, opacity; }
+
+/* Görsel kartın içinde ters yönde kayar: cam arkasından bakma hissi. */
+.project-showcase__image,
+.project-showcase__image img,
+.project-showcase__placeholder {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.project-showcase__image { overflow: hidden; }
+
+.project-showcase__image img {
+  object-fit: cover;
+  transform: translateX(calc(var(--offset) * -6% + var(--tilt-y) * -.4%)) scale(1.3);
+}
+
+.project-showcase__image::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 15%, rgba(4, 8, 15, .7) 55%, rgba(4, 8, 15, .98));
+}
+
+/* Görseli yüklenemeyen projeler boş kutu yerine vurgu renkli bir yüzey gösterir. */
+.project-showcase__placeholder {
+  display: grid;
+  place-items: center;
+  color: color-mix(in srgb, var(--accent) 70%, #fff);
+  font-size: clamp(56px, 7vw, 96px);
+  font-weight: 700;
+  letter-spacing: -.04em;
+  background:
+    radial-gradient(120% 90% at 20% 0%, color-mix(in srgb, var(--accent) 38%, transparent), transparent 60%),
+    linear-gradient(160deg, #1a2438, #0b1220);
+  transform: translateX(calc(var(--offset) * -6%));
+}
+
+.project-showcase__glare {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: var(--glow);
+  background: radial-gradient(circle at var(--glare-x, 50%) var(--glare-y, 50%), rgba(255, 255, 255, .26), transparent 46%);
+  mix-blend-mode: soft-light;
+}
+
+.project-showcase__caption {
+  position: absolute;
+  inset: auto 24px 20px;
+  color: #fff;
+}
+
+.project-showcase__caption h2 {
+  margin: 0 0 6px;
+  font-size: clamp(18px, 1.5vw, 24px);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -.025em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-showcase__caption p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #d2d6dd;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  opacity: 0;
+}
+
+/* Aktif kartta açıklama ve bağlantı sırayla gelir. */
+.project-showcase__card.is-active .project-showcase__caption p {
+  animation: showcase-rise 520ms var(--showcase-ease) 90ms both;
+}
+
+.project-showcase__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 18px;
+  min-height: 44px;
+  margin-top: 4px;
+  font-size: 13px;
+  color: #fff;
+  text-decoration: none;
+  animation: showcase-rise 520ms var(--showcase-ease) 190ms both;
+}
+
+.project-showcase__link-label {
+  padding-bottom: 5px;
+  background: linear-gradient(currentColor, currentColor) left bottom / 100% 1px no-repeat;
+  animation: showcase-underline 620ms var(--showcase-ease) 380ms both;
+}
+
+.project-showcase__link-arrow { transition: transform 260ms var(--showcase-ease); }
+.project-showcase__link:hover .project-showcase__link-arrow,
+.project-showcase__link:focus-visible .project-showcase__link-arrow { transform: translate(3px, -3px); }
+
+@keyframes showcase-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes showcase-underline {
+  from { background-size: 0 1px; }
+  to { background-size: 100% 1px; }
+}
+
+.project-showcase__select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+
+.project-showcase__select:focus-visible { outline-offset: -5px; }
+.project-showcase--empty { align-items: center; gap: 12px; }
+
+/* Gezinti: kayan rakamlı sayaç ve tıklanabilir ilerleme çizgisi. */
+.project-showcase__nav {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  width: min(420px, calc(100% - 48px));
+  margin: 8px auto 0;
+  color: #fff;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+
+.project-showcase__count { display: inline-flex; align-items: baseline; gap: 8px; white-space: nowrap; }
+.project-showcase__counter { display: inline-flex; font-size: 22px; font-weight: 600; }
+
+.project-showcase__digit {
+  display: inline-block;
+  height: 1em;
+  line-height: 1;
+  overflow: hidden;
+}
+
+.project-showcase__digit-strip {
+  display: flex;
+  flex-direction: column;
+  transform: translateY(calc(var(--digit) * -1em));
+  transition: transform 620ms var(--showcase-ease);
+}
+
+.project-showcase__digit-strip > span { display: block; height: 1em; line-height: 1; }
+.project-showcase__count-total { color: rgba(255, 255, 255, .55); }
+
+.project-showcase__progress {
+  position: relative;
+  flex: 1;
+  height: 2px;
+  margin: 15px 0;
+  overflow: hidden;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, .18);
+  cursor: pointer;
+}
+
+/* Tıklama alanını çizgiden geniş tutar. */
+.project-showcase__progress::before {
+  content: '';
+  position: absolute;
+  inset: -14px 0;
+}
+
+.project-showcase__thumb {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--progress, 0) * 100%);
+  width: calc(var(--span) * 100%);
+  border-radius: inherit;
+  background: var(--showcase-accent);
+  box-shadow: 0 0 10px var(--showcase-accent);
+  transition: background 400ms, box-shadow 400ms;
+}
+
+.project-showcase__stage ~ .project-showcase__nav { animation: showcase-rise 700ms var(--showcase-ease) 700ms both; }
+
+@media (max-width: 640px) {
+  .project-showcase {
+    --showcase-width: min(78vw, 360px);
+    --showcase-step: 64vw;
+    --showcase-rise: 42px;
+  }
+  .project-showcase__stage { height: 440px; }
+  .project-showcase__card { aspect-ratio: 1.15; }
+  .project-showcase__caption { inset: auto 18px 16px; }
+}
+
+/* Detay sayfasına geçişte kart görseli kapağa büyür. */
+::view-transition-group(project-hero) {
+  animation-duration: 650ms;
+  animation-timing-function: cubic-bezier(.22, .61, .36, 1);
+}
+
+::view-transition-old(project-hero),
+::view-transition-new(project-hero) {
+  height: 100%;
+  object-fit: cover;
+  overflow: clip;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .project-showcase__char,
+  .project-showcase__caption p,
+  .project-showcase__link,
+  .project-showcase__link-label,
+  .project-showcase__stage ~ .project-showcase__nav { animation: none; }
+  .project-showcase__caption p { opacity: 1; }
+  .project-showcase__card:not(.is-active) .project-showcase__caption p { opacity: 0; }
+  .project-showcase__digit-strip,
+  .project-showcase__link-arrow,
+  .project-showcase__thumb { transition: none; }
+  .project-showcase__image img { transform: scale(1.3); }
+}
