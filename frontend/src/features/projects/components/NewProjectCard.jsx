@@ -1,11 +1,21 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
+import { motion, useReducedMotion } from 'framer-motion';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { handleImageError } from '../../../utils/imageUtils';
 
 const MAX_TAGS = 3;
 const MAX_AVATARS = 3;
+/** Üstteki vitrinin açılışıyla aynı yay: hafif taşıp oturur. Gecikme sıraya göre artar. */
+const ENTER_SPRING = { type: 'spring', stiffness: 90, damping: 15 };
+const ENTER_STEP_S = 0.055;
+const ENTER_MAX_STEPS = 7;
+const ENTER_VARIANTS = {
+  hidden: { opacity: 0, y: 56, scale: 0.88 },
+  shown: { opacity: 1, y: 0, scale: 1 },
+};
+const MotionLink = motion.create(Link);
 
 const initialsOf = (name = '') =>
   name.trim().split(/\s+/).slice(0, 2).map((word) => word.charAt(0)).join('').toLocaleUpperCase('tr-TR') || '?';
@@ -20,8 +30,20 @@ const initialsOf = (name = '') =>
  * variant:
  *  - default: görsel üstte, içerik altta
  *  - wide / featured: görsel kartı doldurur, yazı altta (mozaikte büyük kutular)
+ *
+ * index: listedeki sıra. Kart ekrana girince (filtre değişince hemen, uzaktaysa
+ * kaydırınca) sırasına göre gecikmeli, yaylı bir girişle gelir. Yalnızca
+ * transform ve opacity animasyonu: GPU'da ucuz, blur/filter yok.
  */
-const ProjectCard = ({ project, variant = 'default' }) => {
+const ProjectCard = ({ project, variant = 'default', index = 0 }) => {
+  const reduced = useReducedMotion();
+  const enter = reduced ? {} : {
+    variants: ENTER_VARIANTS,
+    initial: 'hidden',
+    whileInView: 'shown',
+    viewport: { once: true, margin: '0px 0px -6% 0px' },
+    transition: { ...ENTER_SPRING, delay: Math.min(index, ENTER_MAX_STEPS) * ENTER_STEP_S },
+  };
   const tags = project.tags || [];
   const team = project.team || [];
   const href = `/projeler/${project.slug}`;
@@ -31,8 +53,9 @@ const ProjectCard = ({ project, variant = 'default' }) => {
   if (variant !== 'default') {
     const featured = variant === 'featured';
     return (
-      <Link
+      <MotionLink
         {...link}
+        {...enter}
         className={`group relative block overflow-hidden rounded-3xl border border-white/10 bg-[#1a2333] hover:border-macs-accent/50 transition-colors ${
           featured
             ? 'sm:col-span-2 xl:row-span-2 min-h-[380px]'
@@ -63,13 +86,14 @@ const ProjectCard = ({ project, variant = 'default' }) => {
             ))}
           </div>
         </div>
-      </Link>
+      </MotionLink>
     );
   }
 
   return (
-    <Link
+    <MotionLink
       {...link}
+      {...enter}
       className="group flex h-full flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#1a2333] hover:border-macs-accent/40 transition-colors [content-visibility:auto] [contain-intrinsic-size:auto_400px]"
     >
       <div className="relative h-48 shrink-0 overflow-hidden">
@@ -124,12 +148,13 @@ const ProjectCard = ({ project, variant = 'default' }) => {
           </span>
         </div>
       </div>
-    </Link>
+    </MotionLink>
   );
 };
 
 ProjectCard.propTypes = {
   variant: PropTypes.oneOf(['default', 'wide', 'featured']),
+  index: PropTypes.number,
   project: PropTypes.shape({
     id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
     slug: PropTypes.string.isRequired,
