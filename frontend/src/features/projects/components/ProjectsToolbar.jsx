@@ -22,13 +22,14 @@ const ProjectsToolbar = ({
           aria-label="Proje türü"
           className="flex max-w-full gap-1 self-start overflow-x-auto rounded-full border border-white/10 bg-white/5 p-1"
         >
-          {tabs.map(({ id, label, icon: Icon }) => {
+          {tabs.map(({ id, label, icon: Icon, count }) => {
             const active = id === activeTab;
             return (
               <button
                 key={id}
                 type="button"
                 aria-pressed={active}
+                aria-label={label}
                 onClick={() => onTabChange(id)}
                 className={`relative flex shrink-0 cursor-pointer items-center rounded-full px-5 py-2.5 text-sm font-medium transition-colors ${
                   active ? 'text-white' : 'text-gray-400 hover:text-white'
@@ -44,6 +45,11 @@ const ProjectsToolbar = ({
                 <span className="relative flex items-center gap-2">
                   <Icon size={16} aria-hidden="true" />
                   {label}
+                  {typeof count === 'number' && (
+                    <span aria-hidden="true" className={`rounded-full px-2 py-0.5 text-xs ${active ? 'bg-white/20' : 'bg-white/10'}`}>
+                      {count}
+                    </span>
+                  )}
                 </span>
               </button>
             );
@@ -95,6 +101,7 @@ ProjectsToolbar.propTypes = {
     id: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
     icon: PropTypes.elementType.isRequired,
+    count: PropTypes.number,
   })).isRequired,
   activeTab: PropTypes.string.isRequired,
   onTabChange: PropTypes.func.isRequired,

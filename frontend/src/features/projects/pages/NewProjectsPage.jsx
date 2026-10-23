@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef } from 'react';
-import { Code, Heart, UserCircle } from 'lucide-react';
+import { Code, Heart, LayoutGrid, UserCircle } from 'lucide-react';
 import { MOCK_USERS } from '../data/mockProjectsData';
 import { mockProjects, mockProjectCategories } from '../data/mockProjects';
 import { projectService, memberService } from '../../../shared/services/api';
@@ -7,6 +7,7 @@ import NewProjectCard from '../components/NewProjectCard';
 import ProjectsToolbar from '../components/ProjectsToolbar';
 import TopContributors from '../components/TopContributors';
 import ProjectsPageSkeleton from '../components/ProjectsPageSkeleton';
+import { ALL_TAB, countByTab, filterProjects } from '../utils/filterProjects';
 import { ProjectShowcase } from '../components/ProjectShowcase';
 import { GlassFold } from 'components/ui/glass-fold';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -15,6 +16,7 @@ import SEO from '../../../shared/components/seo/SEO';
 import { USE_MOCK_FALLBACK } from '../../../shared/utils/mockFallback';
 
 const TABS = [
+  { id: ALL_TAB, label: 'Tüm Projeler', icon: LayoutGrid },
   { id: 'developed', label: 'Developed by MACS', icon: Code },
   { id: 'supported', label: 'Supported by MACS', icon: Heart },
   { id: 'showcase', label: 'Member Showcase', icon: UserCircle },
@@ -33,7 +35,7 @@ const NewProjectsPage = () => {
   const [categories, setCategories] = useState(['All']);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('developed');
+  const [activeTab, setActiveTab] = useState(ALL_TAB);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [leaderboard, setLeaderboard] = useState([]);
@@ -84,27 +86,15 @@ const NewProjectsPage = () => {
     fetchData();
   }, [fetchData]);
 
-  // Filter Logic
-  const filteredProjects = useMemo(() => {
-    // Tab -> project_type eşleşmesi
-    const tabToType = {
-      'developed': 'DEVELOPED_BY_MACS',
-      'supported': 'SUPPORTED_BY_MACS',
-      'showcase': 'MEMBER_SHOWCASE'
-    };
+  const filteredProjects = useMemo(
+    () => filterProjects(projects, { tab: activeTab, search: searchQuery, category: selectedCategory }),
+    [projects, activeTab, searchQuery, selectedCategory]
+  );
 
-    return projects.filter(p => {
-      // project_type veya tab ile eşleştir (mock data için geriye uyumluluk)
-      const projectType = p.project_type || (p.tab ? tabToType[p.tab] : null);
-      const matchesTab = projectType === tabToType[activeTab] || p.tab === activeTab;
-
-      const matchesSearch = p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                            (p.tags?.some(t => t.toLowerCase().includes(searchQuery.toLowerCase())) || false);
-      const matchesCategory = selectedCategory === 'All' || p.category?.name === selectedCategory || p.category === selectedCategory;
-
-      return matchesTab && matchesSearch && matchesCategory;
-    });
-  }, [projects, activeTab, searchQuery, selectedCategory]);
+  const tabs = useMemo(() => {
+    const counts = countByTab(projects, TABS.map((tab) => tab.id));
+    return TABS.map((tab) => ({ ...tab, count: counts[tab.id] }));
+  }, [projects]);
 
   // Öne çıkan da filtrelere uyar; aksi halde arama/kategori dışı bir proje üstte kalırdı.
   const featuredProject = filteredProjects.find(p => p.is_featured || p.featured) || filteredProjects[0];
@@ -157,7 +147,7 @@ const NewProjectsPage = () => {
             {/* İÇERİK: vitrinden sonra, arka planın durduğu bölge. Düz yüzeyler, blur yok. */}
             <div id="projeler-icerik" className="w-full max-w-[1760px] mx-auto px-4 sm:px-6 lg:px-10 pb-16 relative z-10 scroll-mt-20">
               <ProjectsToolbar
-                tabs={TABS}
+                tabs={tabs}
                 activeTab={activeTab}
                 onTabChange={handleTabChange}
                 categories={categories}
