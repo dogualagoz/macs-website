@@ -3,8 +3,8 @@ import { Code, Heart } from 'lucide-react';
 import ProjectsToolbar from './ProjectsToolbar';
 
 const tabs = [
-  { id: 'developed', label: 'Developed by MACS', icon: Code },
-  { id: 'supported', label: 'Supported by MACS', icon: Heart },
+  { id: 'developed', label: 'Developed by MACS', icon: Code, count: 10 },
+  { id: 'supported', label: 'Supported by MACS', icon: Heart, count: 1 },
 ];
 
 function setup(overrides = {}) {
@@ -47,4 +47,11 @@ test('sonuç sayısı canlı bölgede yazılır ve çubuk blur kullanmaz', () =>
   expect(screen.getByText('7 proje').getAttribute('aria-live')).toBe('polite');
   const bar = screen.getByRole('group', { name: 'Proje türü' }).parentElement?.parentElement;
   expect(bar?.className).not.toMatch(/backdrop-blur|sticky/);
+});
+
+test('sekmeler proje sayısını gösterir, ekran okuyucu adı yalnızca etiket olur', () => {
+  setup();
+  const tab = screen.getByRole('button', { name: 'Developed by MACS' });
+  expect(tab.textContent).toBe('Developed by MACS10');
+  expect(screen.getByRole('button', { name: 'Supported by MACS' }).textContent).toBe('Supported by MACS1');
 });
