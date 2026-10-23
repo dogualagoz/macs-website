@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { ArrowLeft, Github, ExternalLink, Calendar, Layers, Activity, Share2 } from 'lucide-react';
 import { MOCK_PROJECTS } from '../data/mockProjectsData';
 import { projectService } from '../../../shared/services/api';
@@ -15,8 +15,12 @@ import SEO from '../../../shared/components/seo/SEO';
  */
 const NewProjectDetailPage = () => {
   const { id } = useParams();
-  const [project, setProject] = React.useState(null);
-  const [loading, setLoading] = React.useState(true);
+  const location = useLocation();
+  // Listeden gelindiyse proje hazır gelir: sayfa ve paylaşılan görsel geçişi
+  // yükleme ekranı beklemeden açılır, güncel veri arkadan yenilenir.
+  const preview = location.state?.project?.slug === id ? location.state.project : null;
+  const [project, setProject] = React.useState(preview);
+  const [loading, setLoading] = React.useState(!preview);
   const [error, setError] = React.useState(null);
   const [copied, setCopied] = React.useState(false);
 
@@ -42,7 +46,7 @@ const NewProjectDetailPage = () => {
 
   const fetchProject = React.useCallback(async () => {
     try {
-      setLoading(true);
+      if (!preview) setLoading(true);
       const data = await projectService.getBySlug(id);
 
       if (data) {
@@ -58,7 +62,10 @@ const NewProjectDetailPage = () => {
     } catch (err) {
       console.error("Proje detayı yüklenemedi:", err);
 
-      if (USE_MOCK_FALLBACK) {
+      if (preview) {
+        // Listeden gelen veri zaten gösteriliyor; yenileme hatası sayfayı düşürmez.
+        setError(null);
+      } else if (USE_MOCK_FALLBACK) {
         const mock = MOCK_PROJECTS.find(p => p.id === id || p.slug === id);
         setProject(mock ? projectService._mapProject(mock) : null);
         setError(null);
@@ -69,7 +76,7 @@ const NewProjectDetailPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  }, [id, preview]);
 
   React.useEffect(() => {
     fetchProject();
@@ -105,7 +112,7 @@ const NewProjectDetailPage = () => {
       
       {/* Hero Section with Blur Backdrop */}
       <div className="relative h-[60vh] w-full overflow-hidden">
-        <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 z-0" style={{ viewTransitionName: 'project-hero' }}>
           <img src={project.imageUrl} alt={project.title} className="w-full h-full object-cover opacity-40 blur-sm" onError={handleImageError} />
           <div className="absolute inset-0 bg-gradient-to-t from-[#07132b] via-[#07132b]/80 to-transparent" />
         </div>
