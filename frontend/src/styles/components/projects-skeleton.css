@@ -1,0 +1,71 @@
+/*
+ * Projeler sayfası iskeleti. Yerleşim, vitrin (project-showcase.css) ve alt
+ * bölümle aynı sınıfları paylaşır; burada yalnızca koyu yüzey rengi, parıltı
+ * ve gerçek içeriğe karşılık gelen blok ölçüleri tanımlı.
+ */
+.projects-skeleton .skeleton {
+  background: rgba(255, 255, 255, .07);
+}
+
+.projects-skeleton .skeleton::after {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .09), transparent);
+}
+
+/* Vitrin */
+.projects-skeleton__stage { cursor: default; }
+
+.projects-skeleton__title {
+  display: flex;
+  justify-content: center;
+  padding: 16px 24px 0;
+  min-height: 60px;
+}
+
+.projects-skeleton__title-bar {
+  width: min(560px, 80%);
+  height: 48px;
+  border-radius: 12px;
+}
+
+@media (min-width: 768px) {
+  .projects-skeleton__title { min-height: 96px; }
+  .projects-skeleton__title-bar { width: min(640px, 60%); height: 76px; }
+}
+
+/* Kartlar vitrindeki gerçek kartla aynı geometriyi kullanır; hareket yok. */
+.projects-skeleton__card { will-change: auto; }
+
+.projects-skeleton__card-fill,
+.projects-skeleton__fill {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+}
+
+.projects-skeleton__caption { display: grid; gap: 10px; }
+.projects-skeleton__caption-title { width: 55%; height: 1.1rem; }
+
+.projects-skeleton__nav {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  width: min(420px, calc(100% - 48px));
+  margin: 8px auto 0;
+}
+
+.projects-skeleton__count { width: 76px; height: 26px; border-radius: 6px; flex-shrink: 0; }
+.projects-skeleton__progress { flex: 1; height: 2px; margin: 15px 0; border-radius: 2px; }
+
+/* Filtre çubuğu */
+.projects-skeleton__tab { width: 160px; height: 40px; border-radius: 999px; flex-shrink: 0; }
+.projects-skeleton__search { width: 100%; max-width: 18rem; height: 44px; border-radius: 12px; }
+.projects-skeleton__chip { width: 78px; height: 34px; border-radius: 8px; flex-shrink: 0; }
+
+/* Mozaik: varsayılan kart gerçek kartın (görsel 192px + içerik) yüksekliğinde. */
+.projects-skeleton__tile { min-height: 25.5rem; }
+.projects-skeleton__avatar { width: 32px; height: 32px; border-radius: 50%; }
+.projects-skeleton__thumb { height: 12rem; flex-shrink: 0; border-radius: 0; }
+.projects-skeleton__tile-title { width: 60%; height: 1.4rem; }
+.projects-skeleton__tag { width: 56px; height: 24px; border-radius: 6px; }
