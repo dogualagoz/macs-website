@@ -29,7 +29,7 @@ export async function verifyAccessToken(token: string, secret: string, now: Date
         : "Not enough segments";
     throw unauthorized(`Token geçersiz veya süresi dolmuş: ${detail}`);
   });
-  if (!payload.sub) throw unauthorized("Token doğrulama hatası: 401: Token içinde email bilgisi eksik");
+  if (typeof payload.sub !== "string" || payload.sub.length === 0) throw unauthorized("Token doğrulama hatası: 401: Token içinde email bilgisi eksik");
   if (typeof payload.role !== "string" || typeof payload.exp !== "number") {
     throw unauthorized("Token geçersiz veya süresi dolmuş: Not enough segments");
   }

@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { jwtVerify, SignJWT } from "jose";
+import { CompactSign, jwtVerify, SignJWT } from "jose";
 import fx from "../../test/fixtures/python-fixtures.json";
 import { HttpError } from "./http-error";
 import { signAccessToken, verifyAccessToken } from "./jwt";
@@ -67,4 +67,24 @@ test("rejects algorithms other than HS256", async () => {
 
 test("strips Bearer prefix", async () => {
   expect((await verifyAccessToken("Bearer " + fx.jose.token, fx.jose.secret, now)).sub).toBe("admin@example.com");
+});
+
+test.each([
+  { sub: "a@b.co", exp: 4102444800 },
+  { sub: "a@b.co", role: "admin" },
+  { sub: "a@b.co", role: 123, exp: 4102444800 },
+  { sub: "a@b.co", role: "admin", exp: "4102444800" },
+])("rejects signed tokens with missing or wrong claims: %j", async (claims) => {
+  const token = await new CompactSign(Buffer.from(JSON.stringify(claims))).setProtectedHeader({ alg: "HS256" }).sign(key);
+  await expect401(verifyAccessToken(token, fx.jose.secret, now), "Token geçersiz veya süresi dolmuş: Not enough segments");
+});
+test("rejects non-string subject in a valid HS256 token", async () => {
+  const token = await new CompactSign(Buffer.from(JSON.stringify({ sub: 123, role: "admin", exp: 4102444800 })))
+    .setProtectedHeader({ alg: "HS256" }).sign(key);
+  await expect401(verifyAccessToken(token, fx.jose.secret, now), "Token doğrulama hatası: 401: Token içinde email bilgisi eksik");
+});
+test("rejects a tampered payload", async () => {
+  const [header = "", , signature = ""] = fx.jose.token.split(".");
+  const payload = Buffer.from(JSON.stringify({ sub: "intruder@example.com", role: "admin", exp: 4102444800 })).toString("base64url");
+  await expect401(verifyAccessToken(`${header}.${payload}.${signature}`, fx.jose.secret, now), "Token geçersiz veya süresi dolmuş: Signature verification failed.");
 });
