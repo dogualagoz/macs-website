@@ -34,6 +34,42 @@ describe("admin CLI subprocesses", () => {
     expect(user.status).toBe(200);
     expect(user.body).toMatchObject({ full_name: "Yeni Admin", role: "admin", status: "approved", is_active: true });
   });
+  test("create-admin normalizes mixed-case domains and rejects the normalized duplicate", async () => {
+    const args = ["--email", "CliLocal@Example.COM", "--full-name", "CLI Admin"];
+    expect(await cli("create-admin", args, "parola123\n"))
+      .toEqual({ code: 0, stdout: "created admin id=8 email=CliLocal@example.com\n", stderr: "" });
+    const rows = await deps.sql`SELECT email, role, status FROM users WHERE id = 8`;
+    expect([...rows]).toEqual([{ email: "CliLocal@example.com", role: "admin", status: "approved" }]);
+    expect((await login("CliLocal@example.com", "parola123")).status).toBe(200);
+    expect(await cli("create-admin", ["--email", "CliLocal@EXAMPLE.com", "--full-name", "Duplicate"], "parola123\n"))
+      .toEqual({ code: 1, stdout: "", stderr: "Bu email adresi zaten kullanımda\n" });
+    const [count] = await deps.sql`SELECT count(*)::int AS total FROM users`;
+    expect(count?.total).toBe(8);
+  });
+  test("reset-password normalizes the mixed-case domain of an API-registered user", async () => {
+    const registered = await request(createApp(deps)).post("/auth/register").send({
+      email: "ResetLocal@Example.COM", full_name: "Reset User", password: "parola123",
+    });
+    expect(registered.status).toBe(200);
+    expect(registered.body).toMatchObject({ email: "ResetLocal@example.com" });
+    await deps.sql`UPDATE users SET status = 'approved' WHERE email = 'ResetLocal@example.com'`;
+    expect(await cli("reset-password", ["--email", "ResetLocal@EXAMPLE.com"], "secret-password\n"))
+      .toEqual({ code: 0, stdout: "password reset for ResetLocal@example.com\n", stderr: "" });
+    expect((await login("ResetLocal@example.com", "secret-password")).status).toBe(200);
+    expect((await login("ResetLocal@example.com", "parola123")).status).toBe(401);
+  });
+  test("set-user-access normalizes the mixed-case domain of an API-registered user", async () => {
+    const registered = await request(createApp(deps)).post("/auth/register").send({
+      email: "AccessLocal@Example.COM", full_name: "Access User", password: "parola123",
+    });
+    expect(registered.status).toBe(200);
+    expect(registered.body).toMatchObject({ email: "AccessLocal@example.com", status: "pending" });
+    expect(await cli("set-user-access", ["--email", "AccessLocal@EXAMPLE.com", "--status", "approved", "--role", "admin"]))
+      .toEqual({ code: 0, stdout: "updated AccessLocal@example.com: status=approved role=admin is_active=true\n", stderr: "" });
+    const [row] = await deps.sql`SELECT email, status, role FROM users WHERE email = 'AccessLocal@example.com'`;
+    expect(row).toEqual({ email: "AccessLocal@example.com", status: "approved", role: "admin" });
+    expect((await login("AccessLocal@example.com", "parola123")).status).toBe(200);
+  });
   test("duplicate email exits 1", async () => {
     expect(await cli("create-admin", ["--email", "admin@example.com", "--full-name", "Duplicate"], "parola123\n"))
       .toEqual({ code: 1, stdout: "", stderr: "Bu email adresi zaten kullanımda\n" });

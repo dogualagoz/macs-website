@@ -1,11 +1,12 @@
 import { z } from "zod";
+import { emailSchema } from "../src/modules/users/schemas";
 import { HttpError } from "../src/lib/http-error";
 import { findUserByEmail } from "../src/modules/users/repo";
 import { setAccess } from "../src/modules/users/service";
 import { runCli } from "./_cli";
 
 const schema = z.object({
-  email: z.email(),
+  email: emailSchema,
   status: z.enum(["pending", "approved", "rejected"]).optional(),
   role: z.enum(["admin", "moderator"]).optional(),
   active: z.enum(["true", "false"]).transform(value => value === "true").optional(),
