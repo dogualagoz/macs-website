@@ -25,6 +25,41 @@ async function checkSchema(connection: postgres.ReservedSql): Promise<void> {
   }
 }
 
+async function runConcurrentMigration(connection: postgres.ReservedSql, source: string, name: string): Promise<void> {
+  const statements = source.split(/;[ \t]*\r?\n/).filter((part) => part.trim());
+  const indexes = new Set<string>();
+  for (const statement of statements) {
+    const ddl = statement.replace(/^(?:\s|--[^\n]*(?:\n|$))*/, "");
+    const match = /^CREATE\s+(?:UNIQUE\s+)?INDEX\s+CONCURRENTLY\s+(?:IF\s+NOT\s+EXISTS\s+)?("(?:[^"]|"")+"|[a-z_][a-z0-9_$]*)\s+ON\b/i.exec(ddl);
+    const identifier = match?.[1];
+    if (identifier) indexes.add(identifier.startsWith('"') ? identifier.slice(1, -1).replaceAll('""', '"') : identifier.toLowerCase());
+  }
+  const validity = async (index: string): Promise<boolean | undefined> => {
+    const [row] = await connection<{ indisvalid: boolean }[]>`
+      SELECT i.indisvalid FROM pg_index i JOIN pg_class c ON c.oid = i.indexrelid
+      JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = 'public' AND c.relname = ${index}`;
+    return row?.indisvalid;
+  };
+  const [settings] = await connection<{ statement_timeout: string }[]>`SHOW statement_timeout`;
+  if (!settings) throw new Error("Cannot inspect statement_timeout");
+  try {
+    await connection`SET statement_timeout = 0`;
+    for (const index of indexes) {
+      if (await validity(index) === false) {
+        console.warn(`Rebuilding INVALID index public.${index} for ${name}`);
+        await connection.unsafe(`DROP INDEX CONCURRENTLY IF EXISTS public."${index.replaceAll('"', '""')}"`);
+      }
+    }
+    for (const statement of statements) await connection.unsafe(statement);
+    for (const index of indexes) {
+      if (await validity(index) !== true) throw new Error(`Concurrent migration index public.${index} is missing or INVALID`);
+    }
+    await connection`INSERT INTO public.__bun_migrations (name) VALUES (${name})`;
+  } finally {
+    await connection`SELECT set_config('statement_timeout', ${settings.statement_timeout}, false)`;
+  }
+}
+
 export async function runMigrations(sql: Sql, dir: string): Promise<{ applied: string[]; skipped: string[] }> {
   const connection = await sql.reserve();
   let locked = false;
@@ -48,8 +83,7 @@ export async function runMigrations(sql: Sql, dir: string): Promise<{ applied: s
       const source = await readFile(resolve(dir, name), "utf8");
       const outsideTransaction = source.split(/\r?\n/, 1)[0] === "-- no-transaction";
       if (outsideTransaction) {
-        for (const statement of source.split(/;[ \t]*\r?\n/).filter((part) => part.trim())) await connection.unsafe(statement);
-        await connection`INSERT INTO public.__bun_migrations (name) VALUES (${name})`;
+        await runConcurrentMigration(connection, source, name);
       } else {
         // ReservedSql does not expose begin(); explicit transaction commands keep
         // both the DDL and its ledger insert on the session holding the lock.

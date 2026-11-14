@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, expect, test } from "bun:test";
+import { afterEach, beforeEach, expect, spyOn, test } from "bun:test";
 import { execFileSync, spawnSync } from "node:child_process";
 import { copyFile, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -167,4 +167,63 @@ test("0001 creates the five expected valid indexes, matches schema and is idempo
   const { events, projects, sponsors } = await import("../../src/db/schema");
   const declared = [events, projects, sponsors].flatMap(table => getTableConfig(table).indexes.map(index => index.config.name));
   for (const name of names) expect(declared).toContain(name);
+});
+
+
+test("concurrent migration rebuilds its invalid index and preserves unrelated invalid indexes", async () => {
+  await runMigrations(sql, dir);
+  await copyFile(resolve("drizzle/0001_perf_indexes.sql"), join(dir, "0001_perf_indexes.sql"));
+  await sql`CREATE INDEX ix_events_active_start ON events (is_active, start_time) WHERE is_deleted = false`;
+  await sql`CREATE INDEX ix_unrelated_invalid ON events (title)`;
+  await sql`UPDATE pg_index SET indisvalid = false WHERE indexrelid IN ('public.ix_events_active_start'::regclass, 'public.ix_unrelated_invalid'::regclass)`;
+  const [before] = await sql`SELECT 'public.ix_events_active_start'::regclass::oid AS oid`;
+  const warn = spyOn(console, "warn").mockImplementation(() => undefined);
+  try {
+    expect((await runMigrations(sql, dir)).applied).toEqual(["0001_perf_indexes.sql"]);
+    expect((await sql`SELECT indisvalid FROM pg_index WHERE indexrelid = 'public.ix_events_active_start'::regclass`)[0]?.indisvalid).toBe(true);
+    expect((await sql`SELECT 'public.ix_events_active_start'::regclass::oid AS oid`)[0]?.oid).not.toBe(before?.oid);
+    expect((await sql`SELECT indisvalid FROM pg_index WHERE indexrelid = 'public.ix_unrelated_invalid'::regclass`)[0]?.indisvalid).toBe(false);
+    expect(await sql`SELECT 1 FROM __bun_migrations WHERE name = '0001_perf_indexes.sql'`).toHaveLength(1);
+    expect(warn).toHaveBeenCalledWith("Rebuilding INVALID index public.ix_events_active_start for 0001_perf_indexes.sql");
+  } finally { warn.mockRestore(); }
+});
+
+test.each(["invalid", "missing"])("concurrent migration refuses to record an index that remains %s", async (state) => {
+  await runMigrations(sql, dir);
+  const source = await readFile(resolve("drizzle/0001_perf_indexes.sql"), "utf8");
+  const sabotage = state === "invalid" ? "UPDATE pg_index SET indisvalid = false WHERE indexrelid = 'public.ix_events_active_start'::regclass;" : "DROP INDEX public.ix_events_active_start;";
+  await writeFile(join(dir, "0001_perf_indexes.sql"), `${source}${sabotage}\n`);
+  await expectMigrationFailure("public.ix_events_active_start is missing or INVALID");
+  expect(await sql`SELECT 1 FROM __bun_migrations WHERE name = '0001_perf_indexes.sql'`).toHaveLength(0);
+});
+
+test("failed concurrent build leaves no applied ledger row", async () => {
+  await runMigrations(sql, dir);
+  await sql`CREATE TABLE failing_build (n integer)`;
+  await sql`INSERT INTO failing_build VALUES (0)`;
+  await writeFile(join(dir, "0001_failing.sql"), "-- no-transaction\nCREATE INDEX CONCURRENTLY IF NOT EXISTS ix_failing_build ON failing_build ((10 / n));\n");
+  await expectMigrationFailure("division by zero");
+  expect((await sql`SELECT indisvalid FROM pg_index WHERE indexrelid = 'public.ix_failing_build'::regclass`)[0]?.indisvalid).toBe(false);
+  expect(await sql`SELECT 1 FROM __bun_migrations WHERE name = '0001_failing.sql'`).toHaveLength(0);
+});
+
+test.each([false, true])("no-transaction disables timeout and restores settings after failure=%s", async (fails) => {
+  await runMigrations(sql, dir);
+  const single = createDb(url, { max: 1 }).sql;
+  try {
+    await single`SET statement_timeout TO '50ms'`;
+    await single`SET client_min_messages TO error`;
+    await writeFile(join(dir, "0001_timeout.sql"), `-- no-transaction\nCREATE TABLE timeout_evidence (value text);\nINSERT INTO timeout_evidence SELECT current_setting('statement_timeout');\nSELECT pg_sleep(0.1);\n${fails ? "SELECT missing_timeout_function();\n" : ""}`);
+    const result = await runMigrations(single, dir).catch((error: unknown) => error);
+    if (fails) {
+      expect(result).toBeInstanceOf(Error);
+      if (!(result instanceof Error)) throw new Error("Expected migration to reject");
+      expect(result.message).toContain("missing_timeout_function");
+      expect(await single`SELECT 1 FROM __bun_migrations WHERE name = '0001_timeout.sql'`).toHaveLength(0);
+    } else expect(result).toEqual({ applied: ["0001_timeout.sql"], skipped: ["0000_baseline.sql"] });
+    expect([...(await single`SELECT value FROM timeout_evidence`)]).toEqual([{ value: "0" }]);
+    expect((await single`SHOW statement_timeout`)[0]?.statement_timeout).toBe("50ms");
+    expect((await single`SHOW client_min_messages`)[0]?.client_min_messages).toBe("error");
+    expect(await single`SELECT 1 FROM pg_locks WHERE locktype = 'advisory' AND objid = 727274 AND database = (SELECT oid FROM pg_database WHERE datname = current_database())`).toHaveLength(0);
+  } finally { await single.end({ timeout: 1 }); }
 });
