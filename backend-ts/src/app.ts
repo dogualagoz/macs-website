@@ -1,5 +1,7 @@
 import express from "express";
-import type { Express, Router } from "express";
+import swaggerUi from "swagger-ui-express";
+import { buildOpenApiDocument } from "./lib/openapi";
+import type { Express, Router, RequestHandler } from "express";
 import type { Logger } from "pino";
 import type { Db, Sql, QueryCounter } from "./db/client";
 import type { Env } from "./config/env";
@@ -67,6 +69,12 @@ export function createApp(deps: AppDeps, registerRoutes?: (router: Router, deps:
   registerUploadRoutes(router, deps);
   registerRoutes?.(router, deps);
   app.use(router);
+  const document = buildOpenApiDocument(deps.routeRegistry);
+  app.get("/openapi.json", (_req, res) => { res.set("Cache-Control", "no-store").json(document); });
+  const noStore: RequestHandler = (_req, res, next) => { res.set("Cache-Control", "no-store"); next(); };
+  const swaggerOptions = { swaggerOptions: { url: "/openapi.json" } };
+  app.use("/docs", noStore,
+    swaggerUi.serveFiles(undefined, swaggerOptions), swaggerUi.setup(undefined, swaggerOptions));
   app.use(notFound(deps.routeRegistry));
   app.use(errorHandler(deps.logger));
   return app;

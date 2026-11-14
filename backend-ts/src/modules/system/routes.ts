@@ -1,3 +1,4 @@
+import { z } from "zod";
 import type { Router } from "express";
 import type { AppDeps } from "../../app";
 import { route, STREAMED } from "../../lib/route";
@@ -5,15 +6,15 @@ import { sendJson } from "../../middleware/cache-headers";
 
 export function registerSystemRoutes(router: Router, deps: AppDeps): void {
   route(router, deps, {
-    method: "get", path: "/", domain: "system", tag: "System", summary: "Welcome",
+    method: "get", path: "/", domain: "system", tag: "system", summary: "Welcome", response: z.object({ message: z.string() }),
     handler: () => Promise.resolve({ message: "MACS Kulubu Web Sitesine hosgeldiniz!" }),
   });
   route(router, deps, {
-    method: "get", path: "/health", domain: "system", tag: "System", summary: "Liveness",
+    method: "get", path: "/health", domain: "system", tag: "system", summary: "Liveness", response: z.object({ status: z.literal("ok") }),
     handler: () => Promise.resolve({ status: "ok" }),
   });
   route(router, deps, {
-    method: "get", path: "/health/ready", domain: "system", tag: "System", summary: "Readiness",
+    method: "get", path: "/health/ready", domain: "system", tag: "system", summary: "Readiness", response: z.object({ status: z.literal("ok") }),
     handler: async ({ req, res }) => {
       const query = deps.sql`SELECT 1`;
       let timer: ReturnType<typeof setTimeout> | undefined;

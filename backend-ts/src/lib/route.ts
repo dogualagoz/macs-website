@@ -42,6 +42,7 @@ export interface RouteMeta {
   upload?: { field: string; maxBytes: number };
   status?: number;
   response?: z.ZodType;
+  responseMediaType?: string;
 }
 export interface RouteDef<P, Q, B, R> extends RouteMeta {
   params?: z.ZodType<P>;

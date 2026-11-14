@@ -19,7 +19,7 @@ export function registerUploadRoutes(router: Router, deps: AppDeps): void {
       return saveImage(deps.storage, file);
     } });
   route(router, deps, { ...base, method: "get", path: "/api/upload/download-all", summary: "Yüklemeleri ZIP olarak indir", auth: ["admin"],
-    rateLimit: perHour(3),
+    rateLimit: perHour(3), response: z.string().meta({ format: "binary" }), responseMediaType: "application/zip",
     handler: async ({ req, res }) => {
       const files = await deps.storage.list();
       if (!files.length) throw new HttpError(404, "Yüklenecek dosya bulunamadı");
