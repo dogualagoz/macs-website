@@ -20,6 +20,7 @@
     "bench/**/*.ts",
     "scripts/**/*.ts",
     "test/**/*.ts",
-    "contract/**/*.ts"
+    "contract/**/*.ts",
+    "drizzle.config.ts"
   ]
 }
