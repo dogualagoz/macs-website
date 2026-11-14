@@ -13,6 +13,7 @@ import { requestId } from "./middleware/request-id";
 import { securityHeaders } from "./middleware/security-headers";
 import { registerAuthRoutes } from "./modules/auth/routes";
 import type { FetchImpl } from "./modules/sponsors/service";
+import { registerProjectRoutes } from "./modules/projects/routes";
 import { registerMemberRoutes } from "./modules/members/routes";
 import { registerSponsorRoutes } from "./modules/sponsors/routes";
 import { registerEventRoutes } from "./modules/events/routes";
@@ -54,6 +55,7 @@ export function createApp(deps: AppDeps, registerRoutes?: (router: Router, deps:
   registerEventRoutes(router, deps);
   registerMemberRoutes(router, deps);
   registerSponsorRoutes(router, deps);
+  registerProjectRoutes(router, deps);
   registerRoutes?.(router, deps);
   app.use(router);
   app.use(notFound(deps.routeRegistry));
