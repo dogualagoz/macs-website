@@ -75,8 +75,8 @@ export const qBool = (options: { default?: boolean }): z.ZodType<boolean | undef
   const schema = z.unknown().transform((value, ctx) => {
     if (value === undefined) return options.default;
     if (typeof value === "string") {
-      if (["true", "1", "on", "yes"].includes(value.toLowerCase())) return true;
-      if (["false", "0", "off", "no"].includes(value.toLowerCase())) return false;
+      if (["true", "1", "on", "yes", "t", "y"].includes(value.toLowerCase())) return true;
+      if (["false", "0", "off", "no", "f", "n"].includes(value.toLowerCase())) return false;
     }
     return invalid(ctx, "bool_parsing", "Input should be a valid boolean, unable to interpret input");
   });
@@ -109,3 +109,35 @@ export const dateTimeIn = (): z.ZodType<string> => z.string().transform((value, 
   try { return parseDateTimeInput(value); }
   catch { return invalid(ctx, "datetime_from_date_parsing", "Input should be a valid datetime or date"); }
 });
+
+export const bodyBool = (): z.ZodType<boolean> => z.unknown().transform((value, ctx) => {
+  if (value === undefined || typeof value === "boolean") return value;
+  if (value === 1) return true;
+  if (value === 0) return false;
+  if (typeof value === "string") {
+    if (["true", "1", "on", "yes", "t", "y"].includes(value.toLowerCase())) return true;
+    if (["false", "0", "off", "no", "f", "n"].includes(value.toLowerCase())) return false;
+  }
+  return typeof value === "string" || (typeof value === "number" && Number.isInteger(value))
+    ? invalid(ctx, "bool_parsing", "Input should be a valid boolean, unable to interpret input")
+    : invalid(ctx, "bool_type", "Input should be a valid boolean");
+}).pipe(z.boolean());
+
+export const bodyFloat = (options: { ge: number; le: number }): z.ZodType<number> => z.unknown().transform((value, ctx) => {
+  if (value === undefined) return value;
+  let parsed: number;
+  if (typeof value === "number") parsed = value;
+  else if (typeof value === "boolean") parsed = value ? 1 : 0;
+  else if (typeof value === "string") {
+    const trimmed = value.trim();
+    const clean = trimmed.replaceAll("_", "");
+    // Pydantic permits single internal underscores, including beside decimal/exponent markers.
+    if (trimmed.startsWith("_") || trimmed.endsWith("_") || trimmed.includes("__") || !/^[+-]?(?:(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?|inf(?:inity)?|nan)$/i.test(clean)) {
+      return invalid(ctx, "float_parsing", "Input should be a valid number, unable to parse string as a number");
+    }
+    parsed = /^[+-]?inf(?:inity)?$/i.test(clean) ? (clean.startsWith("-") ? -Infinity : Infinity) : Number(clean);
+  } else return invalid(ctx, "float_type", "Input should be a valid number");
+  if (!(parsed <= options.le)) return invalid(ctx, "less_than_equal", `Input should be less than or equal to ${String(options.le)}`);
+  if (!(parsed >= options.ge)) return invalid(ctx, "greater_than_equal", `Input should be greater than or equal to ${String(options.ge)}`);
+  return parsed;
+}).pipe(z.number());

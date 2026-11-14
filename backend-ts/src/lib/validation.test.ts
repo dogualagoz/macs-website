@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { z } from "zod";
-import { bodyInt, dateTimeIn, pathInt, qBool, qInt, qStr, toFastApi422, validationError } from "./validation";
+import { bodyBool, bodyFloat, bodyInt, dateTimeIn, pathInt, qBool, qInt, qStr, toFastApi422, validationError } from "./validation";
 
 const run = (schema: z.ZodType, src: 'body'|'query'|'path', raw: unknown) => { const r = schema.safeParse(raw); return r.success ? [] : toFastApi422(r.error, src, raw); };
 test('missing body field', () => { expect(run(z.object({ email: z.string() }), 'body', { x: 1 })).toEqual(
@@ -120,4 +120,44 @@ test("intentional int4 safety deviation: reject integers beyond Number.MAX_SAFE_
   expect(run(schema, "body", { category_id: 9007199254740992 })).toEqual([
     { type: "int_type", loc: ["body", "category_id"], msg: "Input should be a valid integer", input: 9007199254740992 },
   ]);
+});
+
+test("bodyBool matches Pydantic lax aliases, defaults, nullability and error types", () => {
+  const schema = z.object({ flag: bodyBool() });
+  for (const input of [true, 1, "1", "true", "TRUE", "on", "YES", "t", "y"]) expect(schema.parse({ flag: input })).toEqual({ flag: true });
+  for (const input of [false, 0, "0", "false", "FALSE", "off", "NO", "f", "n"]) expect(schema.parse({ flag: input })).toEqual({ flag: false });
+  for (const input of [2, -1, "maybe", "1.0", " true "]) expect(run(schema, "body", { flag: input })).toEqual([
+    { type: "bool_parsing", loc: ["body", "flag"], msg: "Input should be a valid boolean, unable to interpret input", input },
+  ]);
+  for (const input of [null, [], {}, 1.5]) expect(run(schema, "body", { flag: input })).toEqual([
+    { type: "bool_type", loc: ["body", "flag"], msg: "Input should be a valid boolean", input },
+  ]);
+  expect(run(schema, "body", {})).toEqual([{ type: "missing", loc: ["body", "flag"], msg: "Field required", input: {} }]);
+  expect(z.object({ flag: bodyBool().default(true) }).parse({})).toEqual({ flag: true });
+  expect(z.object({ flag: bodyBool().nullish() }).parse({ flag: null })).toEqual({ flag: null });
+});
+
+test("bodyFloat matches Pydantic coordinate parsing and bounded error types", () => {
+  const schema = z.object({ latitude: bodyFloat({ ge: -90, le: 90 }).nullish() });
+  for (const [input, expected] of [[41.5, 41.5], [" 41.5 ", 41.5], ["1e1", 10], ["1_0.5", 10.5], ["1_.0", 1], ["1._0", 1], ["+.5", 0.5], ["1.", 1], [true, 1], [false, 0], [-90, -90], [90, 90]] as const) {
+    expect(schema.parse({ latitude: input })).toEqual({ latitude: expected });
+  }
+  for (const input of ["abc", "0x1", "", " ", "1__0", "_1", "1_"]) expect(run(schema, "body", { latitude: input })).toEqual([
+    { type: "float_parsing", loc: ["body", "latitude"], msg: "Input should be a valid number, unable to parse string as a number", input },
+  ]);
+  for (const input of [[], {}]) expect(run(schema, "body", { latitude: input })).toEqual([
+    { type: "float_type", loc: ["body", "latitude"], msg: "Input should be a valid number", input },
+  ]);
+  for (const input of [91, "NaN", "inf", "Infinity"]) expect(run(schema, "body", { latitude: input })).toEqual([
+    { type: "less_than_equal", loc: ["body", "latitude"], msg: "Input should be less than or equal to 90", input },
+  ]);
+  for (const input of [-91, "-inf"]) expect(run(schema, "body", { latitude: input })).toEqual([
+    { type: "greater_than_equal", loc: ["body", "latitude"], msg: "Input should be greater than or equal to -90", input },
+  ]);
+  expect(schema.parse({})).toEqual({}); expect(schema.parse({ latitude: null })).toEqual({ latitude: null });
+});
+
+test("qBool accepts Pydantic single-letter query aliases", () => {
+  for (const input of ["t", "T", "y", "Y"]) expect(qBool({}).parse(input)).toBe(true);
+  for (const input of ["f", "F", "n", "N"]) expect(qBool({}).parse(input)).toBe(false);
 });
