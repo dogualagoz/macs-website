@@ -24,7 +24,7 @@ const schema = z.object({
   }, "Must be a postgres:// or postgresql:// URL with a host"),
   JWT_SECRET_KEY: z.string().min(16),
   ACCESS_TOKEN_EXPIRE_MINUTES: positiveInteger.default(60),
-  ADMIN_SECRET_KEY: z.string().optional().transform((value) => value ?? null),
+  ADMIN_SECRET_KEY: z.string().optional().transform((value) => value === "" ? null : value ?? null),
   MAX_LOGIN_ATTEMPTS: positiveInteger.default(5),
   LOCKOUT_DURATION: positiveInteger.default(15),
   MIN_PASSWORD_LENGTH: positiveInteger.default(6),

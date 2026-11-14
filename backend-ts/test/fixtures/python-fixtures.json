@@ -1,0 +1,12 @@
+{
+  "passlib": {
+    "parola123": "$2b$12$WOrvQjjBSKN/5GetGvBrJ.vszjbLrmgtaJxO8MAL3SBttPoDXiWqy",
+    "a72_plus_TAIL": "$2b$12$N3m4tTnevD0GzrCfI6tTOuFh6c1VpsJnS6eK1RxD.1JTEKuP6qJ.C",
+    "s_cedilla_x40": "$2b$12$M2dHHRqdn/vYMb6CZ5Nca.JDlEE0aDGKbZSUQhWukVt1VXS3pcCBS"
+  },
+  "jose": {
+    "secret": "test-secret-key-that-is-long-enough-for-hs256",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBleGFtcGxlLmNvbSIsInJvbGUiOiJhZG1pbiIsImV4cCI6NDEwMjQ0NDgwMH0.slhaSGq1QgscxzIysnRcXB7YM3xR6u95y3N8kgXoUjA",
+    "claims": { "sub": "admin@example.com", "role": "admin", "exp": 4102444800 }
+  }
+}

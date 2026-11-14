@@ -29,6 +29,10 @@ test("parseEnv fails fast without JWT_SECRET_KEY", () => {
   expect(() => parseEnv({ DATABASE_URL: base.DATABASE_URL })).toThrow(/JWT_SECRET_KEY/);
 });
 
+test("parseEnv normalizes an empty ADMIN_SECRET_KEY to disabled", () => {
+  expect(parseEnv({ ...base, ADMIN_SECRET_KEY: "" }).ADMIN_SECRET_KEY).toBeNull();
+});
+
 test("parseEnv merges CORS_ORIGINS without duplicates", () => {
   const env = parseEnv({ ...base, CORS_ORIGINS: " https://a.test , https://macsclub.com.tr,https://a.test," });
   expect(env.CORS_ORIGINS).toEqual([...DEFAULT_ORIGINS, "https://a.test"]);
