@@ -1,0 +1,154 @@
+name: CI Backend TS
+
+on:
+  pull_request:
+    paths:
+      - "backend-ts/**"
+      - "backend/**"
+      - "docker-compose*.yml"
+      - "scripts/deploy-backend-ts.sh"
+      - ".github/workflows/deploy-backend.yml"
+      - ".github/workflows/ci-backend-ts.yml"
+  push:
+    branches-ignore:
+      - main
+    paths:
+      - "backend-ts/**"
+      - "backend/**"
+      - "docker-compose*.yml"
+      - "scripts/deploy-backend-ts.sh"
+      - ".github/workflows/deploy-backend.yml"
+      - ".github/workflows/ci-backend-ts.yml"
+  workflow_call:
+
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend-ts
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.5"
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Typecheck
+        run: bunx tsc --noEmit
+
+      - name: Lint
+        run: bunx eslint .
+
+      - name: Unit tests
+        run: bun test src
+
+      - name: Benchmark gate tests
+        run: bun test bench
+
+  integration:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend-ts
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: macs_test
+        ports:
+          - "127.0.0.1:5436:5432"
+        options: >-
+          --health-cmd="pg_isready -U postgres -d macs_test"
+          --health-interval=2s
+          --health-timeout=2s
+          --health-retries=30
+    env:
+      TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5436/macs_test
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5436/macs_test
+      JWT_SECRET_KEY: macs-test-only-secret-never-for-production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.5"
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Initialize schema, Alembic head and seed
+        run: |
+          psql "$TEST_DATABASE_URL" -v ON_ERROR_STOP=1 \
+            -f contract/schema.sql \
+            -f test/helpers/init-head.sql \
+            -f contract/seed.sql
+
+      - name: Integration tests
+        run: bun test test/integration
+
+  contract:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend-ts
+    env:
+      CONTRACT_DB_URL_OLD: postgresql://postgres:postgres@127.0.0.1:5435/macs_test
+      CONTRACT_DB_URL_NEW: postgresql://postgres:postgres@127.0.0.1:5436/macs_test
+      TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5436/macs_test
+      OLD_URL: http://127.0.0.1:8001
+      NEW_URL: http://127.0.0.1:8011
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.5"
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Start contract compose stack
+        working-directory: .
+        run: docker compose -f backend-ts/docker-compose.contract.yml up -d --build --wait
+
+      - name: Run contract suite against old backend
+        env:
+          TARGET_KIND: old
+          TARGET_URL: http://127.0.0.1:8001
+        run: bun test contract
+
+      - name: Run contract suite against new backend
+        env:
+          TARGET_KIND: new
+          TARGET_URL: http://127.0.0.1:8011
+        run: bun test contract
+
+      - name: Reset upload tmpfs before differential
+        working-directory: .
+        run: docker compose -f backend-ts/docker-compose.contract.yml up -d --force-recreate --wait old new
+
+      - name: Run differential parity check
+        run: bun contract/differential.ts
+
+      - name: Collect contract compose logs on failure
+        if: failure()
+        working-directory: .
+        run: docker compose -f backend-ts/docker-compose.contract.yml logs --no-color > contract-compose.log
+
+      - name: Upload contract compose logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: contract-compose-logs
+          path: contract-compose.log
+
+      - name: Stop contract compose stack
+        if: always()
+        working-directory: .
+        run: docker compose -f backend-ts/docker-compose.contract.yml down -v
