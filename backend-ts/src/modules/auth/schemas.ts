@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { passwordSchema } from "../users/schemas";
+import { emailSchema, passwordSchema } from "../users/schemas";
 
 export const registerSchema = z.object({
-  email: z.email().transform(value => { const at = value.lastIndexOf("@"); return value.slice(0, at + 1) + value.slice(at + 1).toLowerCase(); }),
+  email: emailSchema,
   full_name: z.string(), password: passwordSchema,
 });
 export const adminRegisterSchema = registerSchema.extend({ admin_secret: z.string() });

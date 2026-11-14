@@ -12,6 +12,26 @@ describe("auth contract", () => {
     expect(r.status).toBe(200);
     expect(r.body).toEqual({ email: "yeni@example.com", full_name: "Yeni Kullanıcı", id: 8, status: "pending", role: "moderator", is_active: true, last_login: null, failed_login_attempts: 0, password_changed_at: null });
   });
+  test.each(["/auth/register", "/auth/register/admin"])("%s normalizes only the email domain", async path => {
+    const r = await api("POST", path, { json: { ...registration, email: "MixedLocal@Example.COM", admin_secret: "contract-admin-secret" } });
+    expect(r.status).toBe(200);
+    expect(r.body).toMatchObject({ email: "MixedLocal@example.com" });
+    const duplicate = await api("POST", path, { json: { ...registration, email: "MixedLocal@EXAMPLE.com", admin_secret: "contract-admin-secret" } });
+    expect(duplicate.status).toBe(400);
+    expect(duplicate.body).toEqual({ detail: "Bu email adresi zaten kullanımda" });
+  });
+  test("login preserves the raw username and requires the exact stored email case", async () => {
+    const r = await api("POST", "/auth/register/admin", { json: { ...registration, email: "MixedLocal@Example.COM", admin_secret: "contract-admin-secret" } });
+    expect(r.status).toBe(200);
+    for (const username of ["MixedLocal@Example.COM", "mixedlocal@example.com"]) {
+      const rejected = await attempt(username);
+      expect(rejected.status).toBe(401);
+      expect(rejected.body).toEqual({ detail: "Email veya şifre hatalı" });
+    }
+    const accepted = await attempt("MixedLocal@example.com");
+    expect(accepted.status).toBe(200);
+    expect(decodeJwt((accepted.body as { access_token: string }).access_token).sub).toBe("MixedLocal@example.com");
+  });
   test("register duplicate email", async () => {
     const r = await api("POST", "/auth/register", { json: { ...registration, email: SEED.admin } });
     expect(r.status).toBe(400); expect(r.body).toEqual({ detail: "Bu email adresi zaten kullanımda" });

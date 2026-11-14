@@ -1,6 +1,11 @@
 import { z } from "zod";
 import { pathInt, qInt, qStr } from "../../lib/validation";
 
+// Match legacy EmailStr registration: preserve the local part and lowercase only the domain.
+export const emailSchema = z.email().transform(value => {
+  const at = value.lastIndexOf("@");
+  return value.slice(0, at + 1) + value.slice(at + 1).toLowerCase();
+});
 export const passwordSchema = z.string().refine(value => Array.from(value).length >= 6, "Şifre en az 6 karakter olmalıdır");
 export const userResponseSchema = z.object({
   email: z.string(), full_name: z.string(), id: z.number().int(), status: z.string(), role: z.string(), is_active: z.boolean(),
