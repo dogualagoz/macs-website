@@ -88,11 +88,19 @@ export const pathInt = (_name: string): z.ZodType<number> => qInt({}).transform(
   value === undefined ? invalid(ctx, "missing", "Field required") : value,
 );
 export const bodyInt = (): z.ZodType<number> => z.unknown().transform((value, ctx) => {
-  if (value === undefined || (typeof value === "number" && Number.isSafeInteger(value))) return value;
+  if (value === undefined) return value;
+  if (typeof value === "boolean") return value ? 1 : 0;
+  if (typeof value === "number") {
+    if (Number.isSafeInteger(value)) return value === 0 ? 0 : value;
+    if (!Number.isFinite(value)) return invalid(ctx, "finite_number", "Input should be a finite number");
+    if (!Number.isInteger(value)) return invalid(ctx, "int_from_float", "Input should be a valid integer, got a number with a fractional part");
+    return invalid(ctx, "int_type", "Input should be a valid integer");
+  }
   if (typeof value === "string") {
     const trimmed = value.trim();
-    return /^[+-]?\d+$/.test(trimmed) && Number.isSafeInteger(Number(trimmed))
-      ? Number(trimmed)
+    const parsed = /^[+-]?\d+(?:_\d+)*(?:\.0+)?$/.test(trimmed) ? Number(trimmed.replaceAll("_", "")) : Number.NaN;
+    return Number.isSafeInteger(parsed)
+      ? (parsed === 0 ? 0 : parsed)
       : invalid(ctx, "int_parsing", "Input should be a valid integer, unable to parse string as an integer");
   }
   return invalid(ctx, "int_type", "Input should be a valid integer");

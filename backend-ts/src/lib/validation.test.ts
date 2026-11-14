@@ -67,24 +67,45 @@ test("primitive type errors and missing query input", () => {
   expect(run(z.int(), "body", 1.5)[0]?.type).toBe("int_type");
   expect(run(z.email(), "body", "bad")[0]?.msg).toBe("value is not a valid email address");
 });
-test("bodyInt accepts integers and integer strings and rejects floats, text, and booleans", () => {
+test("bodyInt matches Pydantic 2.11.7 lax int accept, reject, and error-type table", () => {
   const required = z.object({ id: bodyInt() });
   const optional = z.object({ category_id: bodyInt().nullish() });
-  expect(required.parse({ id: 1 })).toEqual({ id: 1 });
-  expect(required.parse({ id: "1" })).toEqual({ id: 1 });
-  expect(required.parse({ id: " -42 " })).toEqual({ id: -42 });
+  const accepted: readonly [unknown, number][] = [
+    [1, 1], [0, 0], [-42, -42], [1.0, 1], [-0.0, 0], [true, 1], [false, 0],
+    [9007199254740991, 9007199254740991], [-9007199254740991, -9007199254740991],
+    ["1", 1], ["+2", 2], ["-3", -3], [" 1 ", 1], [" -42 ", -42], ["-0", 0], ["-0.0", 0],
+    ["1.0", 1], ["1.000", 1], ["+1.0", 1], ["-2.00", -2],
+    ["1_000", 1000], [" 1_000 ", 1000], ["1_000.0", 1000], ["1_000.000", 1000],
+    ["9007199254740991", 9007199254740991], ["-9007199254740991", -9007199254740991],
+  ];
+  for (const [input, expected] of accepted) {
+    expect(required.parse({ id: input })).toEqual({ id: expected });
+    expect(optional.parse({ category_id: input })).toEqual({ category_id: expected });
+  }
   expect(optional.parse({})).toEqual({});
   expect(optional.parse({ category_id: null })).toEqual({ category_id: null });
-  expect(optional.parse({ category_id: "1" })).toEqual({ category_id: 1 });
   expect(run(required, "body", { other: 1 })).toEqual([
     { type: "missing", loc: ["body", "id"], msg: "Field required", input: { other: 1 } },
   ]);
-  for (const bad of ["1.5", "abc", "", " "]) {
+  for (const bad of [1.5, -1.5]) {
+    expect(run(optional, "body", { category_id: bad })).toEqual([
+      { type: "int_from_float", loc: ["body", "category_id"], msg: "Input should be a valid integer, got a number with a fractional part", input: bad },
+    ]);
+  }
+  for (const bad of [Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NaN]) {
+    expect(run(optional, "body", { category_id: bad })).toEqual([
+      { type: "finite_number", loc: ["body", "category_id"], msg: "Input should be a finite number", input: bad },
+    ]);
+  }
+  for (const bad of ["1.5", "1.05", "1_000.0_0", "1_", "_1", "1__0", "+_1", "-_1", "1_.0", "1._0", "1.", ".0", "1e3", "1e0", "abc", "", " ", "999999999999999999999"]) {
     expect(run(optional, "body", { category_id: bad })).toEqual([
       { type: "int_parsing", loc: ["body", "category_id"], msg: "Input should be a valid integer, unable to parse string as an integer", input: bad },
     ]);
   }
-  for (const bad of [true, false, 1.5]) {
+  expect(run(required, "body", { id: null })).toEqual([
+    { type: "int_type", loc: ["body", "id"], msg: "Input should be a valid integer", input: null },
+  ]);
+  for (const bad of [[], {}, 9007199254740992]) {
     expect(run(optional, "body", { category_id: bad })).toEqual([
       { type: "int_type", loc: ["body", "category_id"], msg: "Input should be a valid integer", input: bad },
     ]);
