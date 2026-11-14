@@ -39,6 +39,6 @@
     "lint": "eslint .",
     "test": "bun test src",
     "test:int": "bun test test/integration",
-    "test:contract": "bun test contract"
+    "test:contract": "bun contract/run.ts"
   }
 }
