@@ -22,7 +22,7 @@ export interface AppDeps {
   counter: QueryCounter;
   logger: Logger;
   routeRegistry: RouteMeta[];
-  loadUser?: LoadUserByEmail;
+  loadUser: LoadUserByEmail;
   now?: () => Date;
 }
 

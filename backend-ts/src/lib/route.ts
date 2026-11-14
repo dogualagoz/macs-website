@@ -66,7 +66,7 @@ function parse<T>(schema: z.ZodType<T> | undefined, source: "body" | "query" | "
 }
 
 export function route<P, Q, B, R>(router: Router, deps: AppDeps, def: RouteDef<P, Q, B, R>): void {
-  if (def.auth !== undefined && deps.loadUser === undefined) throw new Error("Protected routes require loadUser");
+  if (def.auth !== undefined && (deps as Partial<AppDeps>).loadUser === undefined) throw new Error("Protected routes require loadUser");
   const { handler, rateLimit, bodyInvalid, ...metadata } = def;
   deps.routeRegistry.push(metadata);
   const handlers = rateLimit ? [createLimiter(rateLimit, deps.env.RATELIMIT_ENABLED)] : [];
@@ -74,7 +74,6 @@ export function route<P, Q, B, R>(router: Router, deps: AppDeps, def: RouteDef<P
     try {
       let user: AuthUser | null = null;
       if (def.auth !== undefined) {
-        if (!deps.loadUser) throw new Error("Protected routes require loadUser");
         user = await authenticate(req, deps.env, deps.loadUser, deps.now?.() ?? new Date());
         if (def.auth !== "user") requireRoles(user, def.auth);
       }

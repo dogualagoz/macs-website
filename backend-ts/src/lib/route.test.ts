@@ -157,6 +157,7 @@ test("missing body field retains parent input in the entire 422 envelope", async
 
 test("protected route registration requires an injected user loader", () => {
   const d = deps();
+  // @ts-expect-error AppDeps requires a loader even for public-only test applications.
   delete d.loadUser;
   expect(() => createApp(d, (router, appDeps) => {
     route(router, appDeps, { ...base, auth: "user", handler: () => Promise.resolve(null) });
