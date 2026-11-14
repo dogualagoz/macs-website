@@ -1,3 +1,4 @@
+import { localDiskStorage } from "./lib/storage";
 import { findUserByEmail } from "./modules/users/repo";
 import { serializeUser } from "./modules/users/serializer";
 import { createApp } from "./app";
@@ -9,7 +10,7 @@ try {
   const env = parseEnv(process.env);
   const logger = createLogger(env.LOG_LEVEL);
   const database = createDb(env.DATABASE_URL);
-  const app = createApp({ env, logger, routeRegistry: [], ...database,
+  const app = createApp({ storage: localDiskStorage(env.UPLOAD_DIR), env, logger, routeRegistry: [], ...database,
     loadUser: email => findUserByEmail(database.db, email).then(row => row ? serializeUser(row) : null) });
   const server = app.listen(env.PORT);
   server.once("listening", () => {

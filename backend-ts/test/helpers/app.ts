@@ -1,3 +1,4 @@
+import { localDiskStorage } from "../../src/lib/storage";
 import { findUserByEmail } from "../../src/modules/users/repo";
 import { serializeUser } from "../../src/modules/users/serializer";
 import type { AppDeps } from "../../src/app";
@@ -13,5 +14,5 @@ export function testDeps(overrides: Partial<AppDeps> = {}): AppDeps {
   const database = overrides.db && overrides.sql && overrides.counter
     ? { db: overrides.db, sql: overrides.sql, counter: overrides.counter }
     : createDb(env.DATABASE_URL);
-  return { ...database, env, logger: createLogger("error"), routeRegistry: [], loadUser: email => findUserByEmail(database.db, email).then(row => row ? serializeUser(row) : null), ...overrides };
+  return { ...database, storage: overrides.storage ?? localDiskStorage(env.UPLOAD_DIR), env, logger: createLogger("error"), routeRegistry: [], loadUser: email => findUserByEmail(database.db, email).then(row => row ? serializeUser(row) : null), ...overrides };
 }

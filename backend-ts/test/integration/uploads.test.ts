@@ -1,0 +1,141 @@
+import { afterEach, beforeEach, expect, spyOn, test } from "bun:test";
+import pino from "pino";
+import { ReadStream } from "node:fs";
+import { Writable } from "node:stream";
+import { ZipArchive } from "archiver";
+import { randomBytes } from "node:crypto";
+import { mkdir, mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
+import { get } from "node:http";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import request from "supertest";
+import { createApp } from "../../src/app";
+import { signAccessToken } from "../../src/lib/jwt";
+import { parseEnv } from "../../src/config/env";
+import { testDeps, TEST_DATABASE_URL, TEST_JWT_SECRET } from "../helpers/app";
+import { tokenFor } from "../helpers/auth";
+import { normalizeZip } from "../../contract/normalize";
+
+const png = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10, 112, 97, 121]);
+let dir: string;
+let deps: ReturnType<typeof testDeps>;
+const missing = { detail: [{ type: "missing", loc: ["body", "file"], msg: "Field required", input: null }] };
+beforeEach(async () => {
+  dir = await mkdtemp(join(tmpdir(), "macs-upload-"));
+  await mkdir(join(dir, "uploads"));
+  deps = testDeps({ env: parseEnv({ DATABASE_URL: TEST_DATABASE_URL, JWT_SECRET_KEY: TEST_JWT_SECRET, STATIC_DIR: dir, UPLOAD_DIR: join(dir, "uploads"), RATELIMIT_ENABLED: "false" }),
+    loadUser: email => Promise.resolve({ id: 1, email, full_name: "Staff", role: email.startsWith("admin") ? "admin" : "moderator", status: "approved", is_active: true, last_login: null, failed_login_attempts: 0, password_changed_at: null }) });
+});
+afterEach(async () => { await deps.sql.end({ timeout: 1 }); await rm(dir, { recursive: true, force: true }); });
+const upload = async (name: string, bytes: Buffer) => request(createApp(deps)).post("/api/upload/").auth(await tokenFor("mod@example.com", "moderator"), { type: "bearer" }).attach("file", bytes, name);
+
+test("auth runs before real multer, including oversized or malformed multipart", async () => {
+  const app = createApp(deps);
+  const tooLarge = await request(app).post("/api/upload/").attach("file", Buffer.alloc(5242881), "x.png");
+  expect(tooLarge.status).toBe(401);
+  const malformed = await request(app).post("/api/upload/").set("Content-Type", "multipart/form-data; boundary=bad").send("broken");
+  expect(malformed.status).toBe(401);
+  expect(await readdir(deps.env.UPLOAD_DIR)).toEqual([]);
+});
+test("rejected upload leaves no file behind: extension, signature, size", async () => {
+  for (const [name, bytes, status, detail] of [["x.sh", png, 400, "Sadece resim dosyaları yüklenebilir (jpg, jpeg, png, gif, webp)"], ["x.png", Buffer.from("bad"), 400, "Dosya içeriği geçerli bir resim değil"], ["x.png", Buffer.concat([png, Buffer.alloc(5242880)]), 413, "Dosya çok büyük. Sınır: 5 MB"]] as const) {
+    const response = await upload(name, bytes);
+    expect(response.status).toBe(status); expect(response.body).toEqual({ detail });
+    expect(await readdir(deps.env.UPLOAD_DIR)).toEqual([]);
+  }
+});
+test("actual multer maps wrong or missing field to exact FastAPI 422 and distinguishes extra files", async () => {
+  const token = await tokenFor("mod@example.com", "moderator");
+  const app = createApp(deps);
+  for (const r of [request(app).post("/api/upload/").auth(token, { type: "bearer" }).attach("dosya", png, "x.png"), request(app).post("/api/upload/").auth(token, { type: "bearer" }).field("description", "no file"), request(app).post("/api/upload/").auth(token, { type: "bearer" }).send({})]) {
+    const response = await r; expect(response.status).toBe(422); expect(response.body).toEqual(missing);
+  }
+  for (const field of ["file", "dosya"]) {
+    const response = await request(app).post("/api/upload/").auth(token, { type: "bearer" }).attach("file", png, "first.png").attach(field, png, "second.png");
+    expect(response.status).toBe(400); expect(response.body).toEqual({ detail: "Too many files" });
+  }
+  expect(await readdir(deps.env.UPLOAD_DIR)).toEqual([]);
+});
+test("valid uppercase upload is UUID v4, served from both paths; static missing, dotfiles and traversal are 404", async () => {
+  const app = createApp(deps);
+  const r = await request(app).post("/api/upload/").auth(await tokenFor("mod@example.com", "moderator"), { type: "bearer" }).attach("file", png, "FOTO.PNG");
+  expect(r.status).toBe(200); const { url } = r.body as { url: string };
+  expect(url).toMatch(/^\/uploads\/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\.png$/);
+  for (const path of [url, `/static${url}`]) { const served = await request(app).get(path); expect(served.status).toBe(200); expect(served.body).toEqual(png); }
+  await writeFile(join(deps.env.UPLOAD_DIR, ".hidden"), "secret");
+  for (const path of ["/uploads/missing.png", "/static/uploads/missing.png", "/uploads/..%2f..%2fpackage.json", "/uploads/.hidden", "/static/uploads/.hidden", "/uploads/"]) {
+    const response = await request(app).get(path); expect(response.status).toBe(404); expect(response.body).toEqual({ detail: "Not Found" });
+  }
+});
+test("size exactly at configured max succeeds; max + 1 reports floored MB", async () => {
+  deps.env.MAX_UPLOAD_SIZE = 12; const bytes = Buffer.concat([png, Buffer.alloc(1)]);
+  expect((await upload("x.png", bytes)).status).toBe(200);
+  const r = await upload("x.png", Buffer.concat([bytes, Buffer.alloc(1)]));
+  expect(r.status).toBe(413); expect(r.body).toEqual({ detail: "Dosya çok büyük. Sınır: 0 MB" });
+});
+test("download-all empty dir and admin authorization", async () => {
+  const app = createApp(deps);
+  expect((await request(app).get("/api/upload/download-all")).status).toBe(401);
+  const mod = await request(app).get("/api/upload/download-all").auth(await tokenFor("mod@example.com", "moderator"), { type: "bearer" });
+  expect(mod.status).toBe(403); expect(mod.body).toEqual({ detail: "Bu işlem için yetkiniz yok" });
+  const empty = await request(app).get("/api/upload/download-all").auth(await tokenFor("admin@example.com", "admin"), { type: "bearer" });
+  expect(empty.status).toBe(404); expect(empty.body).toEqual({ detail: "Yüklenecek dosya bulunamadı" });
+});
+test("ZIP contains every uploaded filename at root, UTC filename, no appended JSON or double send", async () => {
+  deps.now = () => new Date("2026-11-14T23:59:58Z");
+  const app = createApp(deps); await writeFile(join(deps.env.UPLOAD_DIR, "a.png"), png); await writeFile(join(deps.env.UPLOAD_DIR, "b.png"), "second");
+  const r = await request(app).get("/api/upload/download-all").auth(await signAccessToken({ sub: "admin@example.com", role: "admin" }, TEST_JWT_SECRET, 60, deps.now()), { type: "bearer" }).buffer(true).parse((res, callback) => {
+    const chunks: Buffer[] = []; res.on("data", (chunk: Buffer) => chunks.push(chunk)); res.on("end", () => { callback(null, Buffer.concat(chunks)); });
+  });
+  expect(r.status).toBe(200); expect(r.headers["content-type"]).toBe("application/zip"); expect(r.headers["content-disposition"]).toBe('attachment; filename="macs_uploads_20261114_235958.zip"');
+  const bytes = r.body as Buffer; expect(bytes.subarray(0, 4)).toEqual(Buffer.from([80, 75, 3, 4]));
+  expect(normalizeZip(bytes)).toEqual([{ name: "a.png", data: png.toString("base64") }, { name: "b.png", data: Buffer.from("second").toString("base64") }]);
+});
+test("real ZIP stream aborts and closes on client disconnect mid-stream", async () => {
+  const app = createApp(deps); await writeFile(join(deps.env.UPLOAD_DIR, "large.png"), randomBytes(8 * 1024 * 1024));
+  const abort = spyOn(ZipArchive.prototype, "abort"); const destroy = spyOn(ZipArchive.prototype, "destroy");
+  const sourceDestroy = spyOn(ReadStream.prototype, "destroy");
+  const server = app.listen(0); const address = server.address();
+  if (!address || typeof address === "string") throw new Error("Expected TCP server");
+  const token = await tokenFor("admin@example.com", "admin");
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const client = get({ hostname: "127.0.0.1", port: address.port, path: "/api/upload/download-all", headers: { Authorization: `Bearer ${token}` } }, res => {
+        if (res.statusCode !== 200) { res.resume(); reject(new Error(`ZIP status ${String(res.statusCode)}`)); return; }
+        res.once("data", () => { res.destroy(); resolve(); }); res.on("error", reject);
+      }); client.on("error", reject);
+    });
+    // Allow the server's response-close event to run after the TCP close.
+    for (let i = 0; i < 100 && abort.mock.calls.length === 0; i++) await new Promise(resolve => setTimeout(resolve, 5));
+    expect(abort).toHaveBeenCalled(); expect(destroy).toHaveBeenCalled(); expect(sourceDestroy).toHaveBeenCalled();
+    expect(await readdir(deps.env.UPLOAD_DIR)).toEqual(["large.png"]);
+  } finally { abort.mockRestore(); destroy.mockRestore(); sourceDestroy.mockRestore(); await new Promise<void>(resolve => server.close(() => { resolve(); })); }
+});
+
+test("multipart parser failure returns 400 without writing a file", async () => {
+  const response = await request(createApp(deps)).post("/api/upload/").auth(await tokenFor("mod@example.com", "moderator"), { type: "bearer" }).set("Content-Type", "multipart/form-data; boundary=bad").send("broken");
+  expect(response.status).toBe(400); expect(response.body).toEqual({ detail: "There was an error parsing the body" });
+  expect(await readdir(deps.env.UPLOAD_DIR)).toEqual([]);
+});
+test("upload 20/minute and download-all 3/hour limits have independent counters", async () => {
+  deps.env.RATELIMIT_ENABLED = true; const app = createApp(deps); const mod = await tokenFor("mod@example.com", "moderator"); const admin = await tokenFor("admin@example.com", "admin");
+  for (let i = 0; i < 20; i++) expect((await request(app).post("/api/upload/").auth(mod, { type: "bearer" }).attach("file", png, "x.png")).status).toBe(200);
+  const limited = await request(app).post("/api/upload/").auth(mod, { type: "bearer" }).attach("file", png, "x.png");
+  expect(limited.status).toBe(429); expect(limited.body).toEqual({ error: "Rate limit exceeded: 20 per 1 minute" });
+  for (let i = 0; i < 3; i++) expect((await request(app).get("/api/upload/download-all").auth(admin, { type: "bearer" })).status).toBe(200);
+  const zipLimited = await request(app).get("/api/upload/download-all").auth(admin, { type: "bearer" });
+  expect(zipLimited.status).toBe(429); expect(zipLimited.body).toEqual({ error: "Rate limit exceeded: 3 per 1 hour" });
+  expect(await readdir(deps.env.UPLOAD_DIR)).toHaveLength(20);
+});
+test("ZIP setup error before headers returns JSON 500, logs failure and aborts archive", async () => {
+  const logs: string[] = [];
+  deps.logger = pino({ level: "error" }, new Writable({ write(chunk: Buffer, _encoding, callback) { logs.push(chunk.toString()); callback(); } }));
+  await deps.storage.save("a.png", png);
+  const path = spyOn(deps.storage, "path").mockImplementation(() => { throw new Error("Disk unavailable"); });
+  const abort = spyOn(ZipArchive.prototype, "abort");
+  try {
+    const r = await request(createApp(deps)).get("/api/upload/download-all").auth(await tokenFor("admin@example.com", "admin"), { type: "bearer" });
+    expect(r.status).toBe(500); expect(r.body).toEqual({ detail: "Internal Server Error" }); expect(r.headers["content-disposition"]).toBeUndefined();
+    expect(logs.some(log => log.includes("ZIP stream failed") && log.includes("Disk unavailable"))).toBe(true); expect(abort).toHaveBeenCalled();
+  } finally { path.mockRestore(); abort.mockRestore(); }
+});

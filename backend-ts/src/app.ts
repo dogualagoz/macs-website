@@ -4,6 +4,7 @@ import type { Logger } from "pino";
 import type { Db, Sql, QueryCounter } from "./db/client";
 import type { Env } from "./config/env";
 import type { RouteMeta } from "./lib/route";
+import type { Storage } from "./lib/storage";
 import type { LoadUserByEmail } from "./middleware/auth";
 import { bodyParsers } from "./middleware/body";
 import { createCors } from "./middleware/cors";
@@ -19,8 +20,10 @@ import { registerSponsorRoutes } from "./modules/sponsors/routes";
 import { registerEventRoutes } from "./modules/events/routes";
 import { registerUserRoutes } from "./modules/users/routes";
 import { registerSystemRoutes } from "./modules/system/routes";
+import { registerUploadRoutes } from "./modules/uploads/routes";
 
 export interface AppDeps {
+  storage: Storage;
   env: Env;
   db: Db;
   sql: Sql;
@@ -48,6 +51,9 @@ export function createApp(deps: AppDeps, registerRoutes?: (router: Router, deps:
   app.use(securityHeaders);
   app.use(createCors(deps.env));
   app.use(bodyParsers);
+  const staticOptions = { index: false, dotfiles: "ignore", fallthrough: true } as const;
+  app.use("/uploads", express.static(deps.env.UPLOAD_DIR, staticOptions));
+  app.use("/static", express.static(deps.env.STATIC_DIR, staticOptions));
   const router = express.Router();
   registerSystemRoutes(router, deps);
   registerAuthRoutes(router, deps);
@@ -56,6 +62,7 @@ export function createApp(deps: AppDeps, registerRoutes?: (router: Router, deps:
   registerMemberRoutes(router, deps);
   registerSponsorRoutes(router, deps);
   registerProjectRoutes(router, deps);
+  registerUploadRoutes(router, deps);
   registerRoutes?.(router, deps);
   app.use(router);
   app.use(notFound(deps.routeRegistry));

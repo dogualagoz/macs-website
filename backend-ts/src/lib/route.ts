@@ -1,3 +1,4 @@
+import multer from "multer";
 import type { Request, Response, Router } from "express";
 import type { z } from "zod";
 import type { AppDeps } from "../app";
@@ -5,19 +6,15 @@ import { authenticate, requireRoles } from "../middleware/auth";
 import type { AuthUser } from "../middleware/auth";
 import { sendJson } from "../middleware/cache-headers";
 import { createLimiter } from "../middleware/rate-limit";
-import type { HttpError } from "./http-error";
+import { HttpError } from "./http-error";
+import type { UploadedFile } from "./storage";
 import { toFastApi422, validationError } from "./validation";
+
+export type { UploadedFile } from "./storage";
 
 export type Role = "admin" | "moderator";
 export type Domain = "auth" | "users" | "events" | "projects" | "members" | "sponsors" | "uploads" | "system";
 export interface RateLimitSpec { limit: number; windowMs: number; label: string }
-export interface UploadedFile {
-  fieldname: string;
-  originalname: string;
-  mimetype: string;
-  size: number;
-  buffer: Buffer;
-}
 export const STREAMED: unique symbol = Symbol("STREAMED");
 
 export interface RouteCtx<P, Q, B> {
@@ -77,13 +74,28 @@ export function route<P, Q, B, R>(router: Router, deps: AppDeps, def: RouteDef<P
         user = await authenticate(req, deps.env, deps.loadUser, deps.now?.() ?? new Date());
         if (def.auth !== "user") requireRoles(user, def.auth);
       }
+      if (def.upload) {
+        const { field, maxBytes } = def.upload;
+        const missingFile = () => validationError([{ type: "missing", loc: ["body", field], msg: "Field required", input: null }]);
+        await new Promise<void>((resolve, reject) => {
+          multer({ storage: multer.memoryStorage(), limits: { fileSize: maxBytes, files: 1 } }).single(field)(req, res, (error: unknown) => {
+            if (error instanceof multer.MulterError) {
+              if (error.code === "LIMIT_FILE_SIZE") reject(new HttpError(413, `Dosya çok büyük. Sınır: ${String(Math.floor(maxBytes / 1048576))} MB`));
+              else if (error.code === "LIMIT_UNEXPECTED_FILE" && !req.file) reject(missingFile());
+              else reject(new HttpError(400, error.message));
+            } else if (error) reject(new HttpError(400, "There was an error parsing the body"));
+            else resolve();
+          });
+        });
+        if (!req.file) throw missingFile();
+      }
       if (req.bodyParseError !== undefined) throw bodyInvalid ?? validationError([
         { type: "json_invalid", loc: ["body"], msg: "JSON decode error", input: {} },
       ]);
       const params = parse(def.params, "path", req.params);
       const query = parse(def.query, "query", req.query);
       const body = parse(def.body, "body", def.bodyKind === "form" && !req.is("application/x-www-form-urlencoded") ? {} : req.body ?? {}, bodyInvalid, def.bodyKind === "form");
-      const result = await handler({ params, query, body, user, file: (req as Request & { file?: UploadedFile }).file ?? null, req, res });
+      const result = await handler({ params, query, body, user, file: req.file ?? null, req, res });
       if (result === STREAMED) return;
       const status = def.status ?? 200;
       const eligible = def.public === true && req.method === "GET" && def.auth === undefined && !req.get("Authorization") && status >= 200 && status < 300;
