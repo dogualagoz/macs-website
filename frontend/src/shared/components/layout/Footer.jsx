@@ -63,7 +63,7 @@ const Footer = ({ variant = 'default' }) => {
 
         <div className="footer-bottom">
           <img src="/assets/images/img_copyright.png" alt="Copyright" width="13" height="15" loading="lazy" />
-          <span>2025 MACS. Tüm hakları saklıdır.</span>
+          <span>2026 MACS. Tüm hakları saklıdır.</span>
         </div>
       </div>
     </footer>
