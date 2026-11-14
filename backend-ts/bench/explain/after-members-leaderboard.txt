@@ -1,0 +1,38 @@
+Phase: after; EXPLAIN (ANALYZE, BUFFERS); enable_seqscan=on
+
+SQL: select "members"."id", "members"."full_name", "members"."profile_image", "members"."is_active", "members"."created_at", count("project_members"."id")::int, coalesce(sum("project_members"."contribution_count"), 0)::int from "members" left join "project_members" on "project_members"."member_id" = "members"."id" left join "projects" on ("projects"."id" = "project_members"."project_id" and "projects"."is_deleted" = $1 and "projects"."is_active" = $2) where ("members"."is_active" = $3 and ("project_members"."id" is null or "projects"."id" is not null)) group by "members"."id" order by count("project_members"."id")::int desc, coalesce(sum("project_members"."contribution_count"), 0)::int desc, "members"."id" asc limit $4
+Bindings: ["f","t","t","10"]
+Limit  (cost=7.36..7.38 rows=7 width=85) (actual time=0.039..0.040 rows=10 loops=1)
+  Buffers: shared hit=6
+  ->  Sort  (cost=7.36..7.38 rows=7 width=85) (actual time=0.039..0.039 rows=10 loops=1)
+        Sort Key: ((count(project_members.id))::integer) DESC, ((COALESCE(sum(project_members.contribution_count), '0'::bigint))::integer) DESC, members.id
+        Sort Method: quicksort  Memory: 26kB
+        Buffers: shared hit=6
+        ->  HashAggregate  (cost=7.16..7.26 rows=7 width=85) (actual time=0.033..0.035 rows=14 loops=1)
+              Group Key: members.id
+              Batches: 1  Memory Usage: 24kB
+              Buffers: shared hit=6
+              ->  Hash Left Join  (cost=5.64..7.05 rows=14 width=85) (actual time=0.017..0.027 rows=30 loops=1)
+                    Hash Cond: (project_members.project_id = projects.id)
+                    Filter: ((project_members.id IS NULL) OR (projects.id IS NOT NULL))
+                    Buffers: shared hit=6
+                    ->  Hash Right Join  (cost=1.23..2.60 rows=14 width=89) (actual time=0.008..0.015 rows=30 loops=1)
+                          Hash Cond: (project_members.member_id = members.id)
+                          Buffers: shared hit=2
+                          ->  Seq Scan on project_members  (cost=0.00..1.29 rows=29 width=16) (actual time=0.001..0.002 rows=29 loops=1)
+                                Buffers: shared hit=1
+                          ->  Hash  (cost=1.14..1.14 rows=7 width=77) (actual time=0.006..0.006 rows=14 loops=1)
+                                Buckets: 1024  Batches: 1  Memory Usage: 10kB
+                                Buffers: shared hit=1
+                                ->  Seq Scan on members  (cost=0.00..1.14 rows=7 width=77) (actual time=0.002..0.004 rows=14 loops=1)
+                                      Filter: is_active
+                                      Buffers: shared hit=1
+                    ->  Hash  (cost=4.31..4.31 rows=8 width=4) (actual time=0.007..0.007 rows=23 loops=1)
+                          Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                          Buffers: shared hit=4
+                          ->  Seq Scan on projects  (cost=0.00..4.31 rows=8 width=4) (actual time=0.001..0.006 rows=23 loops=1)
+                                Filter: ((NOT is_deleted) AND is_active)
+                                Rows Removed by Filter: 8
+                                Buffers: shared hit=4
+Planning Time: 0.079 ms
+Execution Time: 0.054 ms

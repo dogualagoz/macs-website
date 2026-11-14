@@ -39,6 +39,8 @@
     "lint": "eslint .",
     "test": "bun test src",
     "test:int": "bun test test/integration",
-    "test:contract": "bun contract/run.ts"
+    "test:contract": "bun contract/run.ts",
+    "test:bench": "bun test bench",
+    "verify:static": "bunx tsc --noEmit && bunx eslint . && bun test src && bun test bench"
   }
 }

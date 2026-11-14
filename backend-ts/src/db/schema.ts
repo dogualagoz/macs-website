@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import { pgTable, varchar, index, serial, timestamp, uniqueIndex, boolean, integer, foreignKey, unique, text, doublePrecision, pgEnum, customType, primaryKey } from "drizzle-orm/pg-core";
 const bytea = customType<{ data: Buffer; driverData: Buffer }>({ dataType: () => "bytea" });
 
@@ -101,6 +102,8 @@ export const projects = pgTable("projects", {
   completedAt: timestamp("completed_at", { mode: "string" }),
   projectType: projecttype("project_type").notNull(),
 }, (table) => [
+  index("ix_projects_live_created").on(table.createdAt.desc()).where(sql`${table.isDeleted} = false AND ${table.isActive} = true`),
+  index("ix_projects_deleted_featured").on(table.isDeleted, table.isFeatured),
   index("ix_projects_id").using("btree", table.id.asc().nullsLast().op("int4_ops")),
   foreignKey({
       columns: [table.categoryId],
@@ -140,6 +143,7 @@ export const sponsors = pgTable("sponsors", {
   createdAt: timestamp("created_at", { withTimezone: true, mode: "string" }).defaultNow(),
   isFeatured: boolean("is_featured").default(false),
 }, (table) => [
+  index("ix_sponsors_active_category").on(table.isActive, table.category),
   index("ix_sponsors_category").using("btree", table.category.asc().nullsLast().op("text_ops")),
   index("ix_sponsors_id").using("btree", table.id.asc().nullsLast().op("int4_ops")),
   index("ix_sponsors_name").using("btree", table.name.asc().nullsLast().op("text_ops")),
@@ -175,6 +179,8 @@ export const events = pgTable("events", {
   registrationLink: varchar("registration_link"),
   directionsLink: varchar("directions_link"),
 }, (table) => [
+  index("ix_events_active_start").on(table.isActive, table.startTime).where(sql`${table.isDeleted} = false`),
+  index("ix_events_created_at").on(table.createdAt),
   index("ix_events_id").using("btree", table.id.asc().nullsLast().op("int4_ops")),
   foreignKey({
       columns: [table.categoryId],

@@ -140,3 +140,31 @@ test("no-transaction splits semicolons followed by spaces, tabs and CRLF", async
   expect((await runMigrations(sql, dir)).applied).toEqual(["0001_whitespace.sql"]);
   expect([...(await sql`SELECT c.relname, i.indisvalid FROM pg_index i JOIN pg_class c ON c.oid = i.indexrelid WHERE c.relname IN ('ix_space', 'ix_tab') ORDER BY c.relname`)]).toEqual([{ relname: "ix_space", indisvalid: true }, { relname: "ix_tab", indisvalid: true }]);
 });
+
+test("0001 creates the five expected valid indexes, matches schema and is idempotent", async () => {
+  await runMigrations(sql, dir);
+  await copyFile(resolve("drizzle/0001_perf_indexes.sql"), join(dir, "0001_perf_indexes.sql"));
+  const names = ["ix_events_active_start", "ix_events_created_at", "ix_projects_live_created", "ix_projects_deleted_featured", "ix_sponsors_active_category"].sort();
+  const before = await sql<{ indexname: string }[]>`SELECT indexname FROM pg_indexes WHERE schemaname = 'public' ORDER BY indexname`;
+  expect((await runMigrations(sql, dir)).applied).toEqual(["0001_perf_indexes.sql"]);
+  const after = await sql<{ indexname: string; indexdef: string }[]>`SELECT indexname, indexdef FROM pg_indexes WHERE schemaname = 'public' ORDER BY indexname`;
+  expect(after.filter(row => !before.some(old => old.indexname === row.indexname)).map(row => row.indexname)).toEqual(names);
+  const expectedDefinitions = [
+    "CREATE INDEX ix_events_active_start ON public.events USING btree (is_active, start_time) WHERE (is_deleted = false)",
+    "CREATE INDEX ix_events_created_at ON public.events USING btree (created_at)",
+    "CREATE INDEX ix_projects_deleted_featured ON public.projects USING btree (is_deleted, is_featured)",
+    "CREATE INDEX ix_projects_live_created ON public.projects USING btree (created_at DESC) WHERE ((is_deleted = false) AND (is_active = true))",
+    "CREATE INDEX ix_sponsors_active_category ON public.sponsors USING btree (is_active, category)",
+  ];
+  expect(after.filter(row => names.includes(row.indexname)).map(row => row.indexdef)).toEqual(expectedDefinitions);
+  expect(await runMigrations(sql, dir)).toEqual({ applied: [], skipped: ["0000_baseline.sql", "0001_perf_indexes.sql"] });
+  // Exercise IF NOT EXISTS as well as the normal ledger skip path.
+  await sql`DELETE FROM __bun_migrations WHERE name = '0001_perf_indexes.sql'`;
+  expect((await runMigrations(sql, dir)).applied).toEqual(["0001_perf_indexes.sql"]);
+  expect([...(await sql`SELECT indexname, indexdef FROM pg_indexes WHERE schemaname = 'public' ORDER BY indexname`)]).toEqual([...after]);
+  expect((await sql`SELECT count(*)::int AS invalid FROM pg_index WHERE NOT indisvalid`)[0]?.invalid).toBe(0);
+  const { getTableConfig } = await import("drizzle-orm/pg-core");
+  const { events, projects, sponsors } = await import("../../src/db/schema");
+  const declared = [events, projects, sponsors].flatMap(table => getTableConfig(table).indexes.map(index => index.config.name));
+  for (const name of names) expect(declared).toContain(name);
+});

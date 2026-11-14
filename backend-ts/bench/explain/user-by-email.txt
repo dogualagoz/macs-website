@@ -1,0 +1,12 @@
+Phase: before; EXPLAIN (ANALYZE, BUFFERS); enable_seqscan=on
+
+SQL: select "id", "email", "full_name", "role", "status", "is_active", "last_login", "failed_login_attempts", "password_changed_at" from "users" where "users"."email" = $1 limit $2
+Bindings: ["benchmark-redacted","1"]
+Limit  (cost=0.00..1.05 rows=1 width=153) (actual time=0.003..0.003 rows=0 loops=1)
+  Buffers: shared hit=1
+  ->  Seq Scan on users  (cost=0.00..1.05 rows=1 width=153) (actual time=0.002..0.002 rows=0 loops=1)
+        Filter: ((email)::text = 'benchmark-redacted'::text)
+        Rows Removed by Filter: 4
+        Buffers: shared hit=1
+Planning Time: 0.015 ms
+Execution Time: 0.007 ms

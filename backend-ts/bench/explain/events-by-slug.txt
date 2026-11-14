@@ -1,0 +1,23 @@
+Phase: before; EXPLAIN (ANALYZE, BUFFERS); enable_seqscan=on
+
+SQL: select "events"."id", "events"."title", "events"."slug", "events"."description", "events"."content", "events"."image_url", "events"."location", "events"."start_time", "events"."end_time", "events"."category_id", "events"."created_by", "events"."is_active", "events"."is_deleted", "events"."is_featured", "events"."created_at", "events"."updated_at", "events"."registration_link", "events"."directions_link", "users"."id", "users"."email", "users"."full_name", "users"."role", "users"."status", "users"."is_active", "users"."last_login", "users"."failed_login_attempts", "users"."password_changed_at", "event_categories"."id", "event_categories"."name", "event_categories"."description", "event_categories"."created_at", "event_categories"."updated_at" from "events" left join "users" on "events"."created_by" = "users"."id" left join "event_categories" on "events"."category_id" = "event_categories"."id" where ("events"."slug" = $1 and ("events"."is_deleted" = $2 and "events"."is_active" = $3)) limit $4
+Bindings: ["macs-log-26-20251021-133805","f","t","1"]
+Limit  (cost=0.00..6.57 rows=1 width=540) (actual time=0.010..0.010 rows=1 loops=1)
+  Buffers: shared hit=5
+  ->  Nested Loop Left Join  (cost=0.00..6.57 rows=1 width=540) (actual time=0.009..0.010 rows=1 loops=1)
+        Join Filter: (events.category_id = event_categories.id)
+        Buffers: shared hit=5
+        ->  Nested Loop Left Join  (cost=0.00..5.48 rows=1 width=456) (actual time=0.008..0.008 rows=1 loops=1)
+              Join Filter: (events.created_by = users.id)
+              Rows Removed by Join Filter: 2
+              Buffers: shared hit=4
+              ->  Seq Scan on events  (cost=0.00..4.39 rows=1 width=303) (actual time=0.006..0.006 rows=1 loops=1)
+                    Filter: ((NOT is_deleted) AND is_active AND ((slug)::text = 'macs-log-26-20251021-133805'::text))
+                    Rows Removed by Filter: 27
+                    Buffers: shared hit=3
+              ->  Seq Scan on users  (cost=0.00..1.04 rows=4 width=153) (actual time=0.001..0.001 rows=3 loops=1)
+                    Buffers: shared hit=1
+        ->  Seq Scan on event_categories  (cost=0.00..1.04 rows=4 width=84) (actual time=0.001..0.001 rows=1 loops=1)
+              Buffers: shared hit=1
+Planning Time: 0.055 ms
+Execution Time: 0.020 ms

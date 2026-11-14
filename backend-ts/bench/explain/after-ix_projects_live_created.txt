@@ -1,0 +1,16 @@
+Phase: after; EXPLAIN (ANALYZE, BUFFERS); enable_seqscan=off (index eligibility only; not a production plan)
+
+SQL: SELECT created_at FROM projects WHERE is_deleted = false AND is_active = true ORDER BY created_at DESC
+Bindings: []
+Sort  (cost=8.38..8.40 rows=8 width=8) (actual time=0.044..0.046 rows=23 loops=1)
+  Sort Key: created_at DESC
+  Sort Method: quicksort  Memory: 26kB
+  Buffers: shared hit=5
+  ->  Bitmap Heap Scan on projects  (cost=4.18..8.26 rows=8 width=8) (actual time=0.022..0.038 rows=23 loops=1)
+        Recheck Cond: ((NOT is_deleted) AND is_active)
+        Heap Blocks: exact=4
+        Buffers: shared hit=5
+        ->  Bitmap Index Scan on ix_projects_live_created  (cost=0.00..4.18 rows=8 width=0) (actual time=0.008..0.008 rows=23 loops=1)
+              Buffers: shared hit=1
+Planning Time: 0.055 ms
+Execution Time: 0.057 ms
