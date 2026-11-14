@@ -48,6 +48,17 @@ function finite(value: number | null | undefined, name: string): number {
   return value;
 }
 
+export async function probeCache(url: string | URL): Promise<boolean> {
+  let observed = false;
+  for (let request = 0; request < 2; request++) {
+    const response = await fetch(url, { signal: AbortSignal.timeout(10_000) });
+    await response.arrayBuffer();
+    if (response.status !== 200) throw new Error(`Cache probe HTTP ${response.status.toString()}`);
+    if (response.headers.get("x-cache")?.trim().toUpperCase() === "HIT") observed = true;
+  }
+  return observed;
+}
+
 async function main(): Promise<void> {
   const { values } = parseArgs({
     args: process.argv.slice(2),
@@ -72,6 +83,7 @@ async function main(): Promise<void> {
 
   const meta = {
     date: new Date().toISOString(),
+    cacheObserved: false,
     target: target.origin,
     concurrency: 50,
     durationSec: 20,
@@ -89,6 +101,8 @@ async function main(): Promise<void> {
     const outputArgs = ["--no-tui", "--output-format", "json", url];
     console.error(`Warming ${path} for 5s; measuring for 20s`);
     await capture([...args, "5s", ...outputArgs]);
+    const cacheObserved = await probeCache(url);
+    meta.cacheObserved = meta.cacheObserved || cacheObserved;
     const raw = JSON.parse(await capture([...args, "20s", ...outputArgs])) as OhaOutput;
     const successRate = finite(raw.summary?.successRate, "summary.successRate");
     if (successRate > 1) throw new Error(`${path}: successRate is greater than 1`);
@@ -114,7 +128,7 @@ async function main(): Promise<void> {
   console.error(`Saved benchmark to ${values.out}`);
 }
 
-main().catch((error: unknown) => {
+if (import.meta.main) main().catch((error: unknown) => {
   console.error(error instanceof Error ? error.message : String(error));
   process.exitCode = 1;
 });

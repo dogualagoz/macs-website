@@ -42,11 +42,44 @@ test("CLI reads benchmark envelopes and reports pass, target miss and fail exit 
     await mkdir(dir, { recursive: true });
     try {
       await writeFile(`${dir}/old.json`, JSON.stringify({ results: baseline }));
-      await writeFile(`${dir}/new.json`, JSON.stringify({ results: candidate({ rps: 1500 }) }));
+      await writeFile(`${dir}/new.json`, JSON.stringify({ meta: { cacheObserved: false }, results: candidate({ rps: 1500 }) }));
       const pass = run(); expect(pass.exitCode).toBe(0);
       expect(pass.stdout.toString()).toContain("GATE PASS (1/1)"); expect(pass.stdout.toString()).toContain(`TARGET MISS: ${path} x1.50`);
-      await writeFile(`${dir}/new.json`, JSON.stringify({ results: candidate({ rps: 999 }) }));
+      await writeFile(`${dir}/new.json`, JSON.stringify({ meta: { cacheObserved: false }, results: candidate({ rps: 999 }) }));
       const fail = run(); expect(fail.exitCode).toBe(1); expect(fail.stdout.toString()).toContain("GATE FAIL (0/1)");
     } finally { await rm(dir, { recursive: true, force: true }); }
   })();
+});
+
+
+test("CLI rejects cached and missing cache metadata, and informational mode never passes a gate", async () => {
+  const { mkdtemp, rm, writeFile } = await import("node:fs/promises");
+  const { tmpdir } = await import("node:os");
+  const { join } = await import("node:path");
+  const dir = await mkdtemp(join(tmpdir(), "compare-cache-"));
+  const run = (...flags: string[]) => Bun.spawnSync(["bun", "bench/compare.ts", "--baseline", `${dir}/old.json`, "--candidate", `${dir}/new.json`, ...flags]);
+  try {
+    await writeFile(`${dir}/old.json`, JSON.stringify({ results: baseline }));
+    for (const meta of [{ cacheObserved: true }, {}, { cacheObserved: "false" }]) {
+      await writeFile(`${dir}/new.json`, JSON.stringify({ meta, results: candidate({ rps: 5000 }) }));
+      const rejected = run();
+      expect(rejected.exitCode).toBe(1);
+      expect(rejected.stderr.toString()).toContain("candidate meta.cacheObserved must be false");
+      expect(rejected.stdout.toString()).not.toContain("GATE PASS");
+    }
+    await writeFile(`${dir}/new.json`, JSON.stringify({ results: candidate({ rps: 5000 }) }));
+    expect(run().exitCode).toBe(1);
+    const unknownInfo = run("--informational");
+    expect(unknownInfo.exitCode).toBe(1);
+    expect(unknownInfo.stdout.toString()).toContain("INFORMATIONAL ONLY");
+    expect(unknownInfo.stdout.toString()).not.toContain("GATE PASS");
+    for (const cacheObserved of [true, false]) {
+      await writeFile(`${dir}/new.json`, JSON.stringify({ meta: { cacheObserved }, results: candidate({ rps: 5000 }) }));
+      const informational = run("--informational");
+      expect(informational.exitCode).toBe(1);
+      expect(informational.stdout.toString()).toContain("INFORMATIONAL ONLY");
+      expect(informational.stdout.toString()).not.toContain("GATE PASS");
+      expect(informational.stdout.toString()).toContain(path);
+    }
+  } finally { await rm(dir, { recursive: true, force: true }); }
 });

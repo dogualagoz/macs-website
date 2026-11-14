@@ -6,7 +6,10 @@
     "durationSec": 20,
     "ohaVersion": "oha 1.17.0",
     "host": "Apple M3 Max",
-    "label": "bun-uncached-fresh-pair-task12"
+    "label": "bun-uncached-fresh-pair-task12",
+    "cacheObserved": false,
+    "cacheObservedAt": "2026-11-14T22:57:16.677Z",
+    "cacheObservationSource": "post-run two-request probe, same original server configuration; original timing measurements unchanged"
   },
   "results": {
     "/events?limit=100": {

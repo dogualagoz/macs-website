@@ -6,7 +6,10 @@
     "durationSec": 20,
     "ohaVersion": "oha 1.17.0",
     "host": "Apple M3 Max",
-    "label": "bun-cached-informational-task12"
+    "label": "bun-cached-informational-task12",
+    "cacheObserved": true,
+    "cacheObservedAt": "2026-11-14T22:57:16.987Z",
+    "cacheObservationSource": "post-run two-request probe, same original server configuration; original timing measurements unchanged"
   },
   "results": {
     "/events?limit=100": {
