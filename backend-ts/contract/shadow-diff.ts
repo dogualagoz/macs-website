@@ -1,6 +1,7 @@
-import { approvedDeviation } from "./deviations";
-import type { ComparableResponse, RequestIdentity } from "./deviations";
-import { normalize, stableJson } from "./normalize";
+import { compareResponses, records } from "./compare";
+import type { HttpResponseInput } from "./compare";
+import type { RequestIdentity } from "./deviations";
+import { stableJson } from "./normalize";
 
 export const SHADOW_SEED_PATHS = [
   "/events?limit=100",
@@ -18,12 +19,6 @@ export const SHADOW_SEED_PATHS = [
   "/sponsors/?is_active=false",
   "/members?limit=200",
 ] as const;
-
-interface RawResponse {
-  status: number;
-  headers: Headers;
-  body: unknown;
-}
 
 export function resolveTargetOrigin(raw: string | undefined, name: string): string {
   if (!raw) throw new Error(`${name} is required`);
@@ -90,7 +85,7 @@ export function diffPaths(oldValue: unknown, newValue: unknown, prefix = ""): st
   return [prefix || "$"];
 }
 
-async function fetchGet(origin: string, path: string): Promise<RawResponse> {
+async function fetchGet(origin: string, path: string): Promise<HttpResponseInput> {
   const response = await fetch(new URL(path, origin), {
     method: "GET",
     headers: { Origin: "https://macsclub.com.tr" },
@@ -101,29 +96,6 @@ async function fetchGet(origin: string, path: string): Promise<RawResponse> {
   const text = await response.text();
   const body: unknown = text && contentType.includes("application/json") ? JSON.parse(text) : text || null;
   return { status: response.status, headers: response.headers, body };
-}
-
-function compareNormalized(identity: RequestIdentity, fullPath: string, oldResp: RawResponse, newResp: RawResponse): {
-  equal: boolean;
-  deviation: string | null;
-  oldNorm: unknown;
-  newNorm: unknown;
-} {
-  const oldNorm = normalize(fullPath, oldResp.body);
-  const newNorm = normalize(fullPath, newResp.body);
-  const equal = oldResp.status === newResp.status && stableJson(oldNorm) === stableJson(newNorm);
-  const oldComparable: ComparableResponse = { status: oldResp.status, body: oldNorm, headers: oldResp.headers };
-  const newComparable: ComparableResponse = { status: newResp.status, body: newNorm, headers: newResp.headers };
-  const deviation = equal ? null : approvedDeviation(identity, oldComparable, newComparable);
-  return { equal, deviation, oldNorm, newNorm };
-}
-
-function extractRecords(body: unknown, wrapperKey?: string): Record<string, unknown>[] {
-  const target: unknown = wrapperKey && body !== null && typeof body === "object"
-    ? (body as Record<string, unknown>)[wrapperKey]
-    : body;
-  if (!Array.isArray(target)) return [];
-  return target.filter((item): item is Record<string, unknown> => item !== null && typeof item === "object" && !Array.isArray(item));
 }
 
 export async function runShadowDiff(
@@ -154,14 +126,14 @@ export async function runShadowDiff(
     const [oldResp, newResp] = await Promise.all([fetchGet(oldOrigin, path), fetchGet(newOrigin, path)]);
     const parsedUrl = new URL(path, oldOrigin);
     const identity: RequestIdentity = { method: "GET", path: parsedUrl.pathname, query: parsedUrl.searchParams };
-    const comparison = compareNormalized(identity, path, oldResp, newResp);
+    const comparison = compareResponses(identity, oldResp, newResp);
 
     count++;
     if (!comparison.equal && comparison.deviation === null) {
       diffs++;
       const fields = [
         ...(oldResp.status !== newResp.status ? ["status"] : []),
-        ...diffPaths(comparison.oldNorm, comparison.newNorm),
+        ...diffPaths(comparison.old, comparison.new),
       ];
       console.log(stableJson({ path, oldStatus: oldResp.status, newStatus: newResp.status, fields }));
     }
@@ -169,7 +141,7 @@ export async function runShadowDiff(
     if (oldResp.status === 200 && newResp.status === 200) {
       const route = parsedUrl.pathname;
       if (route === "/events") {
-        for (const row of [...extractRecords(oldResp.body), ...extractRecords(newResp.body)]) {
+        for (const row of [...records(oldResp.body), ...records(newResp.body)]) {
           if (typeof row.id === "number" && (eventIds.has(row.id) || eventIds.size < maxIds)) {
             eventIds.add(row.id);
             queue.push(`/events/${String(row.id)}`);
@@ -180,7 +152,7 @@ export async function runShadowDiff(
           }
         }
       } else if (route === "/projects") {
-        for (const row of [...extractRecords(oldResp.body, "projects"), ...extractRecords(newResp.body, "projects")]) {
+        for (const row of [...records(oldResp.body, "projects"), ...records(newResp.body, "projects")]) {
           if (typeof row.id === "number" && (projectIds.has(row.id) || projectIds.size < maxIds)) {
             projectIds.add(row.id);
             queue.push(`/projects/${String(row.id)}`, `/projects/${String(row.id)}/members`);
@@ -191,7 +163,7 @@ export async function runShadowDiff(
           }
         }
       } else if (route === "/members" || route === "/members/leaderboard") {
-        for (const row of [...extractRecords(oldResp.body), ...extractRecords(newResp.body)]) {
+        for (const row of [...records(oldResp.body), ...records(newResp.body)]) {
           if (typeof row.id === "number" && (memberIds.has(row.id) || memberIds.size < maxIds)) {
             memberIds.add(row.id);
             const id = String(row.id);
@@ -199,7 +171,7 @@ export async function runShadowDiff(
           }
         }
       } else if (route === "/sponsors/") {
-        for (const row of [...extractRecords(oldResp.body), ...extractRecords(newResp.body)]) {
+        for (const row of [...records(oldResp.body), ...records(newResp.body)]) {
           if (typeof row.id === "number" && (sponsorIds.has(row.id) || sponsorIds.size < maxIds)) {
             sponsorIds.add(row.id);
             queue.push(`/sponsors/${String(row.id)}`);

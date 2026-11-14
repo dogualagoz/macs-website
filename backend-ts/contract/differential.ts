@@ -1,7 +1,10 @@
-import type { ApiResponse, Domain } from "./client";
-import { approvedDeviation } from "./deviations";
-import type { RequestIdentity } from "./deviations";
-import { normalize, normalizeZip, stableJson } from "./normalize";
+import type { Domain } from "./client";
+import { compareResponses, records } from "./compare";
+import type { Comparison } from "./compare";
+import { stableJson } from "./normalize";
+
+export { compareResponses, records };
+export type { Comparison };
 
 export interface CatalogueRequest { domain: Domain; path: string; protected?: boolean; binary?: boolean }
 // Shared read catalogue for Tasks 6–10. Each domain can extend its own filters as
@@ -20,29 +23,6 @@ export const GET_CATALOGUE: readonly CatalogueRequest[] = [
   { domain: "uploads", path: "/uploads/missing.png" },
   { domain: "uploads", path: "/static/uploads/missing.png" },
 ];
-export interface Comparison { equal: boolean; deviation: string | null; old: unknown; new: unknown }
-export function compareResponses(r: RequestIdentity, old: ApiResponse, next: ApiResponse): Comparison {
-  const body = (response: ApiResponse): unknown => {
-    if (response.body instanceof Uint8Array) {
-      const type = response.headers.get("content-type");
-      return type?.includes("application/zip")
-        ? { format: "zip", entries: normalizeZip(response.body) }
-        : { format: type, bytes: Buffer.from(response.body).toString("base64") };
-    }
-    return normalize(r.path + (r.query.size ? `?${r.query}` : ""), response.body);
-  };
-  const a = body(old), b = body(next);
-  const equal = old.status === next.status && stableJson(a) === stableJson(b);
-  return { equal, deviation: equal ? null : approvedDeviation(r, old, next), old: a, new: b };
-}
-function records(body: unknown, key?: string): Record<string, unknown>[] {
-  const list: unknown = key && body !== null && typeof body === "object" ? (body as Record<string, unknown>)[key] : body;
-  if (!Array.isArray(list)) throw new Error(`Catalogue discovery expected an array${key ? ` at ${key}` : ""}`);
-  return list.map((item: unknown) => {
-    if (item === null || typeof item !== "object" || !("id" in item) || typeof item.id !== "number") throw new Error("Catalogue discovery expected numeric IDs");
-    return item;
-  });
-}
 export async function runDifferential(): Promise<number> {
   const oldUrl = process.env.OLD_URL, newUrl = process.env.NEW_URL;
   if (!oldUrl || !newUrl) throw new Error("OLD_URL and NEW_URL are required");

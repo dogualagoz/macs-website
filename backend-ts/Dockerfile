@@ -8,7 +8,7 @@ RUN bun install --frozen-lockfile --production
 COPY src ./src
 COPY drizzle ./drizzle
 COPY scripts ./scripts
-COPY contract/shadow-diff.ts contract/normalize.ts contract/deviations.ts ./contract/
+COPY contract/shadow-diff.ts contract/compare.ts contract/normalize.ts contract/deviations.ts ./contract/
 COPY --chmod=755 docker-entrypoint.sh /app/docker-entrypoint.sh
 
 RUN useradd --create-home --uid 10001 appuser \

@@ -131,3 +131,27 @@ test("project role deviation k approves only role values on project GET response
   expect(approvedDeviation({ method: "GET", path: "/projects/2", query: new URLSearchParams() }, old, { status: 200, body: { ...newProject, members: [{ id: 1, full_name: "Ayşe" }] } })).toBeNull();
   expect(oldProject.members[0]?.project_role).toBe("Lead");
 });
+
+test("shared compare module passes raw responses to approvedDeviation and validates record IDs", async () => {
+  const { compareResponses, records } = await import("../contract/compare");
+  const { compareResponses: diffCompare, records: diffRecords } = await import("../contract/differential");
+  expect(compareResponses).toBe(diffCompare);
+  expect(records).toBe(diffRecords);
+  expect(records({ projects: [{ id: 1, slug: "p" }] }, "projects")).toEqual([{ id: 1, slug: "p" }]);
+  expect(() => records({ projects: "not-an-array" }, "projects")).toThrow("Catalogue discovery expected an array at projects");
+  expect(() => records([{ id: "1" }])).toThrow("Catalogue discovery expected numeric IDs");
+  // Deviation k requires raw member array ordering to match before masking roles;
+  // normalized sorting of members must not allow k to waive a reordered member array with different roles.
+  const identity = { method: "GET", path: "/projects/2", query: new URLSearchParams() };
+  const old = {
+    status: 200,
+    headers: new Headers(),
+    body: { id: 2, members: [{ id: 2, project_role: "Lead" }, { id: 1, project_role: "Dev" }] },
+  };
+  const next = {
+    status: 200,
+    headers: new Headers(),
+    body: { id: 2, members: [{ id: 1, project_role: "Other" }, { id: 2, project_role: "Member" }] },
+  };
+  expect(compareResponses(identity, old, next)).toMatchObject({ equal: false, deviation: null });
+});
