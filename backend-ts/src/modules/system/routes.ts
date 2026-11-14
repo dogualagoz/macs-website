@@ -1,6 +1,7 @@
 import type { Router } from "express";
 import type { AppDeps } from "../../app";
 import { route, STREAMED } from "../../lib/route";
+import { sendJson } from "../../middleware/cache-headers";
 
 export function registerSystemRoutes(router: Router, deps: AppDeps): void {
   route(router, deps, {
@@ -13,7 +14,7 @@ export function registerSystemRoutes(router: Router, deps: AppDeps): void {
   });
   route(router, deps, {
     method: "get", path: "/health/ready", domain: "system", tag: "System", summary: "Readiness",
-    handler: async ({ res }) => {
+    handler: async ({ req, res }) => {
       const query = deps.sql`SELECT 1`;
       let timer: ReturnType<typeof setTimeout> | undefined;
       try {
@@ -28,9 +29,9 @@ export function registerSystemRoutes(router: Router, deps: AppDeps): void {
             }, 2000);
           }),
         ]);
-        res.set("Cache-Control", "no-store").status(200).json({ status: "ok" });
+        sendJson(req, res, 200, JSON.stringify({ status: "ok" }), { public: false });
       } catch {
-        res.set("Cache-Control", "no-store").status(503).json({ status: "unavailable" });
+        sendJson(req, res, 503, JSON.stringify({ status: "unavailable" }), { public: false });
       } finally { clearTimeout(timer); }
       return STREAMED;
     },

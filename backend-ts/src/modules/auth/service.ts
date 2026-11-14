@@ -21,7 +21,8 @@ export async function recordSuccessfulLogin(db: Db | Tx, userId: number): Promis
 export async function resetExpiredLoginAttempts(db: Db | Tx, userId: number): Promise<void> {
   await updateUser(db, userId, { failedLoginAttempts: 0 });
 }
-export async function login(db: Db, env: Env, now: Date, email: string, password: string): Promise<{ access_token: string; token_type: "bearer" }> {
+export async function login(db: Db, env: Env, now: Date, email: string, password: string, onCommittedFailure?: () => void): Promise<{ access_token: string; token_type: "bearer" }> {
+  const state = { mutated: false };
   const result = await db.transaction(async tx => {
     const row = await findUserCredentialsByEmail(tx, email);
     if (!row) return new HttpError(401, "Email veya şifre hatalı");
@@ -30,9 +31,11 @@ export async function login(db: Db, env: Env, now: Date, email: string, password
         return new HttpError(401, `Çok fazla başarısız deneme. Hesap ${Math.trunc(env.LOCKOUT_DURATION - row.failed_minutes_ago).toString()} dakika kilitlendi.`);
       }
       await resetExpiredLoginAttempts(tx, row.id);
+      state.mutated = true;
     }
     if (!await verifyPassword(password, row.hashed_password)) {
       await recordFailedLogin(tx, row.id);
+      state.mutated = true;
       // Return errors from the transaction: failed-login writes must commit before 401.
       return new HttpError(401, "Email veya şifre hatalı");
     }
@@ -42,6 +45,10 @@ export async function login(db: Db, env: Env, now: Date, email: string, password
     await recordSuccessfulLogin(tx, row.id);
     return { access_token, token_type: "bearer" as const };
   });
-  if (result instanceof HttpError) throw result;
+  // Successful writes invalidate in route(); committed failures need this boundary too.
+  if (result instanceof HttpError) {
+    if (state.mutated) onCommittedFailure?.();
+    throw result;
+  }
   return result;
 }

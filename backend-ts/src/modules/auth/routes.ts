@@ -19,5 +19,5 @@ export function registerAuthRoutes(router: Router, deps: AppDeps): void {
       return createUser(deps.db, deps.env, { ...body, role: "admin", status: "approved" });
     } });
   route(router, deps, { ...base, path: "/auth/login", summary: "Kullanıcı girişi", bodyKind: "form", body: loginSchema,
-    response: tokenSchema, rateLimit: perMinute(10), handler: ({ body }) => login(deps.db, deps.env, deps.now?.() ?? new Date(), body.username, body.password) });
+    response: tokenSchema, rateLimit: perMinute(10), handler: ({ body }) => login(deps.db, deps.env, deps.now?.() ?? new Date(), body.username, body.password, () => { deps.cache.invalidate("auth"); }) });
 }

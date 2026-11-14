@@ -7,6 +7,7 @@ import type { AuthUser } from "../middleware/auth";
 import { sendJson } from "../middleware/cache-headers";
 import { createLimiter } from "../middleware/rate-limit";
 import { HttpError } from "./http-error";
+import { cacheKey, weakEtag } from "./cache";
 import type { UploadedFile } from "./storage";
 import { toFastApi422, validationError } from "./validation";
 
@@ -95,12 +96,30 @@ export function route<P, Q, B, R>(router: Router, deps: AppDeps, def: RouteDef<P
       const params = parse(def.params, "path", req.params);
       const query = parse(def.query, "query", req.query);
       const body = parse(def.body, "body", def.bodyKind === "form" && !req.is("application/x-www-form-urlencoded") ? {} : req.body ?? {}, bodyInvalid, def.bodyKind === "form");
+      const status = def.status ?? 200;
+      const eligible = def.public === true && req.method === "GET" && def.auth === undefined && req.headers.authorization === undefined && status === 200
+        && def.domain !== "users" && def.domain !== "auth" && !/\/admin(?:\/|$)/.test(req.path);
+      const key = eligible ? cacheKey(req.path, req.query) : undefined;
+      if (key !== undefined) {
+        const cached = deps.cache.get(key);
+        if (cached) {
+          res.set("X-Cache", "HIT");
+          sendJson(req, res, cached.status, cached.body, { public: true, etag: cached.etag }); return;
+        }
+      }
+      const generation = deps.cache.generation(def.domain);
+      res.set("Cache-Control", "no-store");
       const result = await handler({ params, query, body, user, file: req.file ?? null, req, res });
       if (result === STREAMED) return;
-      const status = def.status ?? 200;
-      const eligible = def.public === true && req.method === "GET" && def.auth === undefined && !req.get("Authorization") && status >= 200 && status < 300;
+      if (req.method !== "GET" && req.method !== "HEAD" && status >= 200 && status < 300) deps.cache.invalidate(def.domain);
       if (status === 204) { sendJson(req, res, status, "", { public: false }); return; }
-      sendJson(req, res, status, JSON.stringify(result), { public: eligible });
+      const serialized = JSON.stringify(result);
+      if (key !== undefined) {
+        const etag = weakEtag(serialized);
+        if (generation === deps.cache.generation(def.domain)) deps.cache.set(key, def.domain, { status, body: serialized, etag });
+        res.set("X-Cache", "MISS");
+        sendJson(req, res, status, serialized, { public: true, etag });
+      } else sendJson(req, res, status, serialized, { public: false });
     } catch (error: unknown) { next(error); }
   });
 }

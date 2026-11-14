@@ -4,6 +4,7 @@ import type { Logger } from "pino";
 import type { Db, Sql, QueryCounter } from "./db/client";
 import type { Env } from "./config/env";
 import type { RouteMeta } from "./lib/route";
+import type { ResponseCache } from "./lib/cache";
 import type { Storage } from "./lib/storage";
 import type { LoadUserByEmail } from "./middleware/auth";
 import { bodyParsers } from "./middleware/body";
@@ -23,6 +24,7 @@ import { registerSystemRoutes } from "./modules/system/routes";
 import { registerUploadRoutes } from "./modules/uploads/routes";
 
 export interface AppDeps {
+  cache: ResponseCache;
   storage: Storage;
   env: Env;
   db: Db;
