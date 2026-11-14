@@ -12,6 +12,7 @@ import { notFound } from "./middleware/not-found";
 import { requestId } from "./middleware/request-id";
 import { securityHeaders } from "./middleware/security-headers";
 import { registerAuthRoutes } from "./modules/auth/routes";
+import { registerEventRoutes } from "./modules/events/routes";
 import { registerUserRoutes } from "./modules/users/routes";
 import { registerSystemRoutes } from "./modules/system/routes";
 
@@ -46,6 +47,7 @@ export function createApp(deps: AppDeps, registerRoutes?: (router: Router, deps:
   registerSystemRoutes(router, deps);
   registerAuthRoutes(router, deps);
   registerUserRoutes(router, deps);
+  registerEventRoutes(router, deps);
   registerRoutes?.(router, deps);
   app.use(router);
   app.use(notFound(deps.routeRegistry));
