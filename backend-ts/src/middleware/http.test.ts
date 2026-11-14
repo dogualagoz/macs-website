@@ -10,6 +10,7 @@ import { HttpError } from "../lib/http-error";
 import { signAccessToken } from "../lib/jwt";
 import { route } from "../lib/route";
 import type { AuthUser } from "./auth";
+import { testDeps } from "../../test/helpers/app";
 import { perHour, perMinute } from "./rate-limit";
 
 const now = new Date("2026-11-14T00:00:00Z");
@@ -18,8 +19,8 @@ const user: AuthUser = { id: 1, email: "admin@example.com", full_name: "Admin", 
 function setup(options: { user?: AuthUser | null; enabled?: boolean; error?: object } = {}) {
   const logs: Record<string, unknown>[] = [];
   const logger = pino({ level: "info" }, new Writable({ write(chunk: Buffer, _encoding, done) { logs.push(JSON.parse(chunk.toString()) as Record<string, unknown>); done(); } }));
-  const deps: AppDeps = { env: { ...env, RATELIMIT_ENABLED: options.enabled ?? true }, logger, routeRegistry: [], now: () => now,
-    loadUser: (email) => { expect(email).toBe(user.email); return Promise.resolve(options.user === undefined ? user : options.user); } };
+  const deps: AppDeps = testDeps({ env: { ...env, RATELIMIT_ENABLED: options.enabled ?? true }, logger, routeRegistry: [], now: () => now,
+    loadUser: (email) => { expect(email).toBe(user.email); return Promise.resolve(options.user === undefined ? user : options.user); } });
   const app = createApp(deps, (router, d) => {
     const base = { domain: "system", tag: "System", summary: "Test" } as const;
     router.get("/injected-error", (_req, _res, next) => { next(options.error); });

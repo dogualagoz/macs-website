@@ -9,13 +9,13 @@ import { parseEnv } from "../config/env";
 import type { AuthUser } from "../middleware/auth";
 import { HttpError } from "./http-error";
 import { signAccessToken } from "./jwt";
-import { createLogger } from "./logger";
+import { testDeps } from "../../test/helpers/app";
 import { route, STREAMED } from "./route";
 
 const now = new Date("2026-11-14T00:00:00Z");
 const env = parseEnv({ DATABASE_URL: "postgresql://u:p@db/x", JWT_SECRET_KEY: "x".repeat(32), NODE_ENV: "test" });
 const user: AuthUser = { id: 1, email: "mod@example.com", full_name: "Mod", role: "moderator", status: "approved", is_active: true, last_login: null, failed_login_attempts: 0, password_changed_at: null };
-const deps = (): AppDeps => ({ env, logger: createLogger("error"), now: () => now, loadUser: (email) => Promise.resolve(email === user.email ? user : null), routeRegistry: [] });
+const deps = (): AppDeps => testDeps({ env, now: () => now, loadUser: (email) => Promise.resolve(email === user.email ? user : null) });
 const base = { method: "post", path: "/test", domain: "events", tag: "Events", summary: "Test" } as const;
 
 test("order: 401 precedes 422, including malformed JSON", async () => {

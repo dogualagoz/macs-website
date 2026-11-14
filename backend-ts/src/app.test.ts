@@ -2,10 +2,10 @@ import { expect, test } from "bun:test";
 import request from "supertest";
 import { createApp } from "./app";
 import { parseEnv } from "./config/env";
-import { createLogger } from "./lib/logger";
+import { testDeps } from "../test/helpers/app";
 
 const env = parseEnv({ DATABASE_URL: "postgresql://u:p@db:5432/x", JWT_SECRET_KEY: "x".repeat(32), NODE_ENV: "test" });
-const app = createApp({ env, logger: createLogger("error"), routeRegistry: [] });
+const app = createApp(testDeps({ env }));
 
 test("GET / returns welcome", async () => {
   const response = await request(app).get("/");

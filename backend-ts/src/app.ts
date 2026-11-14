@@ -1,6 +1,7 @@
 import express from "express";
 import type { Express, Router } from "express";
 import type { Logger } from "pino";
+import type { Db, Sql, QueryCounter } from "./db/client";
 import type { Env } from "./config/env";
 import type { RouteMeta } from "./lib/route";
 import type { LoadUserByEmail } from "./middleware/auth";
@@ -14,6 +15,9 @@ import { registerSystemRoutes } from "./modules/system/routes";
 
 export interface AppDeps {
   env: Env;
+  db: Db;
+  sql: Sql;
+  counter: QueryCounter;
   logger: Logger;
   routeRegistry: RouteMeta[];
   loadUser?: LoadUserByEmail;
