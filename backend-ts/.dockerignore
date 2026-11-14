@@ -1,0 +1,8 @@
+node_modules
+test
+bench
+contract/*.test.ts
+contract/seed.sql
+*.test.ts
+**/*.test.ts
+.env*

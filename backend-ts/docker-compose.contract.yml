@@ -52,13 +52,9 @@ services:
       timeout: 2s
       retries: 30
   new:
-    image: oven/bun:1.3.5-slim
-    working_dir: /app
-    command: ["bun", "src/server.ts"]
-    volumes:
-      - .:/app
+    build: .
     tmpfs:
-      - /app/static/uploads
+      - /app/static/uploads:uid=10001,gid=10001,mode=0755
     ports:
       - "127.0.0.1:8011:8000"
     environment:
@@ -71,3 +67,8 @@ services:
     depends_on:
       db-new:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "bun", "-e", "fetch('http://127.0.0.1:8000/health/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
