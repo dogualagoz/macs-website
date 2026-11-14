@@ -69,7 +69,8 @@ export function approvedDeviation(r: RequestIdentity, old: ComparableResponse, n
   }
   if (r.path === "/redoc" && !r.query.size && old.status === 200 && next.status === 404 && stableJson(next.body) === stableJson({ detail: "Not Found" })) return "P5";
   if (r.path === "/sponsors" && old.status === 307 && next.status === 200 && Array.isArray(next.body) && old.headers?.get("location")?.endsWith(`/sponsors/${r.query.size ? `?${r.query}` : ""}`)) return "P1";
-  if (old.status === 500 && next.status === 500 && old.body === "Internal Server Error" && stableJson(next.body) === stableJson({ detail: "Internal Server Error" })) return "d";
+  // No catalogue GET opts into unhandled-500 deviation d. In particular,
+  // f/h require 422; a new-side 500 must remain an unexpected difference.
   // g and P4 are applied by normalize, never by a generic error waiver.
   return null;
 }
