@@ -5,7 +5,7 @@ import { createLogger } from "./lib/logger";
 try {
   const env = parseEnv(process.env);
   const logger = createLogger(env.LOG_LEVEL);
-  const app = createApp({ env, logger });
+  const app = createApp({ env, logger, routeRegistry: [] });
   const server = app.listen(env.PORT);
   server.once("listening", () => {
     logger.info({ port: env.PORT }, "Server listening");
