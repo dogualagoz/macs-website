@@ -19,6 +19,7 @@ export function createDb(url: string, opts?: { max?: number }): { db: Db; sql: S
     queries: () => [...statements],
     reset: () => { statements = []; },
   };
+  const serializeDateString = (value: string | Date): string => value instanceof Date ? value.toISOString() : value;
   const sql = postgres(url, {
     max: opts?.max ?? 10,
     connect_timeout: 5,
@@ -26,9 +27,13 @@ export function createDb(url: string, opts?: { max?: number }): { db: Db; sql: S
     prepare: true,
     connection: { TimeZone: "UTC", statement_timeout: 10000 },
     types: {
-      dateString: { to: 1184, from: [1114, 1184, 1082], serialize: (value: string) => value, parse: (value: string) => value },
+      dateString: { to: 1184, from: [1114, 1184, 1082], serialize: serializeDateString, parse: (value: string) => value },
     },
     debug: (_connection, query) => { statements.push(query); },
   });
-  return { db: drizzle(sql, { schema }), sql, counter };
+  const db = drizzle(sql, { schema });
+  // Drizzle installs identity timestamp serializers; restore Date support while
+  // leaving naive timestamp strings untouched after adapter initialization.
+  sql.options.serializers[1184] = serializeDateString;
+  return { db, sql, counter };
 }

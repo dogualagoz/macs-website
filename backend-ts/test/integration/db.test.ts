@@ -21,6 +21,32 @@ test("timestamps come back as strings", async () => {
   expect(pgToNaiveIso(row?.naive ?? null)).toBe("2026-05-01T11:00:00.123456");
   expect(row?.date).toBe("2026-05-01");
 });
+test("raw sql Date parameters preserve the exact UTC instant", async () => {
+  const connection = await deps.sql.reserve();
+  try {
+    await connection`CREATE TEMP TABLE date_binding (instant timestamptz)`;
+    const instant = new Date("2026-05-01T11:00:00.123+03:00");
+    await connection`INSERT INTO date_binding (instant) VALUES (${instant})`;
+    const [row] = await connection<{ instant: string }[]>`SELECT instant FROM date_binding`;
+    expect(pgToUtcIso(row?.instant ?? null)).toBe("2026-05-01T08:00:00.123000Z");
+  } finally {
+    await connection`DROP TABLE IF EXISTS date_binding`;
+    connection.release();
+  }
+});
+test("raw sql naive timestamp strings retain wall time and microseconds", async () => {
+  const connection = await deps.sql.reserve();
+  try {
+    await connection`CREATE TEMP TABLE naive_binding (wall_time timestamp)`;
+    const naive = "2026-05-01 11:00:00.123456";
+    await connection`INSERT INTO naive_binding (wall_time) VALUES (${naive})`;
+    const [row] = await connection<{ wall_time: string }[]>`SELECT wall_time FROM naive_binding`;
+    expect(row?.wall_time).toBe("2026-05-01 11:00:00.123456");
+  } finally {
+    await connection`DROP TABLE IF EXISTS naive_binding`;
+    connection.release();
+  }
+});
 test("counter counts statements", async () => {
   deps.counter.reset();
   await deps.sql`select 1`;
