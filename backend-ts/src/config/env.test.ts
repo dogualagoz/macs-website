@@ -22,6 +22,7 @@ test("parseEnv applies defaults", () => {
     RATELIMIT_ENABLED: true,
     RESPONSE_CACHE: true,
     RUN_MIGRATIONS: true,
+    NOMINATIM_USER_AGENT: "MACS-Website/1.0 (contact@macs.com)",
   });
 });
 
@@ -60,6 +61,7 @@ test("parseEnv parses configured values and postgres URLs", () => {
     RATELIMIT_ENABLED: "false",
     RESPONSE_CACHE: "off",
     RUN_MIGRATIONS: "0",
+    NOMINATIM_USER_AGENT: "Club-Test/contact@example.com",
   })).toEqual({
     NODE_ENV: "production",
     PORT: 8010,
@@ -78,6 +80,7 @@ test("parseEnv parses configured values and postgres URLs", () => {
     RATELIMIT_ENABLED: false,
     RESPONSE_CACHE: false,
     RUN_MIGRATIONS: false,
+    NOMINATIM_USER_AGENT: "Club-Test/contact@example.com",
   });
 });
 
@@ -110,6 +113,7 @@ test.each([
   ["RATELIMIT_ENABLED", "invalid"],
   ["RESPONSE_CACHE", "invalid"],
   ["RUN_MIGRATIONS", "invalid"],
+  ["NOMINATIM_USER_AGENT", ""],
 ])("parseEnv rejects invalid %s=%s", (key, value) => {
   expect(() => parseEnv({ ...base, [key]: value })).toThrow(key);
 });

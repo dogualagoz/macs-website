@@ -12,6 +12,9 @@ import { notFound } from "./middleware/not-found";
 import { requestId } from "./middleware/request-id";
 import { securityHeaders } from "./middleware/security-headers";
 import { registerAuthRoutes } from "./modules/auth/routes";
+import type { FetchImpl } from "./modules/sponsors/service";
+import { registerMemberRoutes } from "./modules/members/routes";
+import { registerSponsorRoutes } from "./modules/sponsors/routes";
 import { registerEventRoutes } from "./modules/events/routes";
 import { registerUserRoutes } from "./modules/users/routes";
 import { registerSystemRoutes } from "./modules/system/routes";
@@ -25,6 +28,7 @@ export interface AppDeps {
   routeRegistry: RouteMeta[];
   loadUser: LoadUserByEmail;
   now?: () => Date;
+  fetchImpl?: FetchImpl;
 }
 
 export function createApp(deps: AppDeps, registerRoutes?: (router: Router, deps: AppDeps) => void): Express {
@@ -48,6 +52,8 @@ export function createApp(deps: AppDeps, registerRoutes?: (router: Router, deps:
   registerAuthRoutes(router, deps);
   registerUserRoutes(router, deps);
   registerEventRoutes(router, deps);
+  registerMemberRoutes(router, deps);
+  registerSponsorRoutes(router, deps);
   registerRoutes?.(router, deps);
   app.use(router);
   app.use(notFound(deps.routeRegistry));

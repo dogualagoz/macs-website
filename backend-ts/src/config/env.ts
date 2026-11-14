@@ -38,6 +38,7 @@ const schema = z.object({
     .pipe(z.enum(["debug", "info", "warn", "error"])).default("info"),
   RATELIMIT_ENABLED: booleanFlag.default(true),
   RESPONSE_CACHE: booleanFlag.default(true),
+  NOMINATIM_USER_AGENT: z.string().min(1).default("MACS-Website/1.0 (contact@macs.com)"),
   RUN_MIGRATIONS: booleanFlag.default(true),
 });
 
@@ -58,6 +59,7 @@ export interface Env {
   LOG_LEVEL: "debug" | "info" | "warn" | "error";
   RATELIMIT_ENABLED: boolean;
   RESPONSE_CACHE: boolean;
+  NOMINATIM_USER_AGENT: string;
   RUN_MIGRATIONS: boolean;
 }
 
