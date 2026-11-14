@@ -7,8 +7,7 @@ import { signAccessToken } from "../../lib/jwt";
 import { verifyPassword } from "../../lib/password";
 import { findUserCredentialsByEmail, updateUser } from "../users/repo";
 
-export function validAdminSecret(expected: string | null, supplied: string): boolean {
-  if (!expected) return false;
+export function validAdminSecret(expected: string, supplied: string): boolean {
   const left = Buffer.from(expected); const right = Buffer.from(supplied);
   return left.length === right.length && timingSafeEqual(left, right);
 }

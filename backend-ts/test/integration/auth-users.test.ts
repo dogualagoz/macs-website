@@ -15,6 +15,35 @@ const seed = await readFile(new URL("../../contract/seed.sql", import.meta.url),
 afterAll(async () => { await deps.sql.end({ timeout: 1 }); });
 beforeEach(async () => { await seedDb(deps.sql, seed); });
 describe("auth/users database integration", () => {
+  test("unconfigured admin registration returns exact 500 before querying users", async () => {
+    const app = createApp({ ...deps, env: { ...deps.env, ADMIN_SECRET_KEY: null, RATELIMIT_ENABLED: false } });
+    deps.counter.reset();
+    const r = await request(app).post("/auth/register/admin").send({
+      email: "admin@example.com", full_name: "Admin", password: "parola123", admin_secret: "supplied-secret",
+    });
+    expect(r.status).toBe(500);
+    expect(r.body).toEqual({ detail: "Admin kaydı devre dışı: ADMIN_SECRET_KEY yapılandırılmamış" });
+    expect(deps.counter.count()).toBe(0);
+  });
+  test("unconfigured admin registration preserves validation and rate limit precedence", async () => {
+    const app = createApp({ ...deps, env: { ...deps.env, ADMIN_SECRET_KEY: null, RATELIMIT_ENABLED: true } });
+    const invalid = await request(app).post("/auth/register/admin").send({});
+    expect(invalid.status).toBe(422);
+    expect(invalid.body).toMatchObject({ detail: [
+      { type: "missing", loc: ["body", "email"] }, { type: "missing", loc: ["body", "full_name"] },
+      { type: "missing", loc: ["body", "password"] }, { type: "missing", loc: ["body", "admin_secret"] },
+    ] });
+    for (let i = 0; i < 2; i++) {
+      const r = await request(app).post("/auth/register/admin").send({
+        email: "admin@example.com", full_name: "Admin", password: "parola123", admin_secret: "supplied-secret",
+      });
+      expect(r.status).toBe(500);
+      expect(r.body).toEqual({ detail: "Admin kaydı devre dışı: ADMIN_SECRET_KEY yapılandırılmamış" });
+    }
+    const limited = await request(app).post("/auth/register/admin").send({});
+    expect(limited.status).toBe(429);
+    expect(limited.body).toEqual({ error: "Rate limit exceeded: 3 per 1 minute" });
+  });
   test("11th login in a minute returns exact 429", async () => {
     const app = createApp({ ...deps, env: { ...deps.env, RATELIMIT_ENABLED: true } });
     for (let i = 0; i < 10; i++) {

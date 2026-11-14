@@ -14,6 +14,7 @@ export function registerAuthRoutes(router: Router, deps: AppDeps): void {
     response: userResponseSchema, rateLimit: perMinute(5), handler: ({ body }) => createUser(deps.db, deps.env, body) });
   route(router, deps, { ...base, path: "/auth/register/admin", summary: "Admin kaydı", body: adminRegisterSchema,
     response: userResponseSchema, rateLimit: perMinute(3), handler: ({ body }) => {
+      if (deps.env.ADMIN_SECRET_KEY === null) throw new HttpError(500, "Admin kaydı devre dışı: ADMIN_SECRET_KEY yapılandırılmamış");
       if (!validAdminSecret(deps.env.ADMIN_SECRET_KEY, body.admin_secret)) throw new HttpError(403, "Admin kaydı için geçerli güvenlik anahtarı gerekli");
       return createUser(deps.db, deps.env, { ...body, role: "admin", status: "approved" });
     } });
