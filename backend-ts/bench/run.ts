@@ -35,7 +35,7 @@ async function capture(command: string[]): Promise<string> {
     child.exited,
   ]);
   if (exitCode !== 0) {
-    throw new Error(`${command[0]} exited ${exitCode}: ${stderr.trim()}`);
+    throw new Error(`${command[0] ?? "Command"} exited ${String(exitCode)}: ${stderr.trim()}`);
   }
   if (stderr.trim()) console.error(stderr.trim());
   return stdout;
@@ -50,7 +50,7 @@ function finite(value: number | null | undefined, name: string): number {
 
 async function main(): Promise<void> {
   const { values } = parseArgs({
-    args: Bun.argv.slice(2),
+    args: process.argv.slice(2),
     options: {
       target: { type: "string" },
       out: { type: "string" },
@@ -94,7 +94,7 @@ async function main(): Promise<void> {
     if (successRate > 1) throw new Error(`${path}: successRate is greater than 1`);
     // Check before latencies: oha emits null percentiles when every request fails.
     if (successRate < 0.999) {
-      throw new Error(`${path}: successRate ${successRate} < 0.999; refusing to save benchmark`);
+      throw new Error(`${path}: successRate ${String(successRate)} < 0.999; refusing to save benchmark`);
     }
     const result: Result = {
       p50: finite(raw.latencyPercentiles?.p50, "latencyPercentiles.p50") * 1000,
@@ -114,7 +114,7 @@ async function main(): Promise<void> {
   console.error(`Saved benchmark to ${values.out}`);
 }
 
-main().catch((error: Error) => {
-  console.error(error.message);
+main().catch((error: unknown) => {
+  console.error(error instanceof Error ? error.message : String(error));
   process.exitCode = 1;
 });
