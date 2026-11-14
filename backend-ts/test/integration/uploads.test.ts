@@ -136,6 +136,7 @@ test("ZIP setup error before headers returns JSON 500, logs failure and aborts a
   try {
     const r = await request(createApp(deps)).get("/api/upload/download-all").auth(await tokenFor("admin@example.com", "admin"), { type: "bearer" });
     expect(r.status).toBe(500); expect(r.body).toEqual({ detail: "Internal Server Error" }); expect(r.headers["content-disposition"]).toBeUndefined();
+    expect(r.headers["cache-control"]).toBe("no-store"); expect(r.headers.etag).toBeUndefined();
     expect(logs.some(log => log.includes("ZIP stream failed") && log.includes("Disk unavailable"))).toBe(true); expect(abort).toHaveBeenCalled();
   } finally { path.mockRestore(); abort.mockRestore(); }
 });

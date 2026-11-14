@@ -5,6 +5,7 @@ import type { Router } from "express";
 import { z } from "zod";
 import type { AppDeps } from "../../app";
 import { HttpError } from "../../lib/http-error";
+import { sendJson } from "../../middleware/cache-headers";
 import { perHour, perMinute } from "../../middleware/rate-limit";
 import { route, STREAMED } from "../../lib/route";
 import { saveImage } from "./service";
@@ -42,7 +43,7 @@ export function registerUploadRoutes(router: Router, deps: AppDeps): void {
         deps.logger.error({ err: error, reqId: req.requestId }, "ZIP stream failed");
         cleanup();
         if (res.headersSent) res.destroy(error);
-        else { res.removeHeader("Content-Disposition"); res.status(500).type("application/json").json({ detail: "Internal Server Error" }); }
+        else { res.removeHeader("Content-Disposition"); sendJson(req, res, 500, JSON.stringify({ detail: "Internal Server Error" }), { public: false }); }
       };
       req.once("aborted", cleanup);
       res.once("close", cleanup);
