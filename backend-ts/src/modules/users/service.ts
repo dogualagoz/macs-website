@@ -38,7 +38,7 @@ export async function setPassword(db: Db, env: Env, email: string, password: str
   return db.transaction(async tx => {
     const row = await repo.findUserCredentialsByEmail(tx, email);
     if (!row) throw new HttpError(404, "Kullanıcı bulunamadı");
-    return required(await repo.updateUser(tx, row.id, { hashedPassword: await hashPassword(password), passwordChangedAt: sql`now()` }));
+    return required(await repo.updateUser(tx, row.id, { hashedPassword: await hashPassword(password), passwordChangedAt: sql`now()`, failedLoginAttempts: 0, lastFailedLogin: null }));
   });
 }
 export async function changePassword(db: Db, env: Env, email: string, currentPassword: string, newPassword: string): Promise<UserResponse> {
