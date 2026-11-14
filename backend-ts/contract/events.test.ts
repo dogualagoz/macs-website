@@ -75,8 +75,8 @@ describe("events contract", () => {
   test("create unknown category and duplicate title", async () => {
     const token = await mod(); const missing = await api("POST", "/events", { token, json: { ...input, category_id: 999 } });
     expect(missing.status).toBe(404); expect(missing.body).toEqual({ detail: "Belirtilen kategori bulunamadı" });
-    const r = await api("POST", "/events", { token, json: { ...input, title: "Bahar Şenliği", category_id: 1 } }); expect(r.status).toBe(201);
-    expect((r.body as EventBody).slug).toMatch(/^bahar-senligi-\d{8}-\d{6}$/); expect(r.body).toMatchObject({ category: { id: 1 }, creator: { id: 2 } });
+    const r = await api("POST", "/events", { token, json: { ...input, title: "Bahar Şenliği", category_id: "1" } }); expect(r.status).toBe(201);
+    expect((r.body as EventBody).slug).toMatch(/^bahar-senligi-\d{8}-\d{6}$/); expect(r.body).toMatchObject({ category_id: 1, category: { id: 1 }, creator: { id: 2 } });
   });
   (TARGET_KIND === "new" ? test : test.skip)("empty slug base uses distinct timestamps (P3)", async () => {
     const token = await mod(); const first = await api("POST", "/events", { token, json: { ...input, title: "!!!" } });
@@ -99,6 +99,7 @@ describe("events contract", () => {
     const title = await api("PUT", "/events/1", { token, json: { title: "Yeni Ad" } }); expect(title.status).toBe(200); expect(title.body).toMatchObject({ slug: "yeni-ad" });
     const taken = await api("PUT", "/events/2", { token, json: { title: "Yeni Ad" } }); expect(taken.status).toBe(200); expect((taken.body as EventBody).slug).toMatch(/^yeni-ad-\d{8}-\d{6}$/);
     const clear = await api("PUT", "/events/1", { token, json: { category_id: null } }); expect(clear.status).toBe(200); expect(clear.body).toMatchObject({ category_id: null, category: null });
+    const restore = await api("PUT", "/events/1", { token, json: { category_id: "1" } }); expect(restore.status).toBe(200); expect(restore.body).toMatchObject({ category_id: 1, category: { id: 1 } });
   });
   test("update supports inactive events and rejects deleted or missing category", async () => {
     const token = await mod(); expect((await api("PUT", "/events/3", { token, json: { location: "B201" } })).status).toBe(200);

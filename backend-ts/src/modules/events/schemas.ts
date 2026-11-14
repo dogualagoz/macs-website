@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { dateTimeIn, pathInt, qBool, qInt, qStr } from "../../lib/validation";
+import { bodyInt, dateTimeIn, pathInt, qBool, qInt, qStr } from "../../lib/validation";
 import { userResponseSchema } from "../users/schemas";
 
 export const EVENT_SORTABLE = ["start_time", "title", "created_at"] as const;
@@ -43,7 +43,7 @@ const bodyBoolean = z.preprocess(value => {
 const eventFields = {
   title: z.string(), description: z.string().nullish(), content: z.string().nullish(), image_url: z.string().nullish(),
   location: z.string().nullish(), registration_link: z.string().nullish(), directions_link: z.string().nullish(),
-  start_time: dateTimeIn(), end_time: dateTimeIn().nullish(), category_id: z.number().int().nullish(),
+  start_time: dateTimeIn(), end_time: dateTimeIn().nullish(), category_id: bodyInt().nullish(),
   is_active: bodyBoolean, is_featured: bodyBoolean,
 };
 export const eventCreateSchema = z.object({ ...eventFields, is_active: bodyBoolean.default(true), is_featured: bodyBoolean.default(false) });
