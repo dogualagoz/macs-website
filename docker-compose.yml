@@ -95,6 +95,7 @@ services:
       - .env
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-macs_db}
+      RUN_MIGRATIONS: "true"
       UPLOAD_DIR: /app/static/uploads
       STATIC_DIR: /app/static
       CORS_ORIGINS: ${CORS_ORIGINS:-}

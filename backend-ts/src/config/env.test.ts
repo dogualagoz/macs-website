@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { DEFAULT_ORIGINS, parseEnv } from "./env";
+import { DEFAULT_ORIGINS, parseEnv, parseRunMigrations } from "./env";
 
 const base = { DATABASE_URL: "postgresql://u:p@db:5432/x", JWT_SECRET_KEY: "x".repeat(32) };
 
@@ -120,4 +120,15 @@ test.each([
 
 test("parseEnv requires DATABASE_URL", () => {
   expect(() => parseEnv({ JWT_SECRET_KEY: base.JWT_SECRET_KEY })).toThrow(/DATABASE_URL/);
+});
+
+test("parseRunMigrations shares booleanFlag semantics for 0/off/false/1/on/true/unset", () => {
+  expect(parseRunMigrations(undefined)).toBe(true);
+  for (const disabled of ["0", "off", "false", "OFF", "FALSE"]) {
+    expect(parseRunMigrations(disabled)).toBe(false);
+  }
+  for (const enabled of ["1", "on", "true", "ON", "TRUE"]) {
+    expect(parseRunMigrations(enabled)).toBe(true);
+  }
+  expect(() => parseRunMigrations("invalid")).toThrow(/RUN_MIGRATIONS/);
 });

@@ -2,6 +2,7 @@ import { readdir, readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import type postgres from "postgres";
+import { parseRunMigrations } from "../config/env";
 import { createDb } from "./client";
 import type { Sql } from "./client";
 
@@ -115,7 +116,7 @@ export async function runMigrations(sql: Sql, dir: string): Promise<{ applied: s
 if (import.meta.main) {
   let sql: Sql | undefined;
   try {
-    if (process.env.RUN_MIGRATIONS?.toLowerCase() === "false") {
+    if (!parseRunMigrations(process.env.RUN_MIGRATIONS)) {
       console.log("skipped");
     } else {
       const url = process.env.DATABASE_URL;

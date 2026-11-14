@@ -128,10 +128,24 @@ test("migration restores the reserved session message setting", async () => {
     expect((await single`SHOW client_min_messages`)[0]?.client_min_messages).toBe("error");
   } finally { await single.end({ timeout: 1 }); }
 });
-test("CLI RUN_MIGRATIONS=false skips without a reachable DB", () => {
-  const result = spawnSync("bun", ["src/db/migrate.ts"], { env: { ...process.env, DATABASE_URL: "postgresql://postgres:postgres@127.0.0.1:1/macs_test", RUN_MIGRATIONS: "false" }, encoding: "utf8" });
+test.each(["0", "off", "false", "OFF", "FALSE"])("CLI RUN_MIGRATIONS=%s skips without a reachable DB", (flag) => {
+  const result = spawnSync("bun", ["src/db/migrate.ts"], { env: { ...process.env, DATABASE_URL: "postgresql://postgres:postgres@127.0.0.1:1/macs_test", RUN_MIGRATIONS: flag }, encoding: "utf8" });
   expect(result.status).toBe(0);
   expect(result.stdout.trim()).toBe("skipped");
+});
+
+test.each(["1", "on", "true", undefined])("CLI RUN_MIGRATIONS=%s runs migrations when enabled or unset", (flag) => {
+  const env = { ...process.env, DATABASE_URL: url, ...(flag === undefined ? {} : { RUN_MIGRATIONS: flag }) };
+  if (flag === undefined) delete env.RUN_MIGRATIONS;
+  const result = spawnSync("bun", ["src/db/migrate.ts"], { env, encoding: "utf8" });
+  expect(result.status).toBe(0);
+  expect(JSON.parse(result.stdout)).toEqual({ applied: ["0000_baseline.sql", "0001_perf_indexes.sql"], skipped: [] });
+});
+
+test("CLI rejects invalid RUN_MIGRATIONS flag", () => {
+  const result = spawnSync("bun", ["src/db/migrate.ts"], { env: { ...process.env, DATABASE_URL: "postgresql://postgres:postgres@127.0.0.1:1/macs_test", RUN_MIGRATIONS: "invalid" }, encoding: "utf8" });
+  expect(result.status).toBe(1);
+  expect(result.stderr).toContain("RUN_MIGRATIONS");
 });
 
 test("no-transaction splits semicolons followed by spaces, tabs and CRLF", async () => {

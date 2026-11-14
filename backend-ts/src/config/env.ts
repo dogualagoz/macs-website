@@ -63,6 +63,14 @@ export interface Env {
   RUN_MIGRATIONS: boolean;
 }
 
+export function parseRunMigrations(raw: string | undefined = process.env.RUN_MIGRATIONS): boolean {
+  const parsed = booleanFlag.default(true).safeParse(raw);
+  if (!parsed.success) {
+    throw new Error(`Invalid environment: RUN_MIGRATIONS: ${parsed.error.issues.map((issue) => issue.message).join("; ")}`);
+  }
+  return parsed.data;
+}
+
 export function parseEnv(raw: Record<string, string | undefined>): Env {
   const parsed = schema.safeParse(raw);
   if (!parsed.success) {
