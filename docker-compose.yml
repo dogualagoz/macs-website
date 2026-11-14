@@ -95,7 +95,8 @@ services:
       - .env
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-macs_db}
-      RUN_MIGRATIONS: "true"
+      # Varsayilan 1; .env icinde RUN_MIGRATIONS=0 verilirse backend-ts icin de migration devre disi kalir.
+      RUN_MIGRATIONS: ${RUN_MIGRATIONS:-1}
       UPLOAD_DIR: /app/static/uploads
       STATIC_DIR: /app/static
       CORS_ORIGINS: ${CORS_ORIGINS:-}

@@ -134,9 +134,9 @@ test.each(["0", "off", "false", "OFF", "FALSE"])("CLI RUN_MIGRATIONS=%s skips wi
   expect(result.stdout.trim()).toBe("skipped");
 });
 
-test.each(["1", "on", "true", undefined])("CLI RUN_MIGRATIONS=%s runs migrations when enabled or unset", (flag) => {
-  const env = { ...process.env, DATABASE_URL: url, ...(flag === undefined ? {} : { RUN_MIGRATIONS: flag }) };
-  if (flag === undefined) delete env.RUN_MIGRATIONS;
+test.each(["1", "on", "true", "unset"] as const)("CLI RUN_MIGRATIONS=%s runs migrations when enabled or unset", (flag) => {
+  const env = { ...process.env, DATABASE_URL: url, ...(flag === "unset" ? {} : { RUN_MIGRATIONS: flag }) };
+  if (flag === "unset") delete env.RUN_MIGRATIONS;
   const result = spawnSync("bun", ["src/db/migrate.ts"], { env, encoding: "utf8" });
   expect(result.status).toBe(0);
   expect(JSON.parse(result.stdout)).toEqual({ applied: ["0000_baseline.sql", "0001_perf_indexes.sql"], skipped: [] });
