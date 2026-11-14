@@ -72,8 +72,18 @@ export function createApp(deps: AppDeps, registerRoutes?: (router: Router, deps:
   const document = buildOpenApiDocument(deps.routeRegistry);
   app.get("/openapi.json", (_req, res) => { res.set("Cache-Control", "no-store").json(document); });
   const noStore: RequestHandler = (_req, res, next) => { res.set("Cache-Control", "no-store"); next(); };
+  const redirectDocs: RequestHandler = (req, res, next) => {
+    const queryIndex = req.originalUrl.indexOf("?");
+    const path = queryIndex === -1 ? req.originalUrl : req.originalUrl.slice(0, queryIndex);
+    if (req.method === "GET" && path === "/docs") {
+      const query = queryIndex === -1 ? "" : req.originalUrl.slice(queryIndex);
+      res.redirect(301, `/docs/${query}`);
+      return;
+    }
+    next();
+  };
   const swaggerOptions = { swaggerOptions: { url: "/openapi.json" } };
-  app.use("/docs", noStore,
+  app.use("/docs", noStore, redirectDocs,
     swaggerUi.serveFiles(undefined, swaggerOptions), swaggerUi.setup(undefined, swaggerOptions));
   app.use(notFound(deps.routeRegistry));
   app.use(errorHandler(deps.logger));

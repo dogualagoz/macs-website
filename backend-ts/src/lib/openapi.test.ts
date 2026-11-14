@@ -70,14 +70,40 @@ test("two apps have independent registries and documents", async () => {
   } finally { await other.sql.end(); }
 });
 test("public local Swagger assets and docs bypass cache; redoc 404", async () => {
-  for (const path of ["/openapi.json", "/docs", "/docs/", "/docs/swagger-ui.css", "/docs/swagger-ui-bundle.js", "/docs/swagger-ui-init.js"]) {
-    const res = await request(app).get(path).redirects(1);
+  for (const path of ["/openapi.json", "/docs/", "/docs/swagger-ui.css", "/docs/swagger-ui-bundle.js", "/docs/swagger-ui-init.js"]) {
+    const res = await request(app).get(path);
     expect(res.status).toBe(200);
     expect(res.headers["cache-control"]).toBe("no-store");
     expect(res.headers["x-cache"]).toBeUndefined();
-    if (path === "/docs") { expect(res.text).toContain("swagger-ui"); expect(res.text).not.toMatch(/https?:\/\/[^"']+\.(js|css)/); }
+    if (path === "/docs/") { expect(res.text).toContain("swagger-ui"); expect(res.text).not.toMatch(/https?:\/\/[^"']+\.(js|css)/); }
     if (path.endsWith("init.js")) expect(res.text).toContain("/openapi.json");
   }
   expect(deps.cache.size()).toBe(0);
   expect((await request(app).get("/redoc")).status).toBe(404);
+});
+
+test("exact /docs redirects to /docs/ and preserves the raw query string", async () => {
+  for (const query of ["", "?url=%2Fopenapi.json&filter=a%20b&filter=c", "?next=https%3A%2F%2Fexample.com%2Fx%3Fy%3D1"]) {
+    const res = await request(app).get(`/docs${query}`);
+    expect(res.status).toBe(301);
+    expect(res.headers["location"]).toBe(`/docs/${query}`);
+    expect(res.headers["cache-control"]).toBe("no-store");
+    expect(res.headers["x-cache"]).toBeUndefined();
+  }
+});
+test("every relative Swagger HTML asset resolves successfully from /docs/", async () => {
+  const html = await request(app).get("/docs/");
+  expect(html.status).toBe(200);
+  expect(html.headers["content-type"]).toContain("text/html");
+  const assets = [...html.text.matchAll(/\b(?:src|href)\s*=\s*["'](\.\/[^"']+)["']/g)].map(match => match[1]);
+  expect(assets.length).toBeGreaterThanOrEqual(6);
+  for (const asset of assets) {
+    const url = new URL(asset ?? "", "http://localhost/docs/");
+    expect(url.pathname.startsWith("/docs/")).toBe(true);
+    const res = await request(app).get(url.pathname + url.search);
+    expect(res.status).toBe(200);
+    expect(res.headers["cache-control"]).toBe("no-store");
+    expect(res.headers["x-cache"]).toBeUndefined();
+  }
+  expect(deps.cache.size()).toBe(0);
 });
