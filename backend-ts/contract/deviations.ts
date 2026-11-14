@@ -12,6 +12,7 @@ export const knownDeviations: readonly Deviation[] = [
   { id: "g", summary: "Previously unordered lists now ordered by id" },
   { id: "h", summary: "Users pagination: skip >= 0, limit 1..100, default 10" },
   { id: "j", summary: "Public event creator retained on both targets until Task 19" },
+  { id: "k", summary: "Embedded project_role reflects its own project membership; old shared Member instances leak roles across projects" },
   { id: "P1", summary: "Slash redirect: old 307, new accepts both forms directly" },
   { id: "P2", summary: "Rate limits count before auth/validation in one process" },
   { id: "P3", summary: "Non-Latin slug letters removed; empty base uses UTC timestamp" },
@@ -37,10 +38,21 @@ function validationAt(body: unknown, field: string, input: string, type: string,
   const item: unknown = body.detail[0];
   return item !== null && typeof item === "object" && "type" in item && item.type === type && "loc" in item && stableJson(item.loc) === stableJson(["query", field]) && "msg" in item && item.msg === msg && "input" in item && item.input === input;
 }
+// Mask existing role fields only; retain every other field and all array ordering.
+function maskProjectRoles(body: unknown): unknown {
+  if (body === null || typeof body !== "object" || Array.isArray(body)) return body;
+  if ("projects" in body && Array.isArray(body.projects)) return { ...body, projects: body.projects.map(maskProjectRoles) };
+  if (!("members" in body) || !Array.isArray(body.members)) return body;
+  return { ...body, members: body.members.map((member: unknown) => member !== null && typeof member === "object" && !Array.isArray(member) && Object.hasOwn(member, "project_role")
+    ? { ...member, project_role: "<project-role>" } : member) };
+}
 // GET exceptions are deliberately narrow. Write-only deviations are registered
 // for contract tests, but never authorize unrelated catalogue GET differences.
 export function approvedDeviation(r: RequestIdentity, old: ComparableResponse, next: ComparableResponse): string | null {
   if (r.method !== "GET") return null;
+  const projectRead = ["/projects", "/projects/admin", "/projects/featured"].includes(r.path) || /^\/projects\/(?:\d+|by-slug\/[^/]+)$/.test(r.path);
+  if (projectRead && old.status === next.status && stableJson(old.body) !== stableJson(next.body)
+    && stableJson(maskProjectRoles(old.body)) === stableJson(maskProjectRoles(next.body))) return "k";
   const status = r.query.get("status");
   const enumMessage = "Input should be 'PLANNING', 'IN_PROGRESS', 'COMPLETED', 'ON_HOLD' or 'CANCELLED'";
   const projectFilter = ["/projects", "/projects/admin"].includes(r.path);

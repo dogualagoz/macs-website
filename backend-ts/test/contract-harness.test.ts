@@ -16,7 +16,7 @@ test("normalization changes volatile values and unordered lists only", () => {
   expect(stableJson({ b: 1, a: { d: 2, c: 3 } })).toBe('{"a":{"c":3,"d":2},"b":1}');
 });
 test("deviation IDs are registered and unknown IDs fail closed", () => {
-  expect(knownDeviations.map(d => d.id)).toEqual(["a", "b", "c", "d", "e", "f", "g", "h", "j", "P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8"]);
+  expect(knownDeviations.map(d => d.id)).toEqual(["a", "b", "c", "d", "e", "f", "g", "h", "j", "k", "P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8"]);
   expect(selectDeviation("old", "a", { old: 500, new: 401 })).toBe(500);
   expect(selectDeviation("new", "a", { old: 500, new: 401 })).toBe(401);
   expect(() => selectDeviation("old", "unapproved", { old: 1, new: 2 })).toThrow("Unknown deviation");
@@ -108,4 +108,26 @@ test("client requires target configuration and rejects reset URLs outside isolat
   `);
   expect(guards.exitCode).toBe(0);
   expect(guards.stderr.toString()).toBe("");
+});
+
+
+test("project role deviation k approves only role values on project GET responses", () => {
+  const oldProject = { id: 2, title: "Mobil", members: [{ id: 1, full_name: "Ayşe", project_role: "Lead" }] };
+  const newProject = { ...oldProject, members: [{ ...oldProject.members[0], project_role: null }] };
+  for (const path of ["/projects", "/projects/admin", "/projects/featured", "/projects/by-slug/mobil", "/projects/2"]) {
+    const r = { method: "GET", path, query: new URLSearchParams() };
+    const collection = ["/projects", "/projects/admin"].includes(path);
+    const wrap = (project: object) => collection ? { projects: [project], total: 1, page: 1, size: 10 } : project;
+    const old = { status: 200, body: wrap(oldProject) }; const next = { status: 200, body: wrap(newProject) };
+    expect(approvedDeviation(r, old, next)).toBe("k");
+    expect(approvedDeviation(r, old, { ...next, body: wrap({ ...newProject, title: "wrong" }) })).toBeNull();
+    expect(approvedDeviation(r, old, { ...next, body: wrap({ ...newProject, members: [{ ...newProject.members[0], full_name: "wrong" }] }) })).toBeNull();
+    expect(approvedDeviation(r, old, { ...next, status: 404 })).toBeNull();
+    expect(approvedDeviation({ ...r, method: "POST" }, old, next)).toBeNull();
+    expect(approvedDeviation(r, old, old)).toBeNull();
+  }
+  const old = { status: 200, body: oldProject }; const next = { status: 200, body: newProject };
+  for (const path of ["/events/2", "/projects/categories", "/projects/2/members", "/members/1/projects", "/projects/admin/other"]) expect(approvedDeviation({ method: "GET", path, query: new URLSearchParams() }, old, next)).toBeNull();
+  expect(approvedDeviation({ method: "GET", path: "/projects/2", query: new URLSearchParams() }, old, { status: 200, body: { ...newProject, members: [{ id: 1, full_name: "Ayşe" }] } })).toBeNull();
+  expect(oldProject.members[0]?.project_role).toBe("Lead");
 });
