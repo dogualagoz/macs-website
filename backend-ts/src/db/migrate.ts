@@ -48,7 +48,7 @@ export async function runMigrations(sql: Sql, dir: string): Promise<{ applied: s
       const source = await readFile(resolve(dir, name), "utf8");
       const outsideTransaction = source.split(/\r?\n/, 1)[0] === "-- no-transaction";
       if (outsideTransaction) {
-        for (const statement of source.split(/;\r?\n/).filter((part) => part.trim())) await connection.unsafe(statement);
+        for (const statement of source.split(/;[ \t]*\r?\n/).filter((part) => part.trim())) await connection.unsafe(statement);
         await connection`INSERT INTO public.__bun_migrations (name) VALUES (${name})`;
       } else {
         // ReservedSql does not expose begin(); explicit transaction commands keep

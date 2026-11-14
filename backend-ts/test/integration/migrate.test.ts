@@ -133,3 +133,10 @@ test("CLI RUN_MIGRATIONS=false skips without a reachable DB", () => {
   expect(result.status).toBe(0);
   expect(result.stdout.trim()).toBe("skipped");
 });
+
+test("no-transaction splits semicolons followed by spaces, tabs and CRLF", async () => {
+  await runMigrations(sql, dir);
+  await writeFile(join(dir, "0001_whitespace.sql"), "-- no-transaction\r\nCREATE INDEX CONCURRENTLY ix_space ON events (title);  \t\r\nCREATE INDEX CONCURRENTLY ix_tab ON events (location);\t\n");
+  expect((await runMigrations(sql, dir)).applied).toEqual(["0001_whitespace.sql"]);
+  expect([...(await sql`SELECT c.relname, i.indisvalid FROM pg_index i JOIN pg_class c ON c.oid = i.indexrelid WHERE c.relname IN ('ix_space', 'ix_tab') ORDER BY c.relname`)]).toEqual([{ relname: "ix_space", indisvalid: true }, { relname: "ix_tab", indisvalid: true }]);
+});
