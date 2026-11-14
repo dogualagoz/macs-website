@@ -87,6 +87,16 @@ export const qStr = (): z.ZodType<string | undefined> => z.string().optional().t
 export const pathInt = (_name: string): z.ZodType<number> => qInt({}).transform((value, ctx) =>
   value === undefined ? invalid(ctx, "missing", "Field required") : value,
 );
+export const bodyInt = (): z.ZodType<number> => z.unknown().transform((value, ctx) => {
+  if (value === undefined || (typeof value === "number" && Number.isSafeInteger(value))) return value;
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return /^[+-]?\d+$/.test(trimmed) && Number.isSafeInteger(Number(trimmed))
+      ? Number(trimmed)
+      : invalid(ctx, "int_parsing", "Input should be a valid integer, unable to parse string as an integer");
+  }
+  return invalid(ctx, "int_type", "Input should be a valid integer");
+}).pipe(z.int());
 export const dateTimeIn = (): z.ZodType<string> => z.string().transform((value, ctx) => {
   try { return parseDateTimeInput(value); }
   catch { return invalid(ctx, "datetime_from_date_parsing", "Input should be a valid datetime or date"); }

@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { z } from "zod";
-import { dateTimeIn, pathInt, qBool, qInt, qStr, toFastApi422, validationError } from "./validation";
+import { bodyInt, dateTimeIn, pathInt, qBool, qInt, qStr, toFastApi422, validationError } from "./validation";
 
 const run = (schema: z.ZodType, src: 'body'|'query'|'path', raw: unknown) => { const r = schema.safeParse(raw); return r.success ? [] : toFastApi422(r.error, src, raw); };
 test('missing body field', () => { expect(run(z.object({ email: z.string() }), 'body', { x: 1 })).toEqual(
@@ -66,4 +66,27 @@ test("primitive type errors and missing query input", () => {
   ]);
   expect(run(z.int(), "body", 1.5)[0]?.type).toBe("int_type");
   expect(run(z.email(), "body", "bad")[0]?.msg).toBe("value is not a valid email address");
+});
+test("bodyInt accepts integers and integer strings and rejects floats, text, and booleans", () => {
+  const required = z.object({ id: bodyInt() });
+  const optional = z.object({ category_id: bodyInt().nullish() });
+  expect(required.parse({ id: 1 })).toEqual({ id: 1 });
+  expect(required.parse({ id: "1" })).toEqual({ id: 1 });
+  expect(required.parse({ id: " -42 " })).toEqual({ id: -42 });
+  expect(optional.parse({})).toEqual({});
+  expect(optional.parse({ category_id: null })).toEqual({ category_id: null });
+  expect(optional.parse({ category_id: "1" })).toEqual({ category_id: 1 });
+  expect(run(required, "body", { other: 1 })).toEqual([
+    { type: "missing", loc: ["body", "id"], msg: "Field required", input: { other: 1 } },
+  ]);
+  for (const bad of ["1.5", "abc", "", " "]) {
+    expect(run(optional, "body", { category_id: bad })).toEqual([
+      { type: "int_parsing", loc: ["body", "category_id"], msg: "Input should be a valid integer, unable to parse string as an integer", input: bad },
+    ]);
+  }
+  for (const bad of [true, false, 1.5]) {
+    expect(run(optional, "body", { category_id: bad })).toEqual([
+      { type: "int_type", loc: ["body", "category_id"], msg: "Input should be a valid integer", input: bad },
+    ]);
+  }
 });
