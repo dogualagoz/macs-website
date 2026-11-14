@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
 import { Writable } from "node:stream";
+import { DrizzleQueryError } from "drizzle-orm/errors";
 import pino from "pino";
 import request from "supertest";
 import { createApp } from "../app";
@@ -14,13 +15,14 @@ import { perHour, perMinute } from "./rate-limit";
 const now = new Date("2026-11-14T00:00:00Z");
 const env = parseEnv({ DATABASE_URL: "postgresql://u:p@db/x", JWT_SECRET_KEY: "x".repeat(32), NODE_ENV: "test" });
 const user: AuthUser = { id: 1, email: "admin@example.com", full_name: "Admin", role: "admin", status: "approved", is_active: true, last_login: null, failed_login_attempts: 0, password_changed_at: null };
-function setup(options: { user?: AuthUser | null; enabled?: boolean } = {}) {
+function setup(options: { user?: AuthUser | null; enabled?: boolean; error?: object } = {}) {
   const logs: Record<string, unknown>[] = [];
   const logger = pino({ level: "info" }, new Writable({ write(chunk: Buffer, _encoding, done) { logs.push(JSON.parse(chunk.toString()) as Record<string, unknown>); done(); } }));
   const deps: AppDeps = { env: { ...env, RATELIMIT_ENABLED: options.enabled ?? true }, logger, routeRegistry: [], now: () => now,
     loadUser: (email) => { expect(email).toBe(user.email); return Promise.resolve(options.user === undefined ? user : options.user); } };
   const app = createApp(deps, (router, d) => {
     const base = { domain: "system", tag: "System", summary: "Test" } as const;
+    router.get("/injected-error", (_req, _res, next) => { next(options.error); });
     route(router, d, { ...base, method: "get", path: "/protected", auth: "user", handler: ({ user: current }) => Promise.resolve({ email: current?.email }) });
     for (const path of ["/limited", "/other-limit"]) route(router, d, { ...base, method: "get", path, rateLimit: perMinute(3), handler: () => Promise.resolve({ ok: true }) });
     route(router, d, { ...base, method: "post", path: "/body", handler: ({ body }) => Promise.resolve(body) });
@@ -122,6 +124,35 @@ test.each([
   const r = await request(setup().app).get(`/db/${code}`);
   expect(r.status).toBe(status);
   expect(r.body).toEqual({ detail });
+});
+test.each([
+  ["23505", 409, "Kayıt zaten mevcut"],
+  ["23503", 409, "Kayıt başka kayıtlar tarafından kullanıldığı için işlem tamamlanamadı"],
+  ["57014", 503, "Veritabanı zaman aşımı"],
+] as const)("Drizzle-wrapped PG %s maps to %i", async (code, status, detail) => {
+  const error = new DrizzleQueryError("select 1", [], Object.assign(new Error("pg"), { code }));
+  const r = await request(setup({ error }).app).get("/injected-error");
+  expect(r.status).toBe(status);
+  expect(r.body).toEqual({ detail });
+});
+test("plain and nested causes preserve PostgreSQL error mapping", async () => {
+  const pg = Object.assign(new Error("pg"), { code: "23505" });
+  for (const error of [{ cause: pg }, { cause: { cause: pg } }]) {
+    const r = await request(setup({ error }).app).get("/injected-error");
+    expect(r.status).toBe(409);
+    expect(r.body).toEqual({ detail: "Kayıt zaten mevcut" });
+  }
+});
+test("non-object, cyclic and excessive cause chains fall back to 500", async () => {
+  const cyclic: { cause?: object } = {};
+  cyclic.cause = cyclic;
+  let deep: object = Object.assign(new Error("pg"), { code: "23505" });
+  for (let depth = 0; depth < 20; depth++) deep = { cause: deep };
+  for (const error of [{ cause: null }, { cause: "23505" }, cyclic, deep]) {
+    const r = await request(setup({ error }).app).get("/injected-error");
+    expect(r.status).toBe(500);
+    expect(r.body).toEqual({ detail: "Internal Server Error" });
+  }
 });
 test("unexpected error includes CORS headers and logs a stack", async () => {
   const { app, logs } = setup();
