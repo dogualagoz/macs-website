@@ -115,11 +115,10 @@ const NewProjectsPage = () => {
         url="https://macsclub.com.tr/projeler"
       />
       {/* overflow-x-clip: overflow-x-hidden kaydırma kutusu yaratıp yapışkan (sticky) öğeleri kırar. */}
-      <div className="min-h-screen bg-[#140b22] text-white overflow-x-clip relative isolate">
+      <div className="min-h-screen bg-[#06081e] text-white overflow-x-clip relative isolate">
         {/* Tek viewport boyutunda canvas: sayfa uzadıkça desen gerilmez. */}
-        <div aria-hidden="true" className="fixed inset-0 z-0 pointer-events-none bg-[#140b22]">
-          {/* Geçici Halloween paleti; GlassFold varsayılanları mavi kalır. */}
-          <GlassFold color1="#783517" color2="#140b22" color3="#ff9a3d" live={backdropSignal} />
+        <div aria-hidden="true" className="fixed inset-0 z-0 pointer-events-none bg-[#06081e]">
+          <GlassFold live={backdropSignal} />
         </div>
         <div className="relative z-10">
         <AnimatePresence mode="wait">

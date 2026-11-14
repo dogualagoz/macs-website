@@ -14,7 +14,7 @@
   --showcase-width: clamp(300px, 29vw, 460px);
   --showcase-step: clamp(170px, 22vw, 350px);
   --showcase-rise: 72px;
-  --showcase-accent: #ff9a3d;
+  --showcase-accent: #96d7ff;
   --showcase-ease: cubic-bezier(.22, .61, .36, 1);
   min-height: 100svh;
   display: flex;
