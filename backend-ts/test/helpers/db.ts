@@ -12,3 +12,7 @@ export async function countQueries<T>(deps: AppDeps, fn: () => Promise<T>): Prom
   const result = await fn();
   return { result, count: deps.counter.count(), queries: deps.counter.queries() };
 }
+
+export async function seedDb(sql: Sql, seed: string): Promise<void> {
+  await sql.begin(async tx => { await tx.unsafe(seed).simple(); });
+}
