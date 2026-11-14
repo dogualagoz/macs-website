@@ -11,6 +11,8 @@ import { errorHandler } from "./middleware/error-handler";
 import { notFound } from "./middleware/not-found";
 import { requestId } from "./middleware/request-id";
 import { securityHeaders } from "./middleware/security-headers";
+import { registerAuthRoutes } from "./modules/auth/routes";
+import { registerUserRoutes } from "./modules/users/routes";
 import { registerSystemRoutes } from "./modules/system/routes";
 
 export interface AppDeps {
@@ -42,6 +44,8 @@ export function createApp(deps: AppDeps, registerRoutes?: (router: Router, deps:
   app.use(bodyParsers);
   const router = express.Router();
   registerSystemRoutes(router, deps);
+  registerAuthRoutes(router, deps);
+  registerUserRoutes(router, deps);
   registerRoutes?.(router, deps);
   app.use(router);
   app.use(notFound(deps.routeRegistry));

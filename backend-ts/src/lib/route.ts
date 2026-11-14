@@ -54,10 +54,14 @@ export interface RouteDef<P, Q, B, R> extends RouteMeta {
   handler: (ctx: RouteCtx<P, Q, B>) => Promise<R | typeof STREAMED>;
 }
 
-function parse<T>(schema: z.ZodType<T> | undefined, source: "body" | "query" | "path", raw: unknown, override?: HttpError): T {
+function parse<T>(schema: z.ZodType<T> | undefined, source: "body" | "query" | "path", raw: unknown, override?: HttpError, form = false): T {
   if (!schema) return raw as T;
   const result = schema.safeParse(raw);
-  if (!result.success) throw override ?? validationError(toFastApi422(result.error, source, raw));
+  if (!result.success) {
+    const items = toFastApi422(result.error, source, raw);
+    if (form) for (const item of items) if (item.type === "missing") item.input = null;
+    throw override ?? validationError(items);
+  }
   return result.data;
 }
 
@@ -79,7 +83,7 @@ export function route<P, Q, B, R>(router: Router, deps: AppDeps, def: RouteDef<P
       ]);
       const params = parse(def.params, "path", req.params);
       const query = parse(def.query, "query", req.query);
-      const body = parse(def.body, "body", req.body ?? {}, bodyInvalid);
+      const body = parse(def.body, "body", def.bodyKind === "form" && !req.is("application/x-www-form-urlencoded") ? {} : req.body ?? {}, bodyInvalid, def.bodyKind === "form");
       const result = await handler({ params, query, body, user, file: (req as Request & { file?: UploadedFile }).file ?? null, req, res });
       if (result === STREAMED) return;
       const status = def.status ?? 200;

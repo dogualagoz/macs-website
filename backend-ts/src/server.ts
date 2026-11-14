@@ -1,3 +1,5 @@
+import { findUserByEmail } from "./modules/users/repo";
+import { serializeUser } from "./modules/users/serializer";
 import { createApp } from "./app";
 import { parseEnv } from "./config/env";
 import { createDb } from "./db/client";
@@ -7,7 +9,8 @@ try {
   const env = parseEnv(process.env);
   const logger = createLogger(env.LOG_LEVEL);
   const database = createDb(env.DATABASE_URL);
-  const app = createApp({ env, logger, routeRegistry: [], ...database });
+  const app = createApp({ env, logger, routeRegistry: [], ...database,
+    loadUser: email => findUserByEmail(database.db, email).then(row => row ? serializeUser(row) : null) });
   const server = app.listen(env.PORT);
   server.once("listening", () => {
     logger.info({ port: env.PORT }, "Server listening");

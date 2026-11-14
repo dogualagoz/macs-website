@@ -162,3 +162,12 @@ test("protected route registration requires an injected user loader", () => {
     route(router, appDeps, { ...base, auth: "user", handler: () => Promise.resolve(null) });
   })).toThrow("Protected routes require loadUser");
 });
+
+test("form-only route rejects JSON credentials as missing fields", async () => {
+  const app = createApp(deps(), (router, d) => {
+    route(router, d, { ...base, bodyKind: "form", body: z.object({ username: z.string() }), handler: ({ body }) => Promise.resolve(body) });
+  });
+  const r = await request(app).post("/test").send({ username: "mod@example.com" });
+  expect(r.status).toBe(422);
+  expect(r.body).toEqual({ detail: [{ type: "missing", loc: ["body", "username"], msg: "Field required", input: null }] });
+});

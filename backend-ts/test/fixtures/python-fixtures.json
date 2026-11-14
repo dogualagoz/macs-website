@@ -8,5 +8,6 @@
     "secret": "test-secret-key-that-is-long-enough-for-hs256",
     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBleGFtcGxlLmNvbSIsInJvbGUiOiJhZG1pbiIsImV4cCI6NDEwMjQ0NDgwMH0.slhaSGq1QgscxzIysnRcXB7YM3xR6u95y3N8kgXoUjA",
     "claims": { "sub": "admin@example.com", "role": "admin", "exp": 4102444800 }
-  }
+  },
+  "task6_legacy_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBleGFtcGxlLmNvbSIsInJvbGUiOiJhZG1pbiIsImV4cCI6NDEwMjQ0NDgwMH0.z0lYBxCbueBpxXkNoooQ3I9psqFJX4qzbOlZ08H4lyk"
 }
