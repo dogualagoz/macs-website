@@ -97,7 +97,7 @@ test("bodyInt matches Pydantic 2.11.7 lax int accept, reject, and error-type tab
       { type: "finite_number", loc: ["body", "category_id"], msg: "Input should be a finite number", input: bad },
     ]);
   }
-  for (const bad of ["1.5", "1.05", "1_000.0_0", "1_", "_1", "1__0", "+_1", "-_1", "1_.0", "1._0", "1.", ".0", "1e3", "1e0", "abc", "", " ", "999999999999999999999"]) {
+  for (const bad of ["1.5", "1.05", "1_000.0_0", "1_", "_1", "1__0", "+_1", "-_1", "1_.0", "1._0", "1.", ".0", "1e3", "1e0", "abc", "", " "]) {
     expect(run(optional, "body", { category_id: bad })).toEqual([
       { type: "int_parsing", loc: ["body", "category_id"], msg: "Input should be a valid integer, unable to parse string as an integer", input: bad },
     ]);
@@ -105,9 +105,19 @@ test("bodyInt matches Pydantic 2.11.7 lax int accept, reject, and error-type tab
   expect(run(required, "body", { id: null })).toEqual([
     { type: "int_type", loc: ["body", "id"], msg: "Input should be a valid integer", input: null },
   ]);
-  for (const bad of [[], {}, 9007199254740992]) {
+  for (const bad of [[], {}]) {
     expect(run(optional, "body", { category_id: bad })).toEqual([
       { type: "int_type", loc: ["body", "category_id"], msg: "Input should be a valid integer", input: bad },
     ]);
   }
+});
+
+test("intentional int4 safety deviation: reject integers beyond Number.MAX_SAFE_INTEGER (Pydantic accepts; old DB writes fail)", () => {
+  const schema = z.object({ category_id: bodyInt().nullish() });
+  expect(run(schema, "body", { category_id: "999999999999999999999" })).toEqual([
+    { type: "int_parsing", loc: ["body", "category_id"], msg: "Input should be a valid integer, unable to parse string as an integer", input: "999999999999999999999" },
+  ]);
+  expect(run(schema, "body", { category_id: 9007199254740992 })).toEqual([
+    { type: "int_type", loc: ["body", "category_id"], msg: "Input should be a valid integer", input: 9007199254740992 },
+  ]);
 });
