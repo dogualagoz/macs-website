@@ -23,6 +23,17 @@ export function readErrorCode(error: unknown): string | undefined {
   return undefined;
 }
 
+export function classifyErrorFields(error: unknown): { errorName: string; code?: string } {
+  let rawName: unknown;
+  if (typeof error === "object" && error !== null) {
+    const ctor: unknown = error.constructor;
+    if (typeof ctor === "function") rawName = ctor.name;
+  }
+  const errorName = typeof rawName === "string" && /^[A-Za-z][A-Za-z0-9]*Error$/.test(rawName) ? rawName : "Error";
+  const code = readErrorCode(error);
+  return code !== undefined ? { errorName, code } : { errorName };
+}
+
 export function errorHandler(logger: Logger): ErrorHandler<AppEnv> {
   return async (error, c) => {
     if (error instanceof HTTPException && (error.status === 400 || error.status === 415)) {
@@ -32,14 +43,14 @@ export function errorHandler(logger: Logger): ErrorHandler<AppEnv> {
       else if (c.req.path === "/auth/login") error = validationError(["username", "password"].map(field => ({ type: "missing", loc: ["body", field], msg: "Field required", input: null })));
       else error = validationError([{ type: "model_attributes_type", loc: ["body"], msg: "Input should be a valid dictionary or object to extract fields from", input: await c.req.text() }]);
     }
-    const code = readErrorCode(error);
-    const pg = code !== undefined && Object.hasOwn(PG_ERRORS, code) ? PG_ERRORS[code] : undefined;
+    const classified = classifyErrorFields(error);
+    const pg = classified.code !== undefined && Object.hasOwn(PG_ERRORS, classified.code) ? PG_ERRORS[classified.code] : undefined;
     const mapped = error instanceof HttpError ? error : pg ? new HttpError(pg[0], pg[1]) : new HttpError(500, "Internal Server Error");
     const kind = mapped.status === 429 ? (typeof mapped.detail === "object" && mapped.detail !== null && "error" in mapped.detail && String(mapped.detail.error).includes("failed logins") ? "login_ip_limit" : "rate_limit")
       : mapped.status === 413 ? "body_too_large" : mapped.status === 414 ? "url_too_long" : mapped.status === 503 && mapped.detail === "Service Unavailable" ? "handler_timeout"
       : mapped.status === 401 && typeof mapped.detail === "string" && mapped.detail.includes("dakika kilitlendi") ? "lockout" : null;
     if (kind) logSecurityEvent(logger, { kind, ip: c.get("clientIp") ?? resolveClientIp(c.req.raw.headers, (c.env as AppEnv["Bindings"] | undefined)?.socketIp), path: c.req.path, status: mapped.status });
-    if (mapped.status === 500 && !(error instanceof HttpError)) logger.error({ reqId: c.get("requestId"), errorName: /^[A-Za-z][A-Za-z0-9]*Error$/.test(error.constructor.name) ? error.constructor.name : "Error", code, path: classifyLogPath(c.req.path) }, "Unhandled request error");
+    if (mapped.status === 500 && !(error instanceof HttpError)) logger.error({ reqId: c.get("requestId"), ...classified, path: classifyLogPath(c.req.path) }, "Unhandled request error");
     if (mapped.status === 413) c.header("Connection", "close");
     for (const [key, value] of Object.entries(mapped.headers ?? {})) c.header(key, value);
     const response = sendJsonResponse(c, JSON.stringify(mapped.status === 429 ? mapped.detail : { detail: mapped.detail }), { status: mapped.status });

@@ -7,6 +7,7 @@ import { parseEnv } from "./config/env";
 import { createDb } from "./db/client";
 import { createLogger } from "./lib/logger";
 import { createResponseCache } from "./lib/cache";
+import { classifyErrorFields } from "./middleware/error-handler";
 
 try {
   const env = parseEnv(process.env);
@@ -36,7 +37,7 @@ try {
       await server.stop(false);
       await cache.drain();
       await database.sql.end({ timeout: 5 });
-    })().catch((error: unknown) => { logger.error({ err: error }, "Shutdown failed"); process.exitCode = 1; }).finally(() => { logger.flush(); clearTimeout(timeout); });
+    })().catch((error: unknown) => { logger.error(classifyErrorFields(error), "Shutdown failed"); process.exitCode = 1; }).finally(() => { logger.flush(); clearTimeout(timeout); });
   };
   process.once("SIGTERM", () => { shutdown("SIGTERM"); });
   process.once("SIGINT", () => { shutdown("SIGINT"); });

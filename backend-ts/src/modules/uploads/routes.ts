@@ -7,6 +7,8 @@ import type { AppDeps, AppRouter } from "../../app";
 import { HttpError } from "../../lib/http-error";
 import { registerRouteMetadata } from "../../lib/route-metadata";
 import { authenticate, requireRoles } from "../../middleware/auth";
+import { classifyErrorFields } from "../../middleware/error-handler";
+import { classifyLogPath } from "../../security/security-log";
 import { perHour, perMinute, routeRateLimit } from "../../security/rate-limit";
 import { limitBodySize } from "../../security/request-guards";
 import { validationError } from "../../lib/validation";
@@ -51,6 +53,9 @@ export function registerUploadRoutes(app: AppRouter, deps: AppDeps): void {
       for (const source of sources) source.destroy();
       pt.destroy();
     };
+    const logZipError = (error: unknown) => {
+      deps.logger.error({ reqId: c.get("requestId"), ...classifyErrorFields(error), path: classifyLogPath(c.req.path) }, "ZIP stream failed");
+    };
     try {
       for (const name of files) {
         const handle = await open(deps.storage.path(name), "r");
@@ -60,10 +65,10 @@ export function registerUploadRoutes(app: AppRouter, deps: AppDeps): void {
       for (const source of sources) {
         archive.append(source, { name: files[index++] ?? "" });
       }
-    } catch (error) { deps.logger.error({ err: error }, "ZIP stream failed"); cleanup(); throw error; }
+    } catch (error) { logZipError(error); cleanup(); throw error; }
     const stream = new ReadableStream<Uint8Array>({
       start(controller) {
-        const fail = (error: Error) => { if (stopped) return; deps.logger.error({ err: error }, "ZIP stream failed"); controller.error(error); cleanup(); };
+        const fail = (error: Error) => { if (stopped) return; logZipError(error); controller.error(error); cleanup(); };
         archive.on("error", fail); archive.on("warning", fail);
         for (const source of sources) source.on("error", fail);
         pt.on("data", (chunk: Buffer) => { controller.enqueue(chunk); if ((controller.desiredSize ?? 0) <= 0) pt.pause(); });

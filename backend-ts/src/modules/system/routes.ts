@@ -2,6 +2,8 @@ import { z } from "zod";
 import type { AppRouter, AppDeps } from "../../app";
 import { registerRouteMetadata } from "../../lib/route-metadata";
 import { sendJsonResponse } from "../../lib/public-cache";
+import { classifyErrorFields } from "../../middleware/error-handler";
+import { classifyLogPath } from "../../security/security-log";
 export function registerSystemRoutes(app: AppRouter, deps: AppDeps): void {
   for (const [path, summary, body] of [["/", "Welcome", { message: "MACS Kulubu Web Sitesine hosgeldiniz!" }], ["/health", "Liveness", { status: "ok" }]] as const) {
     registerRouteMetadata(app, deps, { method: "get", path, tag: "system", summary, response: path === "/" ? z.object({ message: z.string() }) : z.object({ status: z.literal("ok") }) });
@@ -14,7 +16,9 @@ export function registerSystemRoutes(app: AppRouter, deps: AppDeps): void {
     try {
       await Promise.race([query, new Promise<never>((_resolve, reject) => {
         timer = setTimeout(() => {
-          void query.cancel().catch((error: unknown) => { deps.logger.warn({ err: error }, "Failed to cancel readiness query"); });
+          void query.cancel().catch((error: unknown) => {
+            deps.logger.warn({ reqId: c.get("requestId"), ...classifyErrorFields(error), path: classifyLogPath(c.req.path) }, "Failed to cancel readiness query");
+          });
           reject(new Error("Readiness timed out"));
         }, 2000);
       })]);

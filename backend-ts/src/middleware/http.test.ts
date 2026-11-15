@@ -231,3 +231,58 @@ test.each(["__proto__", "constructor", "toString"])("non-PG inherited error code
   const response = await request(setup().app).get(`/db/${code}`);
   expect(response.status).toBe(500); expect(response.body).toEqual({ detail: "Internal Server Error" });
 });
+
+test("D3: uploads ZIP failure and readiness cancel failure redact error messages/secrets from logs", async () => {
+  const logs: Record<string, unknown>[] = [];
+  const logger = pino({ level: "info" }, new Writable({ write(chunk: Buffer, _encoding, done) { logs.push(JSON.parse(chunk.toString()) as Record<string, unknown>); done(); } }));
+  const deps = testDeps({
+    env,
+    logger,
+    loadUser: () => Promise.resolve(user),
+    sql: Object.assign(
+      () => {
+        const pending = new Promise<never>(() => undefined) as Promise<never> & { cancel: () => Promise<void> };
+        pending.cancel = () => Promise.reject(Object.assign(new TypeError("leak secret-user@example.com $2b$12$abcdefghij"), { code: "57014" }));
+        return pending;
+      },
+      { end: () => Promise.resolve() },
+    ) as unknown as AppDeps["sql"],
+  });
+  deps.storage = {
+    ...deps.storage,
+    list: () => Promise.resolve(["file.png"]),
+    path: () => { throw Object.assign(new RangeError("leak secret-user@example.com $2b$12$abcdefghij"), { code: "23505" }); },
+  };
+  const app = createApp(deps);
+  try {
+    const adminToken = await signAccessToken({ sub: user.email, role: "admin" }, env.JWT_SECRET_KEY, 60, new Date());
+    const zipRes = await app.request("/api/upload/download-all", {
+      headers: { Authorization: `Bearer ${adminToken}`, "X-Request-Id": "zip-err-1" },
+    });
+    expect(zipRes.status).toBe(409);
+
+    const readyRes = await app.request("/health/ready", { headers: { "X-Request-Id": "ready-err-1" } });
+    expect(readyRes.status).toBe(503);
+
+    const zipLog = logs.find(entry => entry.msg === "ZIP stream failed");
+    expect(zipLog).toBeDefined();
+    expect(zipLog).toMatchObject({ reqId: "zip-err-1", errorName: "RangeError", code: "23505", path: "/api/upload/download-all" });
+    expect(zipLog).not.toHaveProperty("err");
+
+    const readyLog = logs.find(entry => entry.msg === "Failed to cancel readiness query");
+    expect(readyLog).toBeDefined();
+    expect(readyLog).toMatchObject({ reqId: "ready-err-1", errorName: "TypeError", code: "57014", path: "/health/ready" });
+    expect(readyLog).not.toHaveProperty("err");
+
+    const serialized = JSON.stringify(logs);
+    expect(serialized).not.toContain("secret-user@example.com");
+    expect(serialized).not.toContain("$2b$12$abcdefghij");
+
+    const { classifyErrorFields } = await import("./error-handler");
+    expect(classifyErrorFields(Object.assign(new Error("secret@example.com"), { code: "57014" }))).toEqual({ errorName: "Error", code: "57014" });
+    expect(classifyErrorFields(Object.assign(Object.create(null) as object, { message: "secret@example.com" }))).toEqual({ errorName: "Error" });
+    expect(classifyErrorFields("secret@example.com")).toEqual({ errorName: "Error" });
+  } finally {
+    await deps.sql.end();
+  }
+});
