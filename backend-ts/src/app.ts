@@ -74,7 +74,7 @@ export function createApp(deps: AppDeps, registerRoutes?: (router: AppRouter, de
   const now = () => deps.now?.().getTime() ?? Date.now();
   const global = createTokenBucketLimiter({ ...security.globalRateLimit, maxIps: security.maxTrackedIps, now, label: `${String(security.globalRateLimit.ratePerMin)} per 1 minute` });
   const writes = createTokenBucketLimiter({ ...security.writeRateLimit, maxIps: security.maxTrackedIps, now, label: `${String(security.writeRateLimit.ratePerMin)} per 1 minute` });
-  const shield = deps.loginShield ?? createLoginShield({ ...security.loginIpLimit, maxIps: security.maxTrackedIps, now });
+  deps = { ...deps, loginShield: deps.loginShield ?? createLoginShield({ ...security.loginIpLimit, maxIps: security.maxTrackedIps, now }) };
   app.onError(errorHandler(deps.logger));
   app.use("*", async (c, next) => {
     const id = c.req.header("X-Request-ID");
@@ -106,12 +106,10 @@ export function createApp(deps: AppDeps, registerRoutes?: (router: AppRouter, de
     if (deps.env.RATELIMIT_ENABLED) {
       global.consume(ip);
       if (!["GET", "HEAD", "OPTIONS"].includes(c.req.method)) writes.consume(ip);
-      if (c.req.method === "POST" && canonicalizeApiPath(c.req.raw) === "/auth/login") shield.check(ip);
     }
     // next() resolves when the response is ready; ZIP streaming itself is unbounded.
     try { await withHandlerTimeout(security.handlerTimeoutMs, next); }
     catch (error) { throw error instanceof Error ? error : new Error("Non-error request failure", { cause: error }); }
-    if (deps.env.RATELIMIT_ENABLED && c.req.method === "POST" && canonicalizeApiPath(c.req.raw) === "/auth/login" && c.res.status === 401) shield.recordFailure(ip);
   });
   for (const [prefix, root] of [["/uploads", deps.env.UPLOAD_DIR], ["/static", deps.env.STATIC_DIR]] as const) {
     app.get(`${prefix}/*`, async c => {

@@ -5,7 +5,7 @@ import type { Db, Tx } from "../../db/client";
 import { HttpError } from "../../lib/http-error";
 import { signAccessToken } from "../../lib/jwt";
 import { verifyPassword } from "../../lib/password";
-import { findUserCredentialsByEmail, updateUser } from "../users/repo";
+import { findUserCredentialsByEmail, updateUser } from "../users/queries";
 
 export function validAdminSecret(expected: string, supplied: string): boolean {
   const left = Buffer.from(expected); const right = Buffer.from(supplied);
@@ -45,7 +45,7 @@ export async function login(db: Db, env: Env, now: Date, email: string, password
     await recordSuccessfulLogin(tx, row.id);
     return { access_token, token_type: "bearer" as const };
   });
-  // Successful writes invalidate in route(); committed failures need this boundary too.
+  // Successful writes invalidate in the native route; committed failures need this boundary too.
   if (result instanceof HttpError) {
     if (state.mutated) onCommittedFailure?.();
     throw result;

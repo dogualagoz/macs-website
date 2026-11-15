@@ -3,8 +3,12 @@ import type { SQL } from "drizzle-orm";
 import type { PgUpdateSetSource } from "drizzle-orm/pg-core";
 import type { Db, Tx } from "../../db/client";
 import { eventCategories, events, users } from "../../db/schema";
-import { USER_PUBLIC_COLUMNS } from "../users/repo";
-import type { UserPublicRow } from "../users/repo";
+const USER_PUBLIC_COLUMNS = {
+  id: users.id, email: users.email, full_name: users.fullName, role: users.role,
+  status: users.status, is_active: users.isActive, last_login: users.lastLogin,
+  failed_login_attempts: users.failedLoginAttempts, password_changed_at: users.passwordChangedAt,
+};
+import type { UserPublicRow } from "../users/queries";
 import type { EventQuery } from "./schemas";
 
 export type CategoryRow = typeof eventCategories.$inferSelect;

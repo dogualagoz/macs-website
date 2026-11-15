@@ -3,9 +3,9 @@ import type { Env } from "../../config/env";
 import type { Db } from "../../db/client";
 import { HttpError } from "../../lib/http-error";
 import { hashPassword, verifyPassword } from "../../lib/password";
-import * as repo from "./repo";
+import * as repo from "./queries";
 import type { UserResponse } from "./schemas";
-import { serializeUser } from "./serializer";
+import { serializeUser } from "./queries";
 
 function required(row: repo.UserPublicRow | null): UserResponse {
   if (!row) throw new HttpError(404, "Kullanıcı bulunamadı");
@@ -63,6 +63,5 @@ export async function updateProfile(db: Db, userId: number, fullName?: string): 
 }
 export async function removeUser(db: Db, userId: number): Promise<UserResponse> { return required(await repo.deleteUser(db, userId)); }
 export async function listUsers(db: Db, skip: number, limit: number): Promise<{ users: UserResponse[]; total: number }> {
-  const result = await repo.listUserRows(db, skip, limit);
-  return { users: result.users.map(serializeUser), total: result.total };
+  return JSON.parse(await repo.listUsersJson(db, skip, limit)) as { users: UserResponse[]; total: number };
 }

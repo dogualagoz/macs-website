@@ -1,43 +1,118 @@
-import type { AppRouter as Router } from "../../app";
-import { z } from "zod";
-import type { AppDeps } from "../../app";
+import { createRoute, z } from "@hono/zod-openapi";
+import type { MiddlewareHandler } from "hono";
+import type { AppRouter, AppDeps, AppEnv } from "../../app";
 import { HttpError } from "../../lib/http-error";
-import { route } from "../../lib/route";
+import { sendJsonResponse } from "../../lib/public-cache";
+import { authenticate, requireRoles } from "../../middleware/auth";
 import type { AuthUser } from "../../middleware/auth";
-import { perMinute } from "../../middleware/rate-limit";
+import { perMinute, routeRateLimit } from "../../security/rate-limit";
+import { limitBodySize } from "../../security/request-guards";
 import { accessSchema, listQuerySchema, passwordChangeSchema, profileQuerySchema, userParamsSchema, userResponseSchema } from "./schemas";
+import { getUserJson, listUsersJson } from "./queries";
 import * as service from "./service";
 
 function current(user: AuthUser | null): AuthUser {
   if (!user) throw new Error("Protected handler requires authenticated user");
   return user;
 }
-export function registerUserRoutes(router: Router, deps: AppDeps): void {
-  const base = { domain: "users", tag: "users", response: userResponseSchema } as const;
-  const me = { ...base, auth: "user" } as const;
-  const admin = { ...base, auth: ["admin"] } as const;
+export function registerUserRoutes(app: AppRouter, deps: AppDeps): void {
+  const auth = (admin: boolean): MiddlewareHandler<AppEnv> => async (c, next) => {
+    const user = await authenticate(c.req.raw, deps.env, deps.loadUser, deps.now?.() ?? new Date());
+    if (admin) requireRoles(user, ["admin"]);
+    c.set("user", user);
+    await next();
+  };
   const message = z.object({ message: z.string() });
-  route(router, deps, { ...me, method: "get", path: "/users/me", summary: "Profil", rateLimit: perMinute(10), handler: ({ user }) => Promise.resolve(current(user)) });
-  route(router, deps, { ...me, method: "put", path: "/users/me", summary: "Profil güncelle", query: profileQuerySchema, rateLimit: perMinute(5),
-    handler: ({ user, query }) => service.updateProfile(deps.db, current(user).id, query.full_name) });
-  route(router, deps, { ...me, method: "post", path: "/users/me/change-password", summary: "Şifre değiştir", body: passwordChangeSchema, rateLimit: perMinute(3),
-    handler: ({ user, body }) => service.changePassword(deps.db, deps.env, current(user).email, body.current_password, body.new_password) });
-  route(router, deps, { ...me, method: "delete", path: "/users/me", summary: "Hesabımı sil", response: message, rateLimit: perMinute(3),
-    handler: async ({ user }) => { await service.removeUser(deps.db, current(user).id); return { message: "Hesabınız başarıyla silindi" }; } });
-  route(router, deps, { ...admin, method: "get", path: "/users", summary: "Kullanıcı listesi", query: listQuerySchema,
-    response: z.object({ users: z.array(userResponseSchema), total: z.number().int() }), rateLimit: perMinute(30),
-    handler: ({ query }) => service.listUsers(deps.db, query.skip ?? 0, query.limit ?? 10) });
-  route(router, deps, { ...admin, method: "get", path: "/users/:user_id", summary: "Kullanıcı detayı", params: userParamsSchema, rateLimit: perMinute(30),
-    handler: ({ params }) => service.getUser(deps.db, params.user_id) });
-  route(router, deps, { ...admin, method: "patch", path: "/users/:user_id/access", summary: "Erişim ayarları", params: userParamsSchema, body: accessSchema, rateLimit: perMinute(20),
-    handler: ({ user, params, body }) => {
-      if (params.user_id === current(user).id) throw new HttpError(400, "Admin kendi erişim ayarlarını değiştiremez");
-      return service.setAccess(deps.db, params.user_id, body);
-    } });
-  route(router, deps, { ...admin, method: "delete", path: "/users/:user_id", summary: "Kullanıcı sil", params: userParamsSchema, response: message, rateLimit: perMinute(10),
-    handler: async ({ user, params }) => {
-      if (params.user_id === current(user).id) throw new HttpError(400, "Admin kendi hesabını bu endpoint üzerinden silemez");
-      const removed = await service.removeUser(deps.db, params.user_id);
-      return { message: `${removed.email} kullanıcısı başarıyla silindi` };
-    } });
+  const profile = createRoute({ method: "get", path: "/users/me", tags: ["users"], summary: "Profil",
+    security: [{ OAuth2PasswordBearer: [] }], middleware: [routeRateLimit(deps, perMinute(10)), auth(false)],
+    request: {},
+    responses: { 422: { $ref: "#/components/responses/HTTPValidationError" }, 200: { description: "Success", content: { "application/json": { schema: userResponseSchema } } } },
+  });
+  app.openapi(profile, c => {
+    return sendJsonResponse(c, JSON.stringify(current(c.get("user"))));
+  });
+  deps.routeRegistry.push({ method: "get", path: "/users/me", domain: "users", tag: "users", summary: "Profil", auth: "user", response: userResponseSchema });
+  const updateProfile = createRoute({ method: "put", path: "/users/me", tags: ["users"], summary: "Profil güncelle",
+    security: [{ OAuth2PasswordBearer: [] }], middleware: [routeRateLimit(deps, perMinute(5)), auth(false), limitBodySize(deps.security?.maxBodyBytes)],
+    request: { query: profileQuerySchema },
+    responses: { 422: { $ref: "#/components/responses/HTTPValidationError" }, 200: { description: "Success", content: { "application/json": { schema: userResponseSchema } } } },
+  });
+  app.openapi(updateProfile, async c => {
+    const result = await service.updateProfile(deps.db, current(c.get("user")).id, c.req.valid("query").full_name);
+    deps.cache.invalidate("users");
+    return sendJsonResponse(c, JSON.stringify(result));
+  });
+  deps.routeRegistry.push({ method: "put", path: "/users/me", domain: "users", tag: "users", summary: "Profil güncelle", auth: "user", response: userResponseSchema, query: profileQuerySchema });
+  const changePassword = createRoute({ method: "post", path: "/users/me/change-password", tags: ["users"], summary: "Şifre değiştir",
+    security: [{ OAuth2PasswordBearer: [] }], middleware: [routeRateLimit(deps, perMinute(3)), auth(false), limitBodySize(deps.security?.maxBodyBytes)],
+    request: { body: { content: { "application/json": { schema: passwordChangeSchema } } } },
+    responses: { 422: { $ref: "#/components/responses/HTTPValidationError" }, 200: { description: "Success", content: { "application/json": { schema: userResponseSchema } } } },
+  });
+  app.openapi(changePassword, async c => {
+    const body = c.req.valid("json");
+    const result = await service.changePassword(deps.db, deps.env, current(c.get("user")).email, body.current_password, body.new_password);
+    deps.cache.invalidate("users");
+    return sendJsonResponse(c, JSON.stringify(result));
+  });
+  deps.routeRegistry.push({ method: "post", path: "/users/me/change-password", domain: "users", tag: "users", summary: "Şifre değiştir", auth: "user", response: userResponseSchema, body: passwordChangeSchema });
+  const deleteProfile = createRoute({ method: "delete", path: "/users/me", tags: ["users"], summary: "Hesabımı sil",
+    security: [{ OAuth2PasswordBearer: [] }], middleware: [routeRateLimit(deps, perMinute(3)), auth(false), limitBodySize(deps.security?.maxBodyBytes)],
+    request: {},
+    responses: { 422: { $ref: "#/components/responses/HTTPValidationError" }, 200: { description: "Success", content: { "application/json": { schema: message } } } },
+  });
+  app.openapi(deleteProfile, async c => {
+    await service.removeUser(deps.db, current(c.get("user")).id);
+    const result = { message: "Hesabınız başarıyla silindi" };
+    deps.cache.invalidate("users");
+    return sendJsonResponse(c, JSON.stringify(result));
+  });
+  deps.routeRegistry.push({ method: "delete", path: "/users/me", domain: "users", tag: "users", summary: "Hesabımı sil", auth: "user", response: message });
+  const list = createRoute({ method: "get", path: "/users", tags: ["users"], summary: "Kullanıcı listesi",
+    security: [{ OAuth2PasswordBearer: [] }], middleware: [routeRateLimit(deps, perMinute(30)), auth(true)],
+    request: { query: listQuerySchema },
+    responses: { 422: { $ref: "#/components/responses/HTTPValidationError" }, 200: { description: "Success", content: { "application/json": { schema: z.object({ users: z.array(userResponseSchema), total: z.number().int() }) } } } },
+  });
+  app.openapi(list, async c => {
+    const query = c.req.valid("query");
+    return sendJsonResponse(c, await listUsersJson(deps.db, query.skip ?? 0, query.limit ?? 10), { status: 200, isPublic: false });
+  });
+  deps.routeRegistry.push({ method: "get", path: "/users", domain: "users", tag: "users", summary: "Kullanıcı listesi", auth: ["admin"], response: z.object({ users: z.array(userResponseSchema), total: z.number().int() }), query: listQuerySchema });
+  const detail = createRoute({ method: "get", path: "/users/{user_id}", tags: ["users"], summary: "Kullanıcı detayı",
+    security: [{ OAuth2PasswordBearer: [] }], middleware: [routeRateLimit(deps, perMinute(30)), auth(true)],
+    request: { params: userParamsSchema },
+    responses: { 422: { $ref: "#/components/responses/HTTPValidationError" }, 200: { description: "Success", content: { "application/json": { schema: userResponseSchema } } } },
+  });
+  app.openapi(detail, async c => {
+    const json = await getUserJson(deps.db, c.req.valid("param").user_id);
+    if (json === null) throw new HttpError(404, "Kullanıcı bulunamadı");
+    return sendJsonResponse(c, json, { status: 200, isPublic: false });
+  });
+  deps.routeRegistry.push({ method: "get", path: "/users/:user_id", domain: "users", tag: "users", summary: "Kullanıcı detayı", auth: ["admin"], response: userResponseSchema, params: userParamsSchema });
+  const setAccess = createRoute({ method: "patch", path: "/users/{user_id}/access", tags: ["users"], summary: "Erişim ayarları",
+    security: [{ OAuth2PasswordBearer: [] }], middleware: [routeRateLimit(deps, perMinute(20)), auth(true), limitBodySize(deps.security?.maxBodyBytes)],
+    request: { params: userParamsSchema, body: { content: { "application/json": { schema: accessSchema } } } },
+    responses: { 422: { $ref: "#/components/responses/HTTPValidationError" }, 200: { description: "Success", content: { "application/json": { schema: userResponseSchema } } } },
+  });
+  app.openapi(setAccess, async c => {
+    const id = c.req.valid("param").user_id;
+    if (id === current(c.get("user")).id) throw new HttpError(400, "Admin kendi erişim ayarlarını değiştiremez");
+    const result = await service.setAccess(deps.db, id, c.req.valid("json"));
+    deps.cache.invalidate("users");
+    return sendJsonResponse(c, JSON.stringify(result));
+  });
+  deps.routeRegistry.push({ method: "patch", path: "/users/:user_id/access", domain: "users", tag: "users", summary: "Erişim ayarları", auth: ["admin"], response: userResponseSchema, params: userParamsSchema, body: accessSchema });
+  const remove = createRoute({ method: "delete", path: "/users/{user_id}", tags: ["users"], summary: "Kullanıcı sil",
+    security: [{ OAuth2PasswordBearer: [] }], middleware: [routeRateLimit(deps, perMinute(10)), auth(true), limitBodySize(deps.security?.maxBodyBytes)],
+    request: { params: userParamsSchema },
+    responses: { 422: { $ref: "#/components/responses/HTTPValidationError" }, 200: { description: "Success", content: { "application/json": { schema: message } } } },
+  });
+  app.openapi(remove, async c => {
+    const id = c.req.valid("param").user_id;
+    if (id === current(c.get("user")).id) throw new HttpError(400, "Admin kendi hesabını bu endpoint üzerinden silemez");
+    const removed = await service.removeUser(deps.db, id);
+    const result = { message: `${removed.email} kullanıcısı başarıyla silindi` };
+    deps.cache.invalidate("users");
+    return sendJsonResponse(c, JSON.stringify(result));
+  });
+  deps.routeRegistry.push({ method: "delete", path: "/users/:user_id", domain: "users", tag: "users", summary: "Kullanıcı sil", auth: ["admin"], response: message, params: userParamsSchema });
 }

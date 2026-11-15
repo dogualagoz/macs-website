@@ -53,10 +53,10 @@ describe("auth/users database integration", () => {
     const r = await request(app).post("/auth/login").type("form").send({ username: "missing@example.com", password: "wrong" });
     expect(r.status).toBe(429); expect(r.body).toEqual({ error: "Rate limit exceeded: 10 per 1 minute" });
   });
-  test("user list uses three public-only SQL queries including authentication", async () => {
+  test("user list uses two public-only SQL queries including authentication", async () => {
     const app = createApp(deps); const token = await tokenFor("admin@example.com", "admin"); deps.counter.reset();
     const r = await request(app).get("/users").auth(token, { type: "bearer" });
-    expect(r.status).toBe(200); expect(r.body).toMatchObject({ total: 7 }); expect(deps.counter.count()).toBe(3);
+    expect(r.status).toBe(200); expect(r.body).toMatchObject({ total: 7 }); expect(deps.counter.count()).toBe(2);
     expect(deps.counter.queries().every(query => !query.includes("hashed_password"))).toBe(true);
   });
   test("expired lockout unlocks with SQL clock even with skewed token clock", async () => {
@@ -93,8 +93,8 @@ test("concurrent createUser calls map the unique violation to duplicate-email 40
 });
 
 test("serializeUser coerces NULL counter, preserves microseconds, and excludes credentials", async () => {
-  const { findUserByEmail, findUserCredentialsByEmail } = await import("../../src/modules/users/repo");
-  const { serializeUser } = await import("../../src/modules/users/serializer");
+  const { findUserByEmail, findUserCredentialsByEmail } = await import("../../src/modules/users/queries");
+  const { serializeUser } = await import("../../src/modules/users/queries");
   await deps.sql`UPDATE users SET failed_login_attempts = NULL, last_login = '2026-05-01 11:00:00.123456+03', password_changed_at = '2026-05-02 11:00:00+00' WHERE id = 2`;
   const row = await findUserByEmail(deps.db, "mod@example.com");
   expect(row).not.toBeNull();
@@ -161,4 +161,33 @@ test("login shield check and failures require enabled POST login", async () => {
     expect(response.status).toBe(401);
     expect(calls).toEqual(enabled ? ["check:203.0.113.9", "failure:203.0.113.9"] : []);
   }
+});
+
+test("PG user JSON is one credential-free CTE with UTC precision and empty-page total", async () => {
+  const { listUsersJson, getUserJson } = await import("../../src/modules/users/queries");
+  await deps.sql`UPDATE users SET failed_login_attempts = NULL, is_active = NULL, last_login = '2026-05-01 11:00:00.123400+03', password_changed_at = '2026-05-02 11:00:00+00' WHERE id = 2`;
+  deps.counter.reset();
+  const text = await listUsersJson(deps.db, 0, 100);
+  expect(typeof text).toBe("string");
+  expect(deps.counter.count()).toBe(1);
+  expect(deps.counter.queries()[0]).not.toContain("hashed_password");
+  expect((JSON.parse(text) as { users: { id: number }[] }).users.find(row => row.id === 2)).toMatchObject({ is_active: false, failed_login_attempts: 0, last_login: "2026-05-01T08:00:00.123400Z", password_changed_at: "2026-05-02T11:00:00Z" });
+  expect(JSON.parse(await listUsersJson(deps.db, 99, 10))).toEqual({ users: [], total: 7 });
+  expect(await getUserJson(deps.db, 99999)).toBeNull();
+});
+test("login shield rejects before validation and DB and receives resolved IP", async () => {
+  const { HttpError } = await import("../../src/lib/http-error");
+  const calls: string[] = [];
+  const app = createApp({ ...deps, env: { ...deps.env, RATELIMIT_ENABLED: true }, loginShield: {
+    check: ip => { calls.push(ip); throw new HttpError(429, { error: "blocked" }); }, recordFailure: () => { throw new Error("Unexpected failure record"); }, size: () => 0,
+  } });
+  deps.counter.reset();
+  const r = await app.request("/auth/login", { method: "POST", headers: { "X-Real-IP": "203.0.113.4" }, body: "malformed" });
+  expect(r.status).toBe(429); expect(calls).toEqual(["203.0.113.4"]); expect(deps.counter.count()).toBe(0);
+});
+
+test("native JSON validation preserves original input with mixed-case content type", async () => {
+  const r = await createApp(deps).request("/auth/register", { method: "POST", headers: { "Content-Type": "Application/JSON" }, body: '{"full_name":"Test","password":"parola123"}' });
+  expect(r.status).toBe(422);
+  expect(await r.json()).toMatchObject({ detail: [{ type: "missing", loc: ["body", "email"], input: { full_name: "Test", password: "parola123" } }] });
 });

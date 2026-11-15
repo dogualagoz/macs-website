@@ -1,6 +1,5 @@
 import { localDiskStorage } from "../../src/lib/storage";
-import { findUserByEmail } from "../../src/modules/users/repo";
-import { serializeUser } from "../../src/modules/users/serializer";
+import { findUserByEmail, serializeUser } from "../../src/modules/users/queries";
 import type { AppDeps } from "../../src/app";
 import { parseEnv } from "../../src/config/env";
 import { createDb } from "../../src/db/client";

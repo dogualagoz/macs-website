@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { emailSchema } from "../src/modules/users/schemas";
 import { HttpError } from "../src/lib/http-error";
-import { findUserByEmail } from "../src/modules/users/repo";
+import { findUserByEmail } from "../src/modules/users/queries";
 import { setAccess } from "../src/modules/users/service";
 import { runCli } from "./_cli";
 

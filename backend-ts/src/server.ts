@@ -1,7 +1,6 @@
 import { DEFAULT_SECURITY_CONFIG } from "./security/config";
 import { localDiskStorage } from "./lib/storage";
-import { findUserByEmail } from "./modules/users/repo";
-import { serializeUser } from "./modules/users/serializer";
+import { findUserByEmail, serializeUser } from "./modules/users/queries";
 import { createApp } from "./app";
 import { parseEnv } from "./config/env";
 import { createDb } from "./db/client";

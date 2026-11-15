@@ -9,8 +9,7 @@ import type { Sql } from "../src/db/client";
 import { createResponseCache } from "../src/lib/cache";
 import { createLogger } from "../src/lib/logger";
 import { localDiskStorage } from "../src/lib/storage";
-import { findUserByEmail } from "../src/modules/users/repo";
-import { serializeUser } from "../src/modules/users/serializer";
+import { findUserByEmail, serializeUser } from "../src/modules/users/queries";
 
 const bindings = z.array(z.union([z.string(), z.number(), z.boolean(), z.null()]));
 interface CapturedQuery { text: string; params: z.infer<typeof bindings> }
