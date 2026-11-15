@@ -75,6 +75,22 @@ describe("security primitives", () => {
     shield.recordFailure("c"); status(() => { shield.check("a"); }, 429);
     shield.check("b"); expect(shield.size()).toBe(2);
   });
+  test("clean login probes cannot allocate entries or evict a blocked IP", () => {
+    const shield = createLoginShield({ maxAttempts: 20, windowMs: 900_000, maxIps: 2, now: () => 0 });
+    for (let i = 0; i < 20; i++) shield.recordFailure("blocked");
+    for (let i = 0; i < 100; i++) shield.check(`clean-${String(i)}`);
+    expect(shield.size()).toBe(1);
+    status(() => { shield.check("blocked"); }, 429);
+  });
+  test("checking an expired login entry deletes it without allocating a replacement", () => {
+    let now = 0;
+    const shield = createLoginShield({ maxAttempts: 1, windowMs: 100, maxIps: 2, now: () => now });
+    shield.check("clean"); expect(shield.size()).toBe(0);
+    shield.recordFailure("a"); now = 99;
+    status(() => { shield.check("a"); }, 429);
+    now = 100; shield.check("a"); expect(shield.size()).toBe(0);
+    shield.recordFailure("a"); status(() => { shield.check("a"); }, 429);
+  });
   test("headers: API/docs policies, exact HTTPS only, remove disclosure", () => {
     for (const proto of [undefined, null, "http", "https,http", "HTTPS", "https"]) {
       const headers = new Headers({ Server: "Bun", "X-Powered-By": "Hono", "Strict-Transport-Security": "stale" });
