@@ -113,18 +113,86 @@ test("OpenAPI 3.1 info matches FastAPI", () => {
   expect(doc.openapi).toBe("3.1.0");
   expect(doc.info).toEqual({ title: "MACS API", version: "1.0.0", description: "MACS Kulübü Web Sitesi Backend API - RESTful API for managing club events, projects, members, and sponsors." });
 });
+const EXPECTED_OPERATIONS = [
+  ["post", "/auth/register", "authentication", "Kullanıcı kaydı", 200, false],
+  ["post", "/auth/register/admin", "authentication", "Admin kaydı", 200, false],
+  ["post", "/auth/login", "authentication", "Kullanıcı girişi", 200, false],
+  ["get", "/events/categories", "events", "Etkinlik kategorileri", 200, false],
+  ["post", "/events/categories", "events", "Kategori oluştur", 201, true],
+  ["get", "/events/categories/{category_id}", "events", "Kategori detayı", 200, false],
+  ["put", "/events/categories/{category_id}", "events", "Kategori güncelle", 200, true],
+  ["delete", "/events/categories/{category_id}", "events", "Kategori sil", 204, true],
+  ["get", "/events", "events", "Etkinlik listesi", 200, false],
+  ["get", "/events/admin", "events", "Yönetici etkinlik listesi", 200, true],
+  ["get", "/events/featured", "events", "Öne çıkan etkinlik", 200, false],
+  ["get", "/events/by-slug/{slug}", "events", "Slug ile etkinlik", 200, false],
+  ["post", "/events", "events", "Etkinlik oluştur", 201, true],
+  ["get", "/events/{event_id}", "events", "Etkinlik detayı", 200, false],
+  ["put", "/events/{event_id}", "events", "Etkinlik güncelle", 200, true],
+  ["delete", "/events/{event_id}", "events", "Etkinliği arşivle", 200, true],
+  ["delete", "/events/{event_id}/hard", "events", "Etkinliği kalıcı sil", 204, true],
+  ["get", "/members", "members", "Üye listesi", 200, false],
+  ["get", "/members/leaderboard", "members", "Üye sıralaması", 200, false],
+  ["get", "/members/{member_id}", "members", "Üye detayı", 200, false],
+  ["get", "/members/{member_id}/stats", "members", "Üye istatistikleri", 200, false],
+  ["get", "/members/{member_id}/projects", "members", "Üyenin proje üyelikleri", 200, false],
+  ["post", "/members", "members", "Üye oluştur", 201, true],
+  ["put", "/members/{member_id}", "members", "Üye güncelle", 200, true],
+  ["delete", "/members/{member_id}", "members", "Üye sil", 204, true],
+  ["get", "/projects/categories", "projects", "Proje kategorileri", 200, false],
+  ["post", "/projects/categories", "projects", "Kategori oluştur", 201, true],
+  ["get", "/projects/categories/{category_id}", "projects", "Kategori detayı", 200, false],
+  ["put", "/projects/categories/{category_id}", "projects", "Kategori güncelle", 200, true],
+  ["delete", "/projects/categories/{category_id}", "projects", "Kategori sil", 204, true],
+  ["get", "/projects", "projects", "Proje listesi", 200, false],
+  ["get", "/projects/admin", "projects", "Yönetici proje listesi", 200, true],
+  ["get", "/projects/featured", "projects", "Öne çıkan proje", 200, false],
+  ["get", "/projects/by-slug/{slug}", "projects", "Slug ile proje", 200, false],
+  ["post", "/projects", "projects", "Proje oluştur", 201, true],
+  ["get", "/projects/{project_id}", "projects", "Proje detayı", 200, false],
+  ["put", "/projects/{project_id}", "projects", "Proje güncelle", 200, true],
+  ["delete", "/projects/{project_id}", "projects", "Projeyi arşivle", 204, true],
+  ["delete", "/projects/{project_id}/hard", "projects", "Projeyi kalıcı sil", 204, true],
+  ["get", "/projects/{project_id}/members", "projects", "Proje üyeleri", 200, false],
+  ["post", "/projects/{project_id}/members", "projects", "Projeye üye ekle", 201, true],
+  ["put", "/projects/{project_id}/members/{member_id}", "projects", "Proje üyesini güncelle", 200, true],
+  ["delete", "/projects/{project_id}/members/{member_id}", "projects", "Proje üyesini çıkar", 204, true],
+  ["get", "/sponsors/", "sponsors", "Sponsor listesi", 200, false],
+  ["get", "/sponsors/categories", "sponsors", "Sponsor kategorileri", 200, false],
+  ["post", "/sponsors/geocode", "sponsors", "Adres koordinatları", 200, true],
+  ["get", "/sponsors/{sponsor_id}", "sponsors", "Sponsor detayı", 200, false],
+  ["post", "/sponsors/", "sponsors", "Sponsor oluştur", 201, true],
+  ["put", "/sponsors/{sponsor_id}", "sponsors", "Sponsor güncelle", 200, true],
+  ["delete", "/sponsors/{sponsor_id}", "sponsors", "Sponsor sil", 204, true],
+  ["get", "/", "system", "Welcome", 200, false],
+  ["get", "/health", "system", "Liveness", 200, false],
+  ["get", "/health/ready", "system", "Readiness", 200, false],
+  ["post", "/api/upload/", "system", "Resim yükle", 200, true],
+  ["get", "/api/upload/download-all", "system", "Yüklemeleri ZIP olarak indir", 200, true],
+  ["get", "/users/me", "users", "Profil", 200, true],
+  ["put", "/users/me", "users", "Profil güncelle", 200, true],
+  ["post", "/users/me/change-password", "users", "Şifre değiştir", 200, true],
+  ["delete", "/users/me", "users", "Hesabımı sil", 200, true],
+  ["get", "/users", "users", "Kullanıcı listesi", 200, true],
+  ["get", "/users/{user_id}", "users", "Kullanıcı detayı", 200, true],
+  ["patch", "/users/{user_id}/access", "users", "Erişim ayarları", 200, true],
+  ["delete", "/users/{user_id}", "users", "Kullanıcı sil", 200, true],
+] as const;
+
 test("all 63 operations document tags and responses", () => {
   const doc = document();
-  const operations = Object.values(doc.paths ?? {}).flatMap(path => ["get", "post", "put", "patch", "delete"].flatMap(method => { const operation = path[method as "get"]; return operation ? [operation] : []; }));
-  expect(operations).toHaveLength(63);
-  for (const operation of operations) {
-    expect(operation.summary).toBeTruthy(); expect(operation.tags).toHaveLength(1);
-    expect(operation.responses).toBeDefined();
-    if (operation.responses?.["204"]) expect(operation.responses["204"]).not.toHaveProperty("content");
-    else expect(operation.responses?.["200"] ?? operation.responses?.["201"]).toHaveProperty("content");
+  expect(EXPECTED_OPERATIONS).toHaveLength(63);
+  expect(Object.values(doc.paths ?? {}).flatMap(path => ["get", "post", "put", "patch", "delete"].flatMap(method => (path[method as "get"] ? [path[method as "get"]] : [])))).toHaveLength(63);
+  for (const [method, path, tag, summary, status, secured] of EXPECTED_OPERATIONS) {
+    const operation = doc.paths?.[path]?.[method];
+    expect(operation?.summary).toBe(summary);
+    expect(operation?.tags).toEqual([tag]);
+    const response = operation?.responses?.[String(status)] as ResponseObject | undefined;
+    expect(response).toBeDefined();
+    if (status !== 204) expect(response && "content" in response && response.content).toBeTruthy();
+    else expect(response && "content" in response).toBe(false);
+    expect(operation?.security).toEqual(secured ? [{ OAuth2PasswordBearer: [] }] : undefined);
   }
-  expect(doc.paths?.["/users/me"]?.get?.security).toEqual([{ OAuth2PasswordBearer: [] }]);
-  expect(doc.paths?.["/events"]?.get?.security).toBeUndefined();
   expect(doc.paths?.["/events/{event_id}"]).toBeDefined();
   expect(doc.paths?.["/docs"]).toBeUndefined();
   expect(doc.paths?.["/openapi.json"]).toBeUndefined();

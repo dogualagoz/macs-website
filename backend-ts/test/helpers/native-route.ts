@@ -23,6 +23,13 @@ export function route<P, Q, B, R>(app: AppRouter, deps: AppDeps, def: Definition
       let user: AuthUser | null = null;
       if (def.auth) { user = await authenticate(c.req.raw, deps.env, deps.loadUser, deps.now?.() ?? new Date()); if (def.auth !== "user") requireRoles(user, def.auth); }
       c.set("user", user);
+      if (def.params) {
+        const parsedParams = def.params.safeParse(c.req.param());
+        if (!parsedParams.success) {
+          const { toFastApi422, validationError } = await import("../../src/lib/validation");
+          throw validationError(toFastApi422(parsedParams.error, "path", c.req.param()));
+        }
+      }
       if (def.bodyKind === "form" && !(c.req.header("Content-Type") ?? "").startsWith("application/x-www-form-urlencoded")) {
         const { validationError } = await import("../../src/lib/validation");
         throw validationError(Object.keys(object(def.body)?.shape ?? {}).map(field => ({ type: "missing", loc: ["body", field], msg: "Field required", input: null })));

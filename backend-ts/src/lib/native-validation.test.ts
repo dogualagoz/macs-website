@@ -138,10 +138,12 @@ test("rate limit precedes auth and params/query/body validation", async () => {
   expect(limited.status).toBe(429);
   expect(limited.body).toEqual({ error: "Rate limit exceeded: 1 per 1 minute" });
   const authorized = await signAccessToken({ sub: user.email, role: "moderator" }, env.JWT_SECRET_KEY, 60, now);
-  const path = await request(app).post("/order/bad?q=valid").set("X-Real-IP", "192.0.2.21").auth(authorized, { type: "bearer" }).send({});
+  const path = await request(app).post("/order/bad").set("X-Real-IP", "192.0.2.21").auth(authorized, { type: "bearer" }).send({});
   expect(path.status).toBe(422); expect((path.body as { detail: FastApiErrorItem[] }).detail[0]?.loc).toEqual(["path", "id"]);
   const query = await request(app).post("/order/1").set("X-Real-IP", "192.0.2.22").auth(authorized, { type: "bearer" }).send({});
   expect(query.status).toBe(422); expect((query.body as { detail: FastApiErrorItem[] }).detail[0]?.loc).toEqual(["query", "q"]);
+  const body = await request(app).post("/order/1?q=valid").set("X-Real-IP", "192.0.2.23").auth(authorized, { type: "bearer" }).send({});
+  expect(body.status).toBe(422); expect((body.body as { detail: FastApiErrorItem[] }).detail[0]?.loc).toEqual(["body", "email"]);
 });
 
 test("native OpenAPI hook retains raw input; JSON errors and overrides match FastAPI", async () => {
