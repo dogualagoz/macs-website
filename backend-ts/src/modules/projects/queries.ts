@@ -48,7 +48,7 @@ export async function listProjectsJson(db: Db, query: ProjectQuery, admin: boole
   total AS (SELECT count(*)::int AS value FROM filtered)
   SELECT json_build_object('projects', coalesce((SELECT json_agg(${projectJson(true)} ORDER BY p.created_at DESC, p.id DESC)
     FROM paged p ${joins}), '[]'::json), 'total', (SELECT value FROM total),
-    'page', ${Math.floor(skip / size) + 1}::int, 'size', ${size}::int)::text AS body`);
+    'page', ${Math.floor(skip / size) + 1}::bigint, 'size', ${size}::int)::text AS body`);
   if (!row) throw new Error("Project list query returned no row");
   return row.body;
 }

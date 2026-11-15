@@ -69,9 +69,9 @@ export async function getUserJson(db: Db | Tx, id: number): Promise<string | nul
 }
 export async function listUsersJson(db: Db | Tx, skip: number, limit: number): Promise<string> {
   const result = await db.execute<{ body: string }>(sql`WITH paged AS (
-    SELECT ${userJson()} AS body FROM ${users}
+    SELECT ${userJson()} AS body, ${users.createdAt} AS created_at, ${users.id} AS id FROM ${users}
     ORDER BY ${users.createdAt} DESC, ${users.id} DESC OFFSET ${skip} LIMIT ${limit}
-  ) SELECT json_build_object('users', coalesce((SELECT json_agg(body) FROM paged), '[]'::json),
+  ) SELECT json_build_object('users', coalesce((SELECT json_agg(body ORDER BY created_at DESC, id DESC) FROM paged), '[]'::json),
     'total', (SELECT count(*) FROM ${users}))::text AS body`);
   if (!result[0]) throw new Error("User list query returned no row");
   return result[0].body;

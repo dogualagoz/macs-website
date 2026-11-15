@@ -122,3 +122,10 @@ describe("projects database integration", () => {
     const empty = await request(app).get("/projects?skip=100&limit=2"); expect(empty.status).toBe(200); expect(empty.body).toEqual({ projects: [], total: 3, page: 51, size: 2 });
   });
 });
+
+
+test("maximum safe skip produces a bigint page without overflow", async () => {
+  const response = await createApp(deps).request("/projects?skip=2147483647&limit=1");
+  expect(response.status).toBe(200);
+  expect(await response.json()).toMatchObject({ page: 2147483648, projects: [] });
+});

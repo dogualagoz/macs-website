@@ -191,3 +191,12 @@ test("native JSON validation preserves original input with mixed-case content ty
   expect(r.status).toBe(422);
   expect(await r.json()).toMatchObject({ detail: [{ type: "missing", loc: ["body", "email"], input: { full_name: "Test", password: "parola123" } }] });
 });
+
+test("user aggregation explicitly orders equal timestamps by descending id", async () => {
+  const { listUsersJson } = await import("../../src/modules/users/queries");
+  await deps.sql`UPDATE users SET created_at = '2026-01-01'`;
+  deps.counter.reset();
+  const result = JSON.parse(await listUsersJson(deps.db, 0, 100)) as { users: { id: number }[] };
+  expect(result.users.map(u => u.id)).toEqual([7, 6, 5, 4, 3, 2, 1]);
+  expect(deps.counter.queries()[0]).toContain("json_agg(body ORDER BY created_at DESC, id DESC)");
+});
