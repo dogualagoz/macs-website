@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { eventService } from '../services/contentService';
 import { handleApiError } from '../../../shared/utils/errorHandler';
 import env from '../../../shared/config/env';
+import { toSiteDateTimeInput, siteDateTimeInputToApi } from '../../../shared/utils/apiDate';
 
 // Backend URL'den /api kısmını çıkar ve image URL ile birleştir
 const getImageUrl = (imageUrl) => {
@@ -42,12 +43,10 @@ export const useEventForm = (editData = null, onUpdateSuccess = null) => {
       setIsEditMode(true);
       setEditId(editData.id);
       
-      // Tarih formatını düzenle (datetime-local için)
-      let formattedDate = '';
-      if (editData.start_time) {
-        const date = new Date(editData.start_time);
-        formattedDate = date.toISOString().slice(0, 16);
-      }
+      // API UTC döndürüyor, input İstanbul saatini göstermeli.
+      // toISOString() burada UTC verip kayıtta +03:00 eklenince her
+      // düzenleme etkinliği saatlerce geri kaydırıyordu.
+      const formattedDate = toSiteDateTimeInput(editData.start_time);
       
       setFormData({
         title: editData.title || '',
@@ -102,7 +101,7 @@ export const useEventForm = (editData = null, onUpdateSuccess = null) => {
       }
       
       // 2. Etkinlik verisi hazırla
-      const startTimeWithTZ = formData.date + ':00+03:00';
+      const startTimeWithTZ = siteDateTimeInputToApi(formData.date);
       const eventData = {
         title: formData.title,
         description: formData.description,
