@@ -5,7 +5,7 @@ import type { AppRouter, AppDeps } from "../../app";
 import { HttpError } from "../../lib/http-error";
 import { sendJsonResponse } from "../../lib/public-cache";
 import { perMinute, routeRateLimit } from "../../security/rate-limit";
-import { limitBodySize } from "../../security/request-guards";
+import { limitBodySize, requireJsonBody } from "../../security/request-guards";
 import { userResponseSchema } from "../users/schemas";
 import { createUser } from "../users/service";
 import { adminRegisterSchema, loginSchema, registerSchema, tokenSchema } from "./schemas";
@@ -13,8 +13,8 @@ import { login, validAdminSecret } from "./service";
 
 export function registerAuthRoutes(app: AppRouter, deps: AppDeps): void {
   const registration = createRoute({ method: "post", path: "/auth/register", tags: ["authentication"], summary: "Kullanıcı kaydı",
-    middleware: [routeRateLimit(deps, perMinute(5)), limitBodySize(deps.security?.maxBodyBytes)],
-    request: { body: { content: { "application/json": { schema: registerSchema } } } },
+    middleware: [routeRateLimit(deps, perMinute(5)), limitBodySize(deps.security?.maxBodyBytes), requireJsonBody],
+    request: { body: { required: true, content: { "application/json": { schema: registerSchema } } } },
     responses: { 422: { $ref: "#/components/responses/HTTPValidationError" }, 200: { description: "Success", content: { "application/json": { schema: userResponseSchema } } } },
   });
   app.openapi(registration, async c => {
@@ -23,8 +23,8 @@ export function registerAuthRoutes(app: AppRouter, deps: AppDeps): void {
     return sendJsonResponse(c, JSON.stringify(result));
   });
   const admin = createRoute({ method: "post", path: "/auth/register/admin", tags: ["authentication"], summary: "Admin kaydı",
-    middleware: [routeRateLimit(deps, perMinute(3)), limitBodySize(deps.security?.maxBodyBytes)],
-    request: { body: { content: { "application/json": { schema: adminRegisterSchema } } } },
+    middleware: [routeRateLimit(deps, perMinute(3)), limitBodySize(deps.security?.maxBodyBytes), requireJsonBody],
+    request: { body: { required: true, content: { "application/json": { schema: adminRegisterSchema } } } },
     responses: { 422: { $ref: "#/components/responses/HTTPValidationError" }, 200: { description: "Success", content: { "application/json": { schema: userResponseSchema } } } },
   });
   app.openapi(admin, async c => {
@@ -40,7 +40,7 @@ export function registerAuthRoutes(app: AppRouter, deps: AppDeps): void {
       if (deps.env.RATELIMIT_ENABLED) deps.loginShield?.check(c.get("clientIp") ?? "unknown");
       await next();
     }, limitBodySize(deps.security?.maxBodyBytes)],
-    request: { body: { content: { "application/x-www-form-urlencoded": { schema: loginSchema } } } },
+    request: { body: { required: true, content: { "application/x-www-form-urlencoded": { schema: loginSchema } } } },
     responses: { 422: { $ref: "#/components/responses/HTTPValidationError" }, 200: { description: "Success", content: { "application/json": { schema: tokenSchema } } } },
   });
   app.openapi(signin, async c => {

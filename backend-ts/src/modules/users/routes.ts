@@ -6,7 +6,7 @@ import { sendJsonResponse } from "../../lib/public-cache";
 import { authenticate, requireRoles } from "../../middleware/auth";
 import type { AuthUser } from "../../middleware/auth";
 import { perMinute, routeRateLimit } from "../../security/rate-limit";
-import { limitBodySize } from "../../security/request-guards";
+import { limitBodySize, requireJsonBody } from "../../security/request-guards";
 import { accessSchema, listQuerySchema, passwordChangeSchema, profileQuerySchema, userParamsSchema, userResponseSchema } from "./schemas";
 import { getUserJson, listUsersJson } from "./queries";
 import * as service from "./service";
@@ -44,8 +44,8 @@ export function registerUserRoutes(app: AppRouter, deps: AppDeps): void {
   });
   deps.routeRegistry.push({ method: "put", path: "/users/me", domain: "users", tag: "users", summary: "Profil güncelle", auth: "user", response: userResponseSchema, query: profileQuerySchema });
   const changePassword = createRoute({ method: "post", path: "/users/me/change-password", tags: ["users"], summary: "Şifre değiştir",
-    security: [{ OAuth2PasswordBearer: [] }], middleware: [routeRateLimit(deps, perMinute(3)), auth(false), limitBodySize(deps.security?.maxBodyBytes)],
-    request: { body: { content: { "application/json": { schema: passwordChangeSchema } } } },
+    security: [{ OAuth2PasswordBearer: [] }], middleware: [routeRateLimit(deps, perMinute(3)), auth(false), limitBodySize(deps.security?.maxBodyBytes), requireJsonBody],
+    request: { body: { required: true, content: { "application/json": { schema: passwordChangeSchema } } } },
     responses: { 422: { $ref: "#/components/responses/HTTPValidationError" }, 200: { description: "Success", content: { "application/json": { schema: userResponseSchema } } } },
   });
   app.openapi(changePassword, async c => {
@@ -89,8 +89,8 @@ export function registerUserRoutes(app: AppRouter, deps: AppDeps): void {
   });
   deps.routeRegistry.push({ method: "get", path: "/users/:user_id", domain: "users", tag: "users", summary: "Kullanıcı detayı", auth: ["admin"], response: userResponseSchema, params: userParamsSchema });
   const setAccess = createRoute({ method: "patch", path: "/users/{user_id}/access", tags: ["users"], summary: "Erişim ayarları",
-    security: [{ OAuth2PasswordBearer: [] }], middleware: [routeRateLimit(deps, perMinute(20)), auth(true), limitBodySize(deps.security?.maxBodyBytes)],
-    request: { params: userParamsSchema, body: { content: { "application/json": { schema: accessSchema } } } },
+    security: [{ OAuth2PasswordBearer: [] }], middleware: [routeRateLimit(deps, perMinute(20)), auth(true), limitBodySize(deps.security?.maxBodyBytes), requireJsonBody],
+    request: { params: userParamsSchema, body: { required: true, content: { "application/json": { schema: accessSchema } } } },
     responses: { 422: { $ref: "#/components/responses/HTTPValidationError" }, 200: { description: "Success", content: { "application/json": { schema: userResponseSchema } } } },
   });
   app.openapi(setAccess, async c => {

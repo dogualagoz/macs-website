@@ -3,7 +3,7 @@ import type { MiddlewareHandler } from "hono";
 import type { AppRouter, AppDeps, AppEnv } from "../../app";
 import { publicCachedJson, sendJsonResponse } from "../../lib/public-cache";
 import { authenticate, requireRoles } from "../../middleware/auth";
-import { limitBodySize } from "../../security/request-guards";
+import { limitBodySize, requireJsonBody } from "../../security/request-guards";
 import * as schema from "./schemas";
 import * as queries from "./queries";
 
@@ -60,8 +60,8 @@ export function registerMemberRoutes(app: AppRouter, deps: AppDeps): void {
   });
   deps.routeRegistry.push({ method: "get", path: "/members/:member_id/projects", domain: "members", tag: "members", summary: "Üyenin proje üyelikleri", public: true, response: z.array(schema.projectMemberResponseSchema), params: schema.memberParamsSchema });
   const create = createRoute({ method: "post", path: "/members", tags: ["members"], summary: "Üye oluştur",
-    security: [{ OAuth2PasswordBearer: [] }], middleware: [staff, limitBodySize(deps.security?.maxBodyBytes)],
-    request: { body: { content: { "application/json": { schema: schema.memberCreateSchema } } } },
+    security: [{ OAuth2PasswordBearer: [] }], middleware: [staff, limitBodySize(deps.security?.maxBodyBytes), requireJsonBody],
+    request: { body: { required: true, content: { "application/json": { schema: schema.memberCreateSchema } } } },
     responses: { 422: { $ref: "#/components/responses/HTTPValidationError" }, 201: { description: "Success", content: { "application/json": { schema: schema.memberResponseSchema } } } },
   });
   app.openapi(create, async c => {
@@ -71,8 +71,8 @@ export function registerMemberRoutes(app: AppRouter, deps: AppDeps): void {
   });
   deps.routeRegistry.push({ method: "post", path: "/members", domain: "members", tag: "members", summary: "Üye oluştur", auth: ["admin", "moderator"], response: schema.memberResponseSchema, body: schema.memberCreateSchema, status: 201 });
   const update = createRoute({ method: "put", path: "/members/{member_id}", tags: ["members"], summary: "Üye güncelle",
-    security: [{ OAuth2PasswordBearer: [] }], middleware: [staff, limitBodySize(deps.security?.maxBodyBytes)],
-    request: { params: schema.memberParamsSchema, body: { content: { "application/json": { schema: schema.memberUpdateSchema } } } },
+    security: [{ OAuth2PasswordBearer: [] }], middleware: [staff, limitBodySize(deps.security?.maxBodyBytes), requireJsonBody],
+    request: { params: schema.memberParamsSchema, body: { required: true, content: { "application/json": { schema: schema.memberUpdateSchema } } } },
     responses: { 422: { $ref: "#/components/responses/HTTPValidationError" }, 200: { description: "Success", content: { "application/json": { schema: schema.memberResponseSchema } } } },
   });
   app.openapi(update, async c => {

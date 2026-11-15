@@ -4,7 +4,7 @@ import type { AppRouter, AppDeps, AppEnv } from "../../app";
 import { publicCachedJson, sendJsonResponse } from "../../lib/public-cache";
 import { authenticate, requireRoles } from "../../middleware/auth";
 import { perMinute, routeRateLimit } from "../../security/rate-limit";
-import { limitBodySize } from "../../security/request-guards";
+import { limitBodySize, requireJsonBody } from "../../security/request-guards";
 import * as schema from "./schemas";
 import * as queries from "./queries";
 import { geocodeAddress, requiredSponsorJson } from "./service";
@@ -34,8 +34,8 @@ export function registerSponsorRoutes(app: AppRouter, deps: AppDeps): void {
   });
   deps.routeRegistry.push({ method: "get", path: "/sponsors/categories", domain: "sponsors", tag: "sponsors", summary: "Sponsor kategorileri", public: true, response: z.array(z.string()) });
   const geocode = createRoute({ method: "post", path: "/sponsors/geocode", tags: ["sponsors"], summary: "Adres koordinatları",
-    security: [{ OAuth2PasswordBearer: [] }], middleware: [routeRateLimit(deps, perMinute(10)), staff, limitBodySize(deps.security?.maxBodyBytes)],
-    request: { body: { content: { "application/json": { schema: schema.geocodeRequestSchema } } } },
+    security: [{ OAuth2PasswordBearer: [] }], middleware: [routeRateLimit(deps, perMinute(10)), staff, limitBodySize(deps.security?.maxBodyBytes), requireJsonBody],
+    request: { body: { required: true, content: { "application/json": { schema: schema.geocodeRequestSchema } } } },
     responses: { 422: { $ref: "#/components/responses/HTTPValidationError" }, 200: { description: "Success", content: { "application/json": { schema: schema.geocodeResponseSchema } } } },
   });
   app.openapi(geocode, async c => {
@@ -52,8 +52,8 @@ export function registerSponsorRoutes(app: AppRouter, deps: AppDeps): void {
   });
   deps.routeRegistry.push({ method: "get", path: "/sponsors/:sponsor_id", domain: "sponsors", tag: "sponsors", summary: "Sponsor detayı", public: true, response: schema.sponsorResponseSchema, params: schema.sponsorParamsSchema });
   const create = createRoute({ method: "post", path: "/sponsors/", tags: ["sponsors"], summary: "Sponsor oluştur",
-    security: [{ OAuth2PasswordBearer: [] }], middleware: [staff, limitBodySize(deps.security?.maxBodyBytes)],
-    request: { body: { content: { "application/json": { schema: schema.sponsorCreateSchema } } } },
+    security: [{ OAuth2PasswordBearer: [] }], middleware: [staff, limitBodySize(deps.security?.maxBodyBytes), requireJsonBody],
+    request: { body: { required: true, content: { "application/json": { schema: schema.sponsorCreateSchema } } } },
     responses: { 422: { $ref: "#/components/responses/HTTPValidationError" }, 201: { description: "Success", content: { "application/json": { schema: schema.sponsorResponseSchema } } } },
   });
   app.openapi(create, async c => {
@@ -63,8 +63,8 @@ export function registerSponsorRoutes(app: AppRouter, deps: AppDeps): void {
   });
   deps.routeRegistry.push({ method: "post", path: "/sponsors/", domain: "sponsors", tag: "sponsors", summary: "Sponsor oluştur", auth: ["admin", "moderator"], response: schema.sponsorResponseSchema, body: schema.sponsorCreateSchema, status: 201 });
   const update = createRoute({ method: "put", path: "/sponsors/{sponsor_id}", tags: ["sponsors"], summary: "Sponsor güncelle",
-    security: [{ OAuth2PasswordBearer: [] }], middleware: [staff, limitBodySize(deps.security?.maxBodyBytes)],
-    request: { params: schema.sponsorParamsSchema, body: { content: { "application/json": { schema: schema.sponsorUpdateSchema } } } },
+    security: [{ OAuth2PasswordBearer: [] }], middleware: [staff, limitBodySize(deps.security?.maxBodyBytes), requireJsonBody],
+    request: { params: schema.sponsorParamsSchema, body: { required: true, content: { "application/json": { schema: schema.sponsorUpdateSchema } } } },
     responses: { 422: { $ref: "#/components/responses/HTTPValidationError" }, 200: { description: "Success", content: { "application/json": { schema: schema.sponsorResponseSchema } } } },
   });
   app.openapi(update, async c => {
