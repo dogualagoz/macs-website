@@ -3,7 +3,17 @@
 # Container deploy script for backend-ts on the production VPS (/opt/macs-website).
 #
 # Usage (first deploy & upgrades — fetches script from origin/main before running):
-#   set -euo pipefail
+#   ( set -euo pipefail; cd /opt/macs-website && git fetch origin main && git show origin/main:scripts/deploy-backend-ts.sh | bash -s )
+#
+# Usage (once script is present in /opt/macs-website):
+#   bash /opt/macs-website/scripts/deploy-backend-ts.sh
+#
+# Exit codes:
+#   0 - deploy succeeded ("deployed <sha>")
+#   1 - pre-deploy validation/lock/snapshot failed or deploy failed and rolled back cleanly ("deploy failed, rolled back to <PREV>")
+#   2 - deploy failed AND rollback failed ("rollback failed for <PREV>")
+
+set -euo pipefail
 
 LOCK_FILE="${LOCK_FILE:-/tmp/macs-backend-ts-deploy.lock}"
 if ! command -v flock >/dev/null 2>&1; then
@@ -15,17 +25,6 @@ flock -n 9 || {
   echo "deploy already in progress" >&2
   exit 1
 }
-#   cd /opt/macs-website && git fetch origin main && git show origin/main:scripts/deploy-backend-ts.sh | bash -s
-#
-# Usage (once script is present in /opt/macs-website):
-#   bash /opt/macs-website/scripts/deploy-backend-ts.sh
-#
-# Exit codes:
-#   0 - deploy succeeded ("deployed <sha>")
-#   1 - pre-deploy validation failed or deploy failed and rolled back cleanly ("deploy failed, rolled back to <PREV>")
-#   2 - deploy failed AND rollback failed ("rollback failed for <PREV>")
-
-set -euo pipefail
 
 REPO_DIR="${REPO_DIR:-/opt/macs-website}"
 REMOTE="${REMOTE:-origin}"
@@ -68,19 +67,30 @@ cleanup() {
 trap cleanup EXIT
 
 # F16: Save resolved compose config and current backend-ts image ID (if any) before mutating checkout.
+if docker container inspect "$CONTAINER_NAME" >/dev/null 2>&1; then
+  PREV_CONTAINER_EXISTED=1
+  PREV_IMAGE_ID="$(docker inspect --format '{{.Image}}' "$CONTAINER_NAME" || true)"
+elif docker image inspect "$IMAGE_NAME" >/dev/null 2>&1; then
+  PREV_IMAGE_ID="$(docker image inspect --format '{{.Id}}' "$IMAGE_NAME" || true)"
+fi
+
 HAS_PREV_SERVICE=0
-if [[ -f "$COMPOSE_BASE_FILE" && -f "$COMPOSE_PROD_FILE" ]] && \
-   docker compose -f "$COMPOSE_BASE_FILE" -f "$COMPOSE_PROD_FILE" config --services 2>/dev/null | grep -qx "$SERVICE_NAME"; then
-  if docker compose -f "$COMPOSE_BASE_FILE" -f "$COMPOSE_PROD_FILE" config > "$SAVED_COMPOSE_CONFIG" 2>/dev/null; then
-    HAS_PREV_SERVICE=1
+if [[ -f "$COMPOSE_BASE_FILE" && -f "$COMPOSE_PROD_FILE" ]]; then
+  if [[ "$PREV_CONTAINER_EXISTED" -eq 1 ]]; then
+    if docker compose -f "$COMPOSE_BASE_FILE" -f "$COMPOSE_PROD_FILE" config --services | grep -qx "$SERVICE_NAME" && \
+       docker compose -f "$COMPOSE_BASE_FILE" -f "$COMPOSE_PROD_FILE" config > "$SAVED_COMPOSE_CONFIG"; then
+      HAS_PREV_SERVICE=1
+    fi
+  elif docker compose -f "$COMPOSE_BASE_FILE" -f "$COMPOSE_PROD_FILE" config --services 2>/dev/null | grep -qx "$SERVICE_NAME"; then
+    if docker compose -f "$COMPOSE_BASE_FILE" -f "$COMPOSE_PROD_FILE" config > "$SAVED_COMPOSE_CONFIG"; then
+      HAS_PREV_SERVICE=1
+    fi
   fi
 fi
 
-if docker container inspect "$CONTAINER_NAME" >/dev/null 2>&1; then
-  PREV_CONTAINER_EXISTED=1
-  PREV_IMAGE_ID="$(docker inspect --format '{{.Image}}' "$CONTAINER_NAME" 2>/dev/null || true)"
-elif docker image inspect "$IMAGE_NAME" >/dev/null 2>&1; then
-  PREV_IMAGE_ID="$(docker image inspect --format '{{.Id}}' "$IMAGE_NAME" 2>/dev/null || true)"
+if [[ "$PREV_CONTAINER_EXISTED" -eq 1 && ( "$HAS_PREV_SERVICE" -ne 1 || -z "$PREV_IMAGE_ID" ) ]]; then
+  echo "failed to capture pre-deploy snapshot for existing $CONTAINER_NAME (HAS_PREV_SERVICE=$HAS_PREV_SERVICE, PREV_IMAGE_ID=${PREV_IMAGE_ID:-<empty>})" >&2
+  exit 1
 fi
 
 if [[ -n "$PREV_IMAGE_ID" ]]; then
@@ -113,7 +123,7 @@ rollback() {
       echo "rollback failed for $PREV: image restore failed" >&2
       exit 2
     fi
-    if ! docker compose -f "$SAVED_COMPOSE_CONFIG" up -d --no-deps --no-build --force-recreate "$SERVICE_NAME"; then
+    if ! docker compose --project-directory "$REPO_DIR" -f "$SAVED_COMPOSE_CONFIG" up -d --no-deps --no-build --force-recreate "$SERVICE_NAME"; then
       echo "rollback failed for $PREV: compose up failed" >&2
       exit 2
     fi
