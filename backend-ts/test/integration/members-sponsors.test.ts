@@ -41,6 +41,14 @@ describe("members and sponsors database integration", () => {
       }
     }
   });
+  test("NULL sponsor booleans serialize to false while nullable fields remain null", async () => {
+    await deps.sql`UPDATE sponsors SET is_active = NULL, is_featured = NULL, latitude = NULL, longitude = NULL, created_at = NULL WHERE id = 1`;
+    const r = await request(createApp(deps)).get("/sponsors/1");
+    expect(r.status).toBe(200);
+    expect(r.body).toEqual({ id: 1, name: "Kahve Durağı", category: "Kafe", description: null, image_url: null,
+      discount_info: null, latitude: null, longitude: null, address: null, is_active: false, is_featured: false,
+      created_at: null, updated_at: null });
+  });
   test("NULL sponsor active rows never match false", async () => {
     await deps.sql`UPDATE sponsors SET is_active = NULL WHERE id = 1`;
     const r = await request(createApp(deps)).get("/sponsors/?is_active=false");

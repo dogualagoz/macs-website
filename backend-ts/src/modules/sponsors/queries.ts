@@ -1,7 +1,7 @@
 import { and, eq, sql } from "drizzle-orm";
 import type { Db } from "../../db/client";
 import { sponsors } from "../../db/schema";
-import { sqlUtcIso } from "../../lib/sql-json";
+import { sqlBoolFalse, sqlUtcIso } from "../../lib/sql-json";
 import { requiredSponsorJson } from "./service";
 import type { SponsorCreate, SponsorQuery, SponsorUpdate } from "./schemas";
 
@@ -10,7 +10,7 @@ function sponsorJson() {
     'name', ${sponsors.name}, 'description', ${sponsors.description}, 'image_url', ${sponsors.imageUrl},
     'category', ${sponsors.category}, 'discount_info', ${sponsors.discountInfo},
     'latitude', ${sponsors.latitude}, 'longitude', ${sponsors.longitude}, 'address', ${sponsors.address},
-    'is_active', ${sponsors.isActive}, 'is_featured', ${sponsors.isFeatured},
+    'is_active', ${sqlBoolFalse(sponsors.isActive)}, 'is_featured', ${sqlBoolFalse(sponsors.isFeatured)},
     'id', ${sponsors.id}, 'created_at', ${sqlUtcIso(sponsors.createdAt)}, 'updated_at', null)`;
 }
 export async function listSponsorsJson(db: Db, query: SponsorQuery): Promise<string> {
