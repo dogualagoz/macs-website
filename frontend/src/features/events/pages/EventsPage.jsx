@@ -7,6 +7,7 @@ import EventCard from '../components/EventCard';
 import { PageHeaderSkeleton, EventGridSkeleton } from '../../../shared/components/feedback/Skeleton';
 import ErrorMessage from '../../../shared/components/feedback/ErrorMessage';
 import SEO from '../../../shared/components/seo/SEO';
+import PageHero from '../../../shared/components/ui/PageHero';
 import { parseApiDate, isPastApiDate, SITE_TIMEZONE } from '../../../shared/utils/apiDate';
 
 export default function Events() {
@@ -19,7 +20,7 @@ export default function Events() {
     return (
       <div className="min-h-screen bg-white pt-20">
         <PageHeaderSkeleton />
-        <div className="mx-auto max-w-7xl px-4 py-12">
+        <div className="mx-auto max-w-container px-5 py-12">
           <EventGridSkeleton count={6} />
         </div>
       </div>
@@ -36,23 +37,13 @@ export default function Events() {
         keywords="MACS etkinlikleri, yazılım atölyesi, hackathon, seminer, ESOGÜ etkinlik"
         url="https://macsclub.com.tr/etkinlikler"
       />
-      <div className="min-h-screen bg-white pt-20">
-      {/* Header Section */}
-      <section className="bg-gradient-to-br from-[#07132b] to-[#0a1a3a] text-white py-20">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="mx-auto max-w-7xl px-4"
-        >
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Etkinlikler</h1>
-          <p className="text-lg text-white/80 max-w-2xl">
-            Matematik ve bilgisayar bilimleri alanında düzenlediğimiz etkinlikler, workshoplar ve seminerler
-          </p>
-        </motion.div>
-      </section>
+      <div className="min-h-screen bg-white">
+      <PageHero
+        title="Etkinlikler"
+        description="Matematik ve bilgisayar bilimleri alanında düzenlediğimiz etkinlikler, workshoplar ve seminerler"
+      />
 
-      <div className="mx-auto max-w-7xl px-4 py-12">
+      <div className="mx-auto max-w-container px-5 py-12">
         {/* Category Filters */}
         <CategoryFilters 
           categories={categories}

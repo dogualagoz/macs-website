@@ -136,9 +136,14 @@ const Plate = ({ person, tier, index, reduce, onOpen }) => {
   );
 };
 
-/* as: baslik etiketi. Bolum olarak (Hakkimizda icinde) h2, kendi sayfasinda
-   h1 — bir sayfada iki h1 olmasin diye. */
-const TeamSection = ({ as: Heading = 'h2' }) => {
+export const TEAM_TITLE = 'Yönetim Ekibimizle Tanışın';
+export const TEAM_LEDE =
+  'MACS’i dokuz öğrenci yürütüyor; hepsi ESOGÜ Matematik ve Bilgisayar ' +
+  'Bilimleri bölümünden. Tanımak istediğiniz kişinin fotoğrafına tıklayın.';
+
+/* intro: baslik + lede. Hakkimizda icinde bolum basligi olarak (h2) cizilir;
+   Ekibimiz sayfasinda ayni metin PageHero'da durdugu icin kapatilir. */
+const TeamSection = ({ intro = true }) => {
   const [selectedMember, setSelectedMember] = useState(null);
   const openerRef = useRef(null);
   const closeRef = useRef(null);
@@ -196,11 +201,12 @@ const TeamSection = ({ as: Heading = 'h2' }) => {
     <>
       <section className="team-section" id="ekip" style={{ cursor: "default" }}>
         <div className="container">
-          <Heading className="section-title">Yönetim Ekibimizle Tanışın</Heading>
-          <p className="team-lede">
-            MACS’i dokuz öğrenci yürütüyor; hepsi ESOGÜ Matematik ve Bilgisayar
-            Bilimleri bölümünden. Tanımak istediğiniz kişinin fotoğrafına tıklayın.
-          </p>
+          {intro && (
+            <>
+              <h2 className="section-title">{TEAM_TITLE}</h2>
+              <p className="team-lede">{TEAM_LEDE}</p>
+            </>
+          )}
 
           <div className="team-rank" aria-hidden="true" />
           <div className="team-plates team-plates--kurul">
