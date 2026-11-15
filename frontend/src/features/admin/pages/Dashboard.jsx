@@ -54,7 +54,7 @@ const Dashboard = () => {
     setError(null);
     
     try {
-      const eventsData = await eventService.getAllAdmin({ limit: 100 });
+      const eventsData = await eventService.getAllAdmin();
       setEvents(eventsData);
     } catch (err) {
       console.error("Etkinlikleri getirme hatası:", err);
@@ -70,7 +70,7 @@ const Dashboard = () => {
     setError(null);
     
     try {
-      const response = await projectService.getAllAdmin({ limit: 100 });
+      const response = await projectService.getAllAdmin();
       if (response.projects) {
         setProjects(response.projects);
       } else {
@@ -90,7 +90,7 @@ const Dashboard = () => {
     setError(null);
     
     try {
-      const sponsorsData = await sponsorService.getAll();
+      const sponsorsData = await sponsorService.getAllAdmin();
       setSponsors(Array.isArray(sponsorsData) ? sponsorsData : []);
     } catch (err) {
       console.error("Sponsorları getirme hatası:", err);
@@ -380,7 +380,7 @@ const Dashboard = () => {
                                 className={`featured-btn ${event.is_featured ? 'unfeatured' : 'featured'}`}
                                 title={event.is_featured ? 'Öne çıkarmayı kaldır' : 'Öne çıkar'}
                               >
-                                {event.is_featured ? 'Öne Çıkar' : 'Öne Çıkar'}
+                                {event.is_featured ? 'Öne Çıkarmayı Kaldır' : 'Öne Çıkar'}
                               </button>
                               <button 
                                 onClick={() => handleDeleteEvent(event.id)}
@@ -458,7 +458,7 @@ const Dashboard = () => {
                             </div>
                             <div className="dashboard-table-cell">{project.title}</div>
                             <div className="dashboard-table-cell">
-                              {project.category?.name || '-'}
+                              {(typeof project.category === 'string' ? project.category : project.category?.name) || '-'}
                             </div>
                             <div className="dashboard-table-cell">
                               {project.technologies || '-'}
@@ -493,7 +493,7 @@ const Dashboard = () => {
                                 className={`featured-btn ${project.is_featured ? 'unfeatured' : 'featured'}`}
                                 title={project.is_featured ? 'Öne çıkarmayı kaldır' : 'Öne çıkar'}
                               >
-                                {project.is_featured ? 'Öne Çıkar' : 'Öne Çıkar'}
+                                {project.is_featured ? 'Öne Çıkarmayı Kaldır' : 'Öne Çıkar'}
                               </button>
                               <button 
                                 onClick={() => handleDeleteProject(project.id)}
