@@ -12,6 +12,7 @@ import '../../../styles/pages/sponsors.css';
 
 
 import SEO from '../../../shared/components/seo/SEO';
+import { USE_MOCK_FALLBACK } from '../../../shared/utils/mockFallback';
 
 const MAPBOX_TOKEN = env.mapboxToken;
 
@@ -48,20 +49,14 @@ export default function SponsorsPage() {
         setLoading(true);
         const data = await sponsorService.getAll({ is_active: true });
 
-        if (data && data.length > 0) {
-          // Backend'den gelen veriyi dönüştür
-          const transformedData = data.map(transformSponsorData);
-          setSponsors(transformedData);
-        } else {
-          // Veri yoksa mock data kullan
-          console.log('No sponsors from API, using mock data');
-          setSponsors(mockSponsors.map(transformSponsorData));
-        }
+        // Boş liste geçerli bir yanıt: boş durum ekranı gösterilir, örnek veri değil.
+        setSponsors(Array.isArray(data) ? data.map(transformSponsorData) : []);
+        setError(null);
       } catch (err) {
         console.error('Error fetching sponsors:', err);
-        setError(err.message);
-        // API hatası durumunda mock data kullan
-        setSponsors(mockSponsors.map(transformSponsorData));
+        setError(err.message || 'Sponsorlar yüklenemedi');
+        // Örnek veri yalnızca geliştirmede; production'da hata görünür kalmalı.
+        setSponsors(USE_MOCK_FALLBACK ? mockSponsors.map(transformSponsorData) : []);
       } finally {
         const elapsedTime = Date.now() - startTime;
         const remainingTime = Math.max(400 - elapsedTime, 0);
@@ -139,7 +134,9 @@ export default function SponsorsPage() {
             className="sponsors-error"
           >
             <p className="sponsors-error__text">
-              Sponsorlar yüklenirken bir hata oluştu. Örnek veriler gösteriliyor.
+              {USE_MOCK_FALLBACK
+                ? 'Sponsorlar yüklenirken bir hata oluştu. Örnek veriler gösteriliyor.'
+                : 'Sponsorlar şu an yüklenemedi. Lütfen biraz sonra tekrar deneyin.'}
             </p>
           </motion.div>
         )}
