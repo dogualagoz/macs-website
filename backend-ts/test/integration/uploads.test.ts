@@ -4,7 +4,7 @@ import { ReadStream } from "node:fs";
 import { Writable } from "node:stream";
 import { ZipArchive } from "archiver";
 import { randomBytes } from "node:crypto";
-import { mkdir, mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { get, request as nodeRequest } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -15,6 +15,7 @@ import { parseEnv } from "../../src/config/env";
 import { testDeps, TEST_DATABASE_URL, TEST_JWT_SECRET } from "../helpers/app";
 import { tokenFor } from "../helpers/auth";
 import { normalizeZip } from "../../contract/normalize";
+import sharp from "sharp";
 
 const png = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10, 112, 97, 121]);
 let dir: string;
@@ -66,6 +67,28 @@ test("valid uppercase upload is UUID v4, served from both paths; static missing,
   for (const path of ["/uploads/missing.png", "/static/uploads/missing.png", "/uploads/.hidden", "/static/uploads/.hidden", "/uploads/"]) {
     const response = await request(app).get(path); expect(response.status).toBe(404); expect(response.body).toEqual({ detail: "Not Found" });
   }
+});
+test("large photo upload is resized to IMAGE_MAX_DIMENSION, keeps format and extension; IMAGE_OPTIMIZE=false stores bytes untouched", async () => {
+  const raw = Buffer.alloc(2600 * 1800 * 3);
+  let seed = 7;
+  for (let i = 0; i < raw.length; i++) { seed = (Math.imul(seed, 1103515245) + 12345) >>> 0; raw[i] = seed >>> 24; }
+  const photo = await sharp(raw, { raw: { width: 2600, height: 1800, channels: 3 } }).blur(1.5).jpeg({ quality: 95 }).toBuffer();
+  expect(photo.length).toBeLessThanOrEqual(deps.env.MAX_UPLOAD_SIZE);
+
+  const optimized = await upload("foto.jpg", photo);
+  expect(optimized.status).toBe(200);
+  const { url } = optimized.body as { url: string };
+  expect(url).toMatch(/^\/uploads\/[0-9a-f-]{36}\.jpg$/);
+  const stored = await readFile(join(deps.env.UPLOAD_DIR, url.slice("/uploads/".length)));
+  expect(stored.length).toBeLessThan(photo.length);
+  const meta = await sharp(stored).metadata();
+  expect([meta.format, meta.width, meta.height]).toEqual(["jpeg", 1920, 1329]);
+
+  deps.env.IMAGE_OPTIMIZE = false;
+  const untouched = await upload("foto.jpg", photo);
+  expect(untouched.status).toBe(200);
+  const raw2 = await readFile(join(deps.env.UPLOAD_DIR, (untouched.body as { url: string }).url.slice("/uploads/".length)));
+  expect(raw2.equals(photo)).toBe(true);
 });
 test("size exactly at configured max succeeds; max + 1 reports floored MB", async () => {
   deps.env.MAX_UPLOAD_SIZE = 12; const bytes = Buffer.concat([png, Buffer.alloc(1)]);
