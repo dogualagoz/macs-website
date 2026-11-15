@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { z } from "zod";
 import request from "../test/helpers/http";
 import { route } from "../test/helpers/native-route";
-import { createApp } from "./app";
+import { createApp, isGlobalRateLimitExempt } from "./app";
 import { parseEnv } from "./config/env";
 import { createResponseCache } from "./lib/cache";
 import { testDeps } from "../test/helpers/app";
@@ -440,4 +440,22 @@ test("D4: slow streamed upload body succeeds beyond handlerTimeoutMs while enfor
     rmSync(root, { recursive: true, force: true });
     await deps.sql.end();
   }
+});
+
+test("E2: only exact /health and /health/ready are exempt from the global limiter, lookalike paths consume the bucket", async () => {
+  for (const path of ["/health", "/health/ready", "/uploads/a.png", "/static/app.css"]) expect(isGlobalRateLimitExempt(path)).toBe(true);
+  for (const path of ["/healthz", "/healthANYTHING", "/health/other", "/health/ready/x", "/healthy/ready"]) expect(isGlobalRateLimitExempt(path)).toBe(false);
+  const deps = testDeps({
+    env: { ...env, RATELIMIT_ENABLED: true },
+    security: { globalRateLimit: { ratePerMin: 1, burst: 5 } },
+    now: () => new Date("2026-11-15T00:00:00Z"),
+  });
+  try {
+    const app = createApp(deps);
+    for (let i = 0; i < 5; i++) expect((await request(app).get("/healthANYTHING").set("X-Real-IP", "198.51.100.30")).status).toBe(404);
+    expect((await request(app).get("/healthANYTHING").set("X-Real-IP", "198.51.100.30")).status).toBe(429);
+    // Exact health paths keep working for the same exhausted IP.
+    expect((await request(app).get("/health").set("X-Real-IP", "198.51.100.30")).status).toBe(200);
+    expect((await request(app).get("/health/ready").set("X-Real-IP", "198.51.100.30")).status).toBe(503);
+  } finally { await deps.sql.end(); }
 });

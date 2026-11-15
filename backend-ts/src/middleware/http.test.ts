@@ -286,3 +286,35 @@ test("D3: uploads ZIP failure and readiness cancel failure redact error messages
     await deps.sql.end();
   }
 });
+
+test("D3: geocoding fetch failure logs only the classified error, never the address or error message", async () => {
+  const logs: Record<string, unknown>[] = [];
+  const logger = pino({ level: "info" }, new Writable({ write(chunk: Buffer, _encoding, done) { logs.push(JSON.parse(chunk.toString()) as Record<string, unknown>); done(); } }));
+  const address = "Moda Cad. 12 Kadıköy secret-user@example.com";
+  const deps = testDeps({
+    env,
+    logger,
+    loadUser: () => Promise.resolve(user),
+    fetchImpl: () => Promise.reject(Object.assign(new TypeError(`fetch failed: https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)} ${address}`), { code: "ECONNRESET" })),
+  });
+  const app = createApp(deps);
+  try {
+    const adminToken = await signAccessToken({ sub: user.email, role: "admin" }, env.JWT_SECRET_KEY, 60, new Date());
+    const res = await app.request("/sponsors/geocode", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${adminToken}`, "Content-Type": "application/json", "X-Request-Id": "geo-err-1" },
+      body: JSON.stringify({ address }),
+    });
+    expect(res.status).toBe(500);
+    const geoLog = logs.find(entry => entry.msg === "Geocoding isteği başarısız");
+    expect(geoLog).toBeDefined();
+    expect(geoLog).toMatchObject({ errorName: "TypeError" });
+    expect(geoLog).not.toHaveProperty("err");
+    const serialized = JSON.stringify(logs);
+    expect(serialized).not.toContain("secret-user@example.com");
+    expect(serialized).not.toContain("Kad");
+    expect(serialized).not.toContain("nominatim");
+  } finally {
+    await deps.sql.end();
+  }
+});

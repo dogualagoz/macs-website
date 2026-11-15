@@ -1,5 +1,6 @@
 import type { Logger } from "pino";
 import { HttpError } from "../../lib/http-error";
+import { classifyErrorFields } from "../../middleware/error-handler";
 import { geocodeResponseSchema } from "./schemas";
 import type { GeocodeResponse } from "./schemas";
 
@@ -20,7 +21,8 @@ export async function geocodeAddress(address: string, fetchImpl: FetchImpl, user
     if (error instanceof Error && (error.name === "AbortError" || error.name === "TimeoutError")) {
       throw new HttpError(504, "Geocoding servisi yanıt vermiyor. Lütfen tekrar deneyin.");
     }
-    logger.error({ err: error }, "Geocoding isteği başarısız"); throw new HttpError(500, "Geocoding servisine ulaşılamadı");
+    logger.error(classifyErrorFields(error), "Geocoding isteği başarısız");
+    throw new HttpError(500, "Geocoding servisine ulaşılamadı");
   }
   if (Array.isArray(data) && data.length === 0) throw new HttpError(404, "Adres bulunamadı. Lütfen daha detaylı bir adres girin.");
   if (!Array.isArray(data) || data[0] === null || typeof data[0] !== "object") throw new Error("Invalid geocoding response");

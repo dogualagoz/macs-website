@@ -10,7 +10,7 @@
 [![Website](https://img.shields.io/badge/Website-macsclub.com.tr-blue)](https://macsclub.com.tr)
 [![React](https://img.shields.io/badge/React-18.3.1-61dafb)](https://reactjs.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110.0-009688)](https://fastapi.tiangolo.com/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-336791)](https://www.postgresql.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-13+-336791)](https://www.postgresql.org/)
 
 </div>
 
@@ -48,7 +48,7 @@ MACS Kulübü Web Sitesi, Eskişehir Osmangazi Üniversitesi Matematik ve Bilgis
 - **Mevcut / Geçiş Dönemi API (`backend`)**: FastAPI 0.110.0, SQLAlchemy 2.0, Alembic (cutover tamamlanana kadar paralel; bkz. [docs/backend-ts-cutover.md](docs/backend-ts-cutover.md))
 - **Database**: PostgreSQL 13+ (Docker Compose)
 - **Auth & Security**: JWT (`jose`), Bcrypt, IP/route rate limiting, güvenlik başlıkları
-- **Deploy**: VPS üzerinde Docker Compose + Plesk nginx ([docs/VPS_DEPLOYMENT.md](docs/VPS_DEPLOYMENT.md), [docs/backend-ts-cutover.md](docs/backend-ts-cutover.md))
+- **Deploy**: VPS üzerinde Docker konteynerleri + Plesk nginx ([docs/VPS_DEPLOYMENT.md](docs/VPS_DEPLOYMENT.md), [docs/backend-ts-cutover.md](docs/backend-ts-cutover.md))
 
 ---
 
@@ -57,7 +57,7 @@ MACS Kulübü Web Sitesi, Eskişehir Osmangazi Üniversitesi Matematik ve Bilgis
 ### Gereksinimler
 - Node.js 18+
 - Python 3.11+
-- PostgreSQL 14+
+- PostgreSQL 13+
 
 ### Backend Kurulumu
 
@@ -198,7 +198,15 @@ Detaylı şema için [DOCUMENTATION.md](docs/DOCUMENTATION.md) dosyasına bakın
 
 ## 🌐 Deployment
 
-VPS üzerinde Docker Compose + Plesk nginx ile yayınlanır:
+### Frontend (Vercel)
+- Frontend Vercel üzerinde yayınlanır (otomatik deployment, git push ile)
+- Custom domain: macsclub.com.tr
+- Environment variables Vercel dashboard'dan ayarlanır
+
+### Backend (VPS, Docker konteynerleri)
+Backend VPS üzerinde Docker konteynerleri olarak çalışır ve Plesk nginx arkasında yayınlanır (Railway artık kullanılmıyor):
+- Mevcut FastAPI servisi `127.0.0.1:8000` üzerinde çalışır.
+- Yeni `backend-ts` servisi cutover boyunca paralel olarak `127.0.0.1:8010` üzerinde çalışır; nginx geçişi tamamlanana kadar canlı trafik FastAPI'de kalır.
 - Docker Compose yerel/sunucu kurulumu: [docs/docker.md](docs/docker.md)
 - Temel VPS + Plesk kurulumu: [docs/VPS_DEPLOYMENT.md](docs/VPS_DEPLOYMENT.md)
 - `backend-ts` cutover, shadow-diff, nginx geçişi ve rollback runbook'u: [docs/backend-ts-cutover.md](docs/backend-ts-cutover.md)

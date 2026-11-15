@@ -87,8 +87,8 @@ bun scripts/set-user-access.ts --email user@macsclub.com.tr --status approved --
 
 ## Security & Runtime Behavior
 
-- **Global rate limiter**: `1200/min` (burst `200`) per client IP (`src/security/config.ts`). `/uploads/*`, `/static/*`, and `/health*` bypass the global IP bucket while still running header/URL guards and security headers.
+- **Global rate limiter**: `1200/min` (burst `200`) per client IP (`src/security/config.ts`). `/uploads/*`, `/static/*`, and the exact paths `/health` and `/health/ready` bypass the global IP bucket while still running header/URL guards and security headers.
 - **Write & route limits**: global write bucket `60/min`, plus strict per-route limits (login IP shield `20` failures / `15 min`, auth routes, upload `20/min`, ZIP export `3/hr`).
-- **Timeouts & uploads**: generic handler timeout is `15s`; `POST /api/upload/` has a dedicated `120s` handler timeout with `MAX_UPLOAD_SIZE + 262144` streaming byte enforcement.
+- **Timeouts & uploads**: generic handler timeout is `15s`; `POST /api/upload/` has a dedicated `120s` handler timeout with `MAX_UPLOAD_SIZE + 262144` streaming byte enforcement (behind nginx, `proxy_read_timeout`/`proxy_send_timeout` of `15s` also bound slow uploads).
 - **Static / Upload serving**: `GET` and `HEAD` share prefix containment validation and return matching `Content-Length`, `Content-Type`, and `Cache-Control` headers (`HEAD` uses `stat()` without reading file contents).
 - **Safe logging & shutdown**: errors are logged via classified fields (`reqId`, `errorName`, SQLSTATE `code`, sanitized `path`) without raw error messages or secrets; `SIGTERM`/`SIGINT` stops cache warmup before draining (`cache.stop()` -> `server.stop(false)` -> `cache.drain()` -> `sql.end()`) and flushes Pino buffers even on forced-exit timeout.
