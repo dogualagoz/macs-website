@@ -4,6 +4,7 @@
  */
 import apiClient from './apiClient';
 import uploadService from './uploadService';
+import { fetchAllPages } from './paginate';
 import { getMediaUrl } from '../../utils/media';
 import { safeExternalUrl } from '../../utils/safeUrl';
 
@@ -109,32 +110,30 @@ const projectService = {
       return projects;
     }
 
-    const PAGE_SIZE = 100; // backend tavanı (le=100)
-    const first = await projectService.getPage({ ...params, skip: 0, limit: PAGE_SIZE });
-    const all = first.projects;
-
-    for (let skip = PAGE_SIZE; all.length < first.total; skip += PAGE_SIZE) {
-      const next = await projectService.getPage({ ...params, skip, limit: PAGE_SIZE });
-      // Boş sayfa: total ile gerçek kayıt sayısı uyuşmuyor. Sonsuz döngüye girme.
-      if (next.projects.length === 0) break;
-      all.push(...next.projects);
-    }
-
-    return all;
+    return fetchAllPages(async (skip, limit) => {
+      const { projects, total } = await projectService.getPage({ ...params, skip, limit });
+      return { items: projects, total };
+    }, 100); // backend tavanı (le=100)
   },
 
   /**
    * Get all projects (admin view - includes inactive)
    */
   getAllAdmin: async (params = {}) => {
-    const queryParams = new URLSearchParams();
-    if (params.skip) queryParams.append('skip', params.skip);
-    if (params.limit) queryParams.append('limit', params.limit);
-    
-    const queryString = queryParams.toString();
-    const response = await apiClient.get(`/projects/admin${queryString ? `?${queryString}` : ''}`);
-    const projects = response.data.projects || response.data;
-    return Array.isArray(projects) ? projects.map(projectService._mapProject) : [];
+    const fetchPage = async (skip, limit) => {
+      const queryParams = new URLSearchParams();
+      if (skip) queryParams.append('skip', skip);
+      queryParams.append('limit', limit);
+      const response = await apiClient.get(`/projects/admin?${queryParams.toString()}`);
+      const data = response.data;
+      const list = data.projects || data;
+      return {
+        items: Array.isArray(list) ? list.map(projectService._mapProject) : [],
+        total: typeof data.total === 'number' ? data.total : undefined,
+      };
+    };
+    if (params.limit) return (await fetchPage(params.skip || 0, params.limit)).items;
+    return fetchAllPages(fetchPage, 200); // admin tavanı (le=200)
   },
 
   /**

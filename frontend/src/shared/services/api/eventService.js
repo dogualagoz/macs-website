@@ -4,6 +4,7 @@
  */
 import apiClient from './apiClient';
 import uploadService from './uploadService';
+import { fetchAllPages } from './paginate';
 import { getMediaUrl } from '../../utils/media';
 import { safeExternalUrl } from '../../utils/safeUrl';
 
@@ -26,16 +27,16 @@ const eventService = {
   },
 
   /**
-   * Get all events (public view)
+   * Tek sayfa çeker (public). Backend düz dizi döndürüyor, total yok.
    */
-  getAll: async (params = {}) => {
+  getPage: async (params = {}) => {
     const queryParams = new URLSearchParams();
     if (params.skip) queryParams.append('skip', params.skip);
     if (params.limit) queryParams.append('limit', params.limit);
     if (params.search) queryParams.append('search', params.search);
     if (params.category_id) queryParams.append('category_id', params.category_id);
     if (params.status) queryParams.append('status', params.status);
-    
+
     const queryString = queryParams.toString();
     const response = await apiClient.get(`/events${queryString ? `?${queryString}` : ''}`);
     const data = response.data;
@@ -44,17 +45,34 @@ const eventService = {
   },
 
   /**
-   * Get all events (admin view - includes inactive)
+   * Get all events (public view)
+   *
+   * Backend'in limit varsayılanı 10, tavanı 100. Parametresiz çağrı eskiden
+   * yalnızca ilk 10 etkinliği getiriyordu; etkinlikler sayfası ve arşiv
+   * geri kalanını hiç göstermiyordu. params.limit verilirse tek sayfa döner.
+   */
+  getAll: async (params = {}) => {
+    if (params.limit) return eventService.getPage(params);
+    return fetchAllPages(
+      async (skip, limit) => ({ items: await eventService.getPage({ ...params, skip, limit }) }),
+      100
+    );
+  },
+
+  /**
+   * Get all events (admin view - includes inactive). Tavan 200, tüm sayfalar dolaşılır.
    */
   getAllAdmin: async (params = {}) => {
-    const queryParams = new URLSearchParams();
-    if (params.skip) queryParams.append('skip', params.skip);
-    if (params.limit) queryParams.append('limit', params.limit);
-    
-    const queryString = queryParams.toString();
-    const response = await apiClient.get(`/events/admin${queryString ? `?${queryString}` : ''}`);
-    const events = response.data.events || response.data;
-    return Array.isArray(events) ? events.map(eventService._mapEvent) : [];
+    const fetchPage = async (skip, limit) => {
+      const queryParams = new URLSearchParams();
+      if (skip) queryParams.append('skip', skip);
+      queryParams.append('limit', limit);
+      const response = await apiClient.get(`/events/admin?${queryParams.toString()}`);
+      const events = response.data.events || response.data;
+      return { items: Array.isArray(events) ? events.map(eventService._mapEvent) : [] };
+    };
+    if (params.limit) return (await fetchPage(params.skip || 0, params.limit)).items;
+    return fetchAllPages(fetchPage, 200);
   },
 
   /**
