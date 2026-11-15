@@ -5,6 +5,7 @@ import { eventService, projectService, sponsorService } from '../../../shared/se
 import env from '../../../shared/config/env';
 import { handleImageError, handleAvatarError } from '../../../utils/imageUtils';
 import { formatShortDate } from '../../../shared/utils/dateHelpers';
+import { handleApiError } from '../../../shared/utils/errorHandler';
 
 // Backend URL'den /api kısmını çıkar ve image URL ile birleştir
 const getImageUrl = (imageUrl) => {
@@ -57,7 +58,7 @@ const Dashboard = () => {
       setEvents(eventsData);
     } catch (err) {
       console.error("Etkinlikleri getirme hatası:", err);
-      setError("Etkinlikleri getirirken bir hata oluştu.");
+      setError(`Etkinlikleri getirilemedi: ${handleApiError(err)}`);
     } finally {
       setLoading(false);
     }
@@ -77,7 +78,7 @@ const Dashboard = () => {
       }
     } catch (err) {
       console.error("Projeleri getirme hatası:", err);
-      setError("Projeleri getirirken bir hata oluştu.");
+      setError(`Projeleri getirilemedi: ${handleApiError(err)}`);
     } finally {
       setLoading(false);
     }
@@ -93,7 +94,7 @@ const Dashboard = () => {
       setSponsors(Array.isArray(sponsorsData) ? sponsorsData : []);
     } catch (err) {
       console.error("Sponsorları getirme hatası:", err);
-      setError("Sponsorları getirirken bir hata oluştu.");
+      setError(`Sponsorları getirilemedi: ${handleApiError(err)}`);
     } finally {
       setLoading(false);
     }
@@ -112,7 +113,7 @@ const Dashboard = () => {
       alert("Etkinlik başarıyla silindi!");
     } catch (err) {
       console.error("Etkinlik silme hatası:", err);
-      alert("Etkinlik silinirken bir hata oluştu: " + err.message);
+      alert("Etkinlik silinirken bir hata oluştu: " + handleApiError(err));
     }
   };
   
@@ -128,7 +129,7 @@ const Dashboard = () => {
       alert(`Etkinlik ${updatedEvent.is_active ? 'aktif' : 'pasif'} duruma getirildi.`);
     } catch (err) {
       console.error("Etkinlik güncelleme hatası:", err);
-      alert("Etkinlik güncellenirken bir hata oluştu: " + err.message);
+      alert("Etkinlik güncellenirken bir hata oluştu: " + handleApiError(err));
     }
   };
   
@@ -152,7 +153,7 @@ const Dashboard = () => {
       alert(`Etkinlik ${updatedEvent.is_featured ? 'öne çıkarıldı' : 'öne çıkarma özelliği kaldırıldı'}.`);
     } catch (err) {
       console.error("Etkinlik güncelleme hatası:", err);
-      alert("Etkinlik güncellenirken bir hata oluştu: " + err.message);
+      alert("Etkinlik güncellenirken bir hata oluştu: " + handleApiError(err));
     }
   };
 
@@ -169,7 +170,7 @@ const Dashboard = () => {
       alert("Proje başarıyla silindi!");
     } catch (err) {
       console.error("Proje silme hatası:", err);
-      alert("Proje silinirken bir hata oluştu: " + err.message);
+      alert("Proje silinirken bir hata oluştu: " + handleApiError(err));
     }
   };
   
@@ -185,7 +186,7 @@ const Dashboard = () => {
       alert(`Proje ${updatedProject.is_active ? 'aktif' : 'pasif'} duruma getirildi.`);
     } catch (err) {
       console.error("Proje güncelleme hatası:", err);
-      alert("Proje güncellenirken bir hata oluştu: " + err.message);
+      alert("Proje güncellenirken bir hata oluştu: " + handleApiError(err));
     }
   };
   
@@ -209,7 +210,7 @@ const Dashboard = () => {
       alert(`Proje ${updatedProject.is_featured ? 'öne çıkarıldı' : 'öne çıkarma özelliği kaldırıldı'}.`);
     } catch (err) {
       console.error("Proje güncelleme hatası:", err);
-      alert("Proje güncellenirken bir hata oluştu: " + err.message);
+      alert("Proje güncellenirken bir hata oluştu: " + handleApiError(err));
     }
   };
 
@@ -225,7 +226,7 @@ const Dashboard = () => {
       alert("Sponsor başarıyla silindi!");
     } catch (err) {
       console.error("Sponsor silme hatası:", err);
-      alert("Sponsor silinirken bir hata oluştu: " + err.message);
+      alert("Sponsor silinirken bir hata oluştu: " + handleApiError(err));
     }
   };
   
@@ -237,7 +238,7 @@ const Dashboard = () => {
       alert(`Sponsor ${!sponsor.is_active ? 'aktif' : 'pasif'} duruma getirildi.`);
     } catch (err) {
       console.error("Sponsor güncelleme hatası:", err);
-      alert("Sponsor güncellenirken bir hata oluştu: " + err.message);
+      alert("Sponsor güncellenirken bir hata oluştu: " + handleApiError(err));
     }
   };
 

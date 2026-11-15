@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { memberService } from '../../../shared/services/api';
+import { handleApiError } from '../../../shared/utils/errorHandler';
 
 export const useMemberForm = (editData = null, onSuccess = null) => {
   const [formData, setFormData] = useState({
@@ -63,7 +64,7 @@ export const useMemberForm = (editData = null, onSuccess = null) => {
       
     } catch (err) {
       console.error("Resim yükleme hatası:", err);
-      setError("Resim yüklenirken bir hata oluştu.");
+      setError(handleApiError(err, 'görsel yükleme'));
     } finally {
       setLoading(false);
     }
@@ -105,7 +106,7 @@ export const useMemberForm = (editData = null, onSuccess = null) => {
       }
     } catch (err) {
       console.error("Üye kaydetme hatası:", err);
-      setError(err.response?.data?.detail || "Üye kaydedilirken bir hata oluştu.");
+      setError(handleApiError(err, 'üye'));
     } finally {
       setLoading(false);
     }

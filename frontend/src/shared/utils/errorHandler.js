@@ -9,37 +9,70 @@
  * @param {string} context - Context of the error (e.g., 'event creation', 'file upload')
  * @returns {string} User-friendly error message
  */
+/**
+ * Backend'in hata gövdesinden kullanıcıya gösterilecek metni çıkarır.
+ *
+ * Backend FastAPI uyumlu: { detail: "metin" } ya da 422'de
+ * { detail: [{ loc: [...], msg: "..." }] }. Eski kod `data.message`
+ * okuduğu için backend'in mesajı hiçbir formda görünmüyordu.
+ *
+ * @param {unknown} data - error.response.data
+ * @returns {string|null}
+ */
+export const extractApiMessage = (data) => {
+  if (!data || typeof data !== 'object') return null;
+
+  const { detail, message } = data;
+  if (typeof detail === 'string' && detail.trim()) return detail;
+
+  if (Array.isArray(detail) && detail.length > 0) {
+    const first = detail[0] || {};
+    const field = Array.isArray(first.loc)
+      ? first.loc.filter((part) => part !== 'body' && part !== 'query' && part !== 'path').join('.')
+      : '';
+    const msg = typeof first.msg === 'string' ? first.msg : '';
+    if (msg) return field ? `${field}: ${msg}` : msg;
+  }
+
+  return typeof message === 'string' && message.trim() ? message : null;
+};
+
 export const handleApiError = (error, context = 'işlem') => {
+  // Kod içinde fırlatılan doğrulama hataları (Error) olduğu gibi gösterilir.
+  if (!error?.isAxiosError && !error?.response && error?.message && error.message !== 'Network Error') {
+    return error.message;
+  }
+
   // Network error
-  if (!error.response) {
+  if (!error?.response) {
     return `İnternet bağlantınızı kontrol edin ve tekrar deneyin.`;
   }
 
   const status = error.response.status;
-  const data = error.response.data;
+  const apiMessage = extractApiMessage(error.response.data);
 
   // Handle specific status codes
   switch (status) {
     case 400:
-      return data?.message || `Geçersiz veri girdiniz. Lütfen kontrol edip tekrar deneyin.`;
+      return apiMessage || `Geçersiz veri girdiniz. Lütfen kontrol edip tekrar deneyin.`;
     
     case 401:
-      return `Oturum süreniz doldu. Lütfen tekrar giriş yapın.`;
+      return apiMessage || `Oturum süreniz doldu. Lütfen tekrar giriş yapın.`;
     
     case 403:
-      return `Bu işlem için yetkiniz bulunmamaktadır.`;
+      return apiMessage || `Bu işlem için yetkiniz bulunmamaktadır.`;
     
     case 404:
-      return `İstediğiniz içerik bulunamadı.`;
+      return apiMessage || `İstediğiniz içerik bulunamadı.`;
     
     case 409:
-      return data?.message || `Bu ${context} zaten mevcut.`;
+      return apiMessage || `Bu ${context} zaten mevcut.`;
     
     case 413:
-      return `Dosya boyutu çok büyük. Lütfen daha küçük bir dosya seçin (max 5MB).`;
+      return apiMessage || `Dosya boyutu çok büyük. Lütfen daha küçük bir dosya seçin (max 5MB).`;
     
     case 422:
-      return data?.message || `Girdiğiniz veriler geçerli değil.`;
+      return apiMessage || `Girdiğiniz veriler geçerli değil.`;
     
     case 500:
       return `Sunucu hatası oluştu. Lütfen daha sonra tekrar deneyin.`;
@@ -48,7 +81,7 @@ export const handleApiError = (error, context = 'işlem') => {
       return `Servis şu an kullanılamıyor. Lütfen daha sonra tekrar deneyin.`;
     
     default:
-      return data?.message || `${context} sırasında bir hata oluştu. Lütfen tekrar deneyin.`;
+      return apiMessage || `${context} sırasında bir hata oluştu. Lütfen tekrar deneyin.`;
   }
 };
 
@@ -88,8 +121,13 @@ export const isAuthError = (error) => {
  * @returns {Object} Validation errors by field
  */
 export const getValidationErrors = (error) => {
-  if (error.response?.status === 422 && error.response?.data?.errors) {
-    return error.response.data.errors;
+  const detail = error.response?.data?.detail;
+  if (error.response?.status === 422 && Array.isArray(detail)) {
+    return detail.reduce((acc, item) => {
+      const field = Array.isArray(item?.loc) ? item.loc[item.loc.length - 1] : null;
+      if (field !== null && field !== undefined && typeof item.msg === 'string') acc[field] = item.msg;
+      return acc;
+    }, {});
   }
   return null;
 };

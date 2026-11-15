@@ -4,6 +4,7 @@ import Sidebar from '../components/Sidebar';
 import { memberService } from '../../../shared/services/api';
 import env from '../../../shared/config/env';
 import { handleAvatarError } from '../../../utils/imageUtils';
+import { handleApiError } from '../../../shared/utils/errorHandler';
 
 // Backend URL'den /api kısmını çıkar ve image URL ile birleştir
 const getImageUrl = (imageUrl) => {
@@ -40,7 +41,7 @@ const Members = () => {
       setMembers(Array.isArray(response) ? response : []);
     } catch (err) {
       console.error("Üyeleri getirme hatası:", err);
-      setError("Üyeleri getirirken bir hata oluştu.");
+      setError(`Üyeleri getirilemedi: ${handleApiError(err)}`);
     } finally {
       setLoading(false);
     }
@@ -60,7 +61,7 @@ const Members = () => {
       alert("Üye başarıyla silindi!");
     } catch (err) {
       console.error("Üye silme hatası:", err);
-      const errorMsg = err.response?.data?.detail || err.message || "Bilinmeyen bir hata oluştu";
+      const errorMsg = handleApiError(err);
       alert("Üye silinirken bir hata oluştu: " + errorMsg);
     } finally {
       setLoading(false);
@@ -76,7 +77,7 @@ const Members = () => {
       alert(`Üye ${!member.is_active ? 'aktif' : 'pasif'} duruma getirildi.`);
     } catch (err) {
       console.error("Üye güncelleme hatası:", err);
-      alert("Üye güncellenirken bir hata oluştu: " + err.message);
+      alert("Üye güncellenirken bir hata oluştu: " + handleApiError(err));
     }
   };
 
