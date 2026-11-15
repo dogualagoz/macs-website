@@ -94,7 +94,7 @@ describe("security primitives", () => {
   test("headers: API/docs policies, exact HTTPS only, remove disclosure", () => {
     for (const proto of [undefined, null, "http", "https,http", "HTTPS", "https"]) {
       const headers = new Headers({ Server: "Bun", "X-Powered-By": "Hono", "Strict-Transport-Security": "stale" });
-      applySecurityHeaders(headers, { ...(proto === undefined ? {} : { forwardedProto: proto }), isDocs: false });
+      applySecurityHeaders(headers, { forwardedProto: proto, isDocs: false });
       expect(headers.get("Content-Security-Policy")).toBe("default-src 'none'; frame-ancestors 'none'");
       expect(headers.get("Strict-Transport-Security")).toBe(proto === "https" ? "max-age=31536000; includeSubDomains" : null);
       for (const [key, value] of Object.entries({ "X-Content-Type-Options": "nosniff", "X-Frame-Options": "DENY", "Referrer-Policy": "strict-origin-when-cross-origin", "Permissions-Policy": "geolocation=(), microphone=(), camera=()", "Cross-Origin-Resource-Policy": "same-site", "Cross-Origin-Opener-Policy": "same-origin" })) expect(headers.get(key)).toBe(value);
@@ -167,6 +167,27 @@ describe("security primitives", () => {
     expect(output.trim().split("\n")).toHaveLength(1);
     expect(JSON.parse(output)).toMatchObject({ event: "security", kind: "rate_limit", ip: "203.0.113.5", path: "/users/:redacted", method: "POST", status: 429 });
     for (const secret of ["password", "token", "email", "secret", "person@", "body"]) expect(output).not.toContain(secret);
+  });
+  test("security logs retain actual static routes and redact ids and free text", () => {
+    const paths: [string, string][] = [
+      ["/auth/register", "/auth/register"],
+      ["/api/upload/", "/api/upload/"],
+      ["/api/upload/download-all", "/api/upload/download-all"],
+      ["/users/42/access", "/users/:redacted/access"],
+      ["/users/me/change-password", "/users/me/change-password"],
+      ["/events/by-slug/free-text-title", "/events/by-slug/:redacted"],
+      ["/projects/categories/17", "/projects/categories/:redacted"],
+      ["/projects/17/hard", "/projects/:redacted/hard"],
+      ["/members/leaderboard", "/members/leaderboard"],
+      ["/members/17/stats", "/members/:redacted/stats"],
+      ["/sponsors/geocode", "/sponsors/geocode"],
+    ];
+    for (const [path, expected] of paths) {
+      let output = "";
+      const logger = pino({ base: null, timestamp: false }, { write(chunk: string) { output += chunk; } });
+      logSecurityEvent(logger, { kind: "rate_limit", ip: "203.0.113.5", path, method: undefined, status: undefined });
+      expect(JSON.parse(output)).toEqual({ level: 40, event: "security", kind: "rate_limit", ip: "203.0.113.5", path: expected });
+    }
   });
   test("Hono route limit slowapi JSON and disable switch", async () => {
     for (const enabled of [true, false]) {

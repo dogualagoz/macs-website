@@ -1,4 +1,4 @@
-export function applySecurityHeaders(headers: Headers, opts: { forwardedProto?: string | null; isDocs: boolean }): void {
+export function applySecurityHeaders(headers: Headers, opts: { forwardedProto?: string | null | undefined; isDocs: boolean }): void {
   for (const [key, value] of Object.entries({
     "X-Content-Type-Options": "nosniff", "X-Frame-Options": "DENY",
     "Referrer-Policy": "strict-origin-when-cross-origin",
