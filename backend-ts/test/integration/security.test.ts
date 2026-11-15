@@ -10,9 +10,43 @@ import { HttpError } from "../../src/lib/http-error";
 import { testDeps } from "../helpers/app";
 import { seedDb } from "../helpers/db";
 import { tokenFor } from "../helpers/auth";
-import { createTokenBucketLimiter } from "../../src/security/rate-limit";
-import { validateRequestHead } from "../../src/security/request-guards";
-import { DEFAULT_SECURITY_CONFIG } from "../../src/security/config";
+
+async function sendRawHttp(port: number, rawRequest: string): Promise<{ status: number; headers: Record<string, string>; body: string }> {
+  const raw = await new Promise<string>((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      resolve(Buffer.concat(chunks).toString("utf8"));
+    };
+    const socket = connect(port, "127.0.0.1", () => { socket.write(rawRequest); });
+    socket.setTimeout(3000, () => { socket.destroy(); reject(new Error("Raw HTTP request timed out")); });
+    socket.on("data", chunk => {
+      chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
+      const buf = Buffer.concat(chunks);
+      const sep = buf.indexOf("\r\n\r\n");
+      if (sep < 0) return;
+      const head = buf.subarray(0, sep).toString("utf8");
+      const lenMatch = /\r\nContent-Length:\s*(\d+)/i.exec(head);
+      if (lenMatch?.[1] !== undefined && buf.length >= sep + 4 + Number(lenMatch[1])) {
+        socket.end();
+        finish();
+      }
+    });
+    socket.on("end", finish);
+    socket.on("error", reject);
+  });
+  const [head = "", body = ""] = raw.split("\r\n\r\n", 2);
+  const [statusLine = "", ...headerLines] = head.split("\r\n");
+  const statusMatch = /^HTTP\/1\.\d\s+(\d{3})/.exec(statusLine);
+  const headers: Record<string, string> = {};
+  for (const line of headerLines) {
+    const colon = line.indexOf(":");
+    if (colon > 0) headers[line.slice(0, colon).trim().toLowerCase()] = line.slice(colon + 1).trim();
+  }
+  return { status: Number(statusMatch?.[1] ?? 0), headers, body };
+}
 const database = testDeps();
 const seed = await readFile(new URL("../../contract/seed.sql", import.meta.url), "utf8");
 beforeEach(async () => { await seedDb(database.sql, seed); });
@@ -30,8 +64,11 @@ function setup(overrides: Partial<AppDeps> = {}) {
   const send = (path: string, init?: RequestInit) => fetch(new URL(path, server.url), { ...init, redirect: "manual" });
   return { deps, app, server, send, logs };
 }
-test("socket IP ignores XFF; loopback real-IP splits global/write buckets and maps stay bounded", async () => {
-  const s = setup({ security: { globalRateLimit: { ratePerMin: 1, burst: 2 }, writeRateLimit: { ratePerMin: 1, burst: 1 }, maxTrackedIps: 3 } });
+test("socket IP ignores XFF; loopback real-IP splits global/write buckets and LRU eviction resets only evicted IPs", async () => {
+  const s = setup({
+    now: () => new Date(1_000_000),
+    security: { globalRateLimit: { ratePerMin: 1, burst: 2 }, writeRateLimit: { ratePerMin: 1, burst: 1 }, maxTrackedIps: 3 },
+  });
   try {
     for (let i = 0; i < 2; i++) expect((await s.send("/health", { headers: { "X-Forwarded-For": `9.9.9.${String(i)}` } })).status).toBe(200);
     const limited = await s.send("/health", { headers: { "X-Forwarded-For": "9.9.9.9" } }); expect(limited.status).toBe(429); expect(await limited.json()).toHaveProperty("error");
@@ -42,9 +79,28 @@ test("socket IP ignores XFF; loopback real-IP splits global/write buckets and ma
       expect((await s.send("/events/bad", { method, headers, body: "{}" })).status).toBe(429);
     }
     expect(s.logs.some(l => l.event === "security" && l.kind === "rate_limit" && l.ip === "127.0.0.1")).toBe(true);
-    const limiter = createTokenBucketLimiter({ ratePerMin: 1, burst: 2, maxIps: 3, now: () => 0, label: "test" });
-    for (let i = 0; i < 50; i++) limiter.consume(String(i)); expect(limiter.size()).toBe(3);
   } finally { await s.server.stop(true); }
+
+  const lru = setup({
+    now: () => new Date(1_000_000),
+    security: { globalRateLimit: { ratePerMin: 1, burst: 2 }, writeRateLimit: { ratePerMin: 1, burst: 1 }, maxTrackedIps: 3 },
+  });
+  try {
+    for (const ip of ["198.51.100.1", "198.51.100.2"]) {
+      expect((await lru.send("/health", { headers: { "X-Real-IP": ip } })).status).toBe(200);
+      expect((await lru.send("/health", { headers: { "X-Real-IP": ip } })).status).toBe(200);
+      expect((await lru.send("/health", { headers: { "X-Real-IP": ip } })).status).toBe(429);
+    }
+    // Insert .3 (LRU->MRU: .1, .2, .3), touch .2 so .1 is oldest, then insert .4 to evict .1.
+    expect((await lru.send("/health", { headers: { "X-Real-IP": "198.51.100.3" } })).status).toBe(200);
+    expect((await lru.send("/health", { headers: { "X-Real-IP": "198.51.100.2" } })).status).toBe(429);
+    expect((await lru.send("/health", { headers: { "X-Real-IP": "198.51.100.4" } })).status).toBe(200);
+    // Retained .2 still has an exhausted bucket; evicted .1 gets a fresh burst=2 bucket.
+    expect((await lru.send("/health", { headers: { "X-Real-IP": "198.51.100.2" } })).status).toBe(429);
+    expect((await lru.send("/health", { headers: { "X-Real-IP": "198.51.100.1" } })).status).toBe(200);
+    expect((await lru.send("/health", { headers: { "X-Real-IP": "198.51.100.1" } })).status).toBe(200);
+    expect((await lru.send("/health", { headers: { "X-Real-IP": "198.51.100.1" } })).status).toBe(429);
+  } finally { await lru.server.stop(true); }
 });
 test("21st failed login blocks before SQL, other IP and account lockout stay independent", async () => {
   let time = Date.now(); const s = setup({ now: () => new Date(time) });
@@ -63,14 +119,21 @@ test("size guards, chunked body and handler timeout produce safe security logs",
   try {
     expect((await s.send('/' + 'x'.repeat(2048))).status).toBe(414);
     for (const headers of [Object.fromEntries(Array.from({ length: 101 }, (_, i) => [`x-${String(i)}`, "a"])), { "X-Large": "a".repeat(16384) }]) expect((await s.send("/health", { headers })).status).toBe(431);
+    const oversizedText = '"' + 'a'.repeat(2 * 1024 * 1024) + '"';
     for (const chunked of [false, true]) {
-      const text = '"' + 'a'.repeat(2 * 1024 * 1024) + '"';
-      const body = chunked ? new ReadableStream({ start(c) { c.enqueue(new TextEncoder().encode(text)); c.close(); } }) : text;
+      const body = chunked ? new ReadableStream({ start(c) { c.enqueue(new TextEncoder().encode(oversizedText)); c.close(); } }) : oversizedText;
       expect((await s.send("/auth/register", { method: "POST", headers: { "Content-Type": "application/json", Connection: "close" }, body })).status).toBe(413);
     }
+    const noCloseProbe = await sendRawHttp(
+      Number(s.server.port),
+      `POST /auth/register HTTP/1.1\r\nHost: localhost\r\nContent-Type: application/json\r\nContent-Length: ${String(oversizedText.length)}\r\n\r\n${oversizedText}`,
+    );
+    expect(noCloseProbe.status).toBe(413);
+    expect(noCloseProbe.headers["connection"]?.toLowerCase()).toBe("close");
+    expect((await sendRawHttp(Number(s.server.port), "GET /health HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n")).status).toBe(200);
     const timeout = await s.send("/slow"); expect(timeout.status).toBe(503); expect(await timeout.json()).toEqual({ detail: "Service Unavailable" });
     for (const kind of ["url_too_long", "body_too_large", "handler_timeout"]) expect(s.logs.some(l => l.event === "security" && l.kind === kind && typeof l.ip === "string" && typeof l.path === "string")).toBe(true);
-    expect(s.logs.filter(l => l.kind === "body_too_large")).toHaveLength(2);
+    expect(s.logs.filter(l => l.kind === "body_too_large")).toHaveLength(3);
   } finally { await s.server.stop(true); }
 });
 test("idleTimeout closes a stalled keepalive TCP client", async () => {
@@ -95,10 +158,11 @@ test("security headers, CORS on successes/errors and intentional error logging",
     }
     expect((await s.send("/health", { headers: { "X-Forwarded-Proto": "https" } })).headers.has("Strict-Transport-Security")).toBe(true);
     expect((await s.send("/docs/")).headers.get("Content-Security-Policy")).toContain("script-src 'self'");
-    const before = s.logs.filter(l => l.msg === "Unhandled request error").length;
+    const unexpectedLogs = s.logs.filter(l => l.msg === "Unhandled request error");
+    expect(unexpectedLogs).toHaveLength(2);
+    for (const entry of unexpectedLogs) expect(entry.reqId).toBe("security-request");
     expect((await s.send("/intentional")).status).toBe(500);
-    expect(s.logs.filter(l => l.msg === "Unhandled request error")).toHaveLength(before);
-    expect(s.logs.filter(l => l.msg === "Unhandled request error").every(l => l.reqId === "security-request")).toBe(true);
+    expect(s.logs.filter(l => l.msg === "Unhandled request error")).toHaveLength(2);
   } finally { await s.server.stop(true); }
 });
 test("production docs toggle, path/method sanitation and auth before validation", async () => {
@@ -109,10 +173,25 @@ test("production docs toggle, path/method sanitation and auth before validation"
   }
   const s = setup();
   try {
-    for (const path of ["/events/%2e%2e%2fetc", "/uploads/..%2fpackage.json", "/static/%00"]) expect((await s.send(path)).status).toBe(400);
-    // Fetch URL parsing removes dot segments before Hono sees them; guard the raw target too.
-    expect(() => { validateRequestHead(new Request("http://localhost/etc"), "/events/%2e%2e/etc", DEFAULT_SECURITY_CONFIG); }).toThrow();
-    for (const method of ["TRACE", "CONNECT"]) expect((await s.app.request("/health", { method })).status).toBe(405);
+    const port = Number(s.server.port);
+    for (const target of [
+      "/events/%2e%2e%2fetc",
+      "/uploads/..%2fpackage.json",
+      "/static/%00",
+      "/events/%252e%252e/etc",
+      "/events/foo%5cbar",
+      "/bad%ZZ",
+    ]) {
+      const rawRes = await sendRawHttp(port, `GET ${target} HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n`);
+      expect(rawRes.status).toBe(400);
+    }
+    for (const rawRequest of [
+      "TRACE /health HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n",
+      "CONNECT example.com:443 HTTP/1.1\r\nHost: example.com:443\r\nConnection: close\r\n\r\n",
+      "CONNECT /health HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n",
+    ]) {
+      expect((await sendRawHttp(port, rawRequest)).status).toBe(405);
+    }
     const headers = { "Content-Type": "application/json" };
     expect((await s.send("/events/bad", { method: "PUT", headers, body: "{" })).status).toBe(401);
     const pending = await tokenFor("pending@example.com", "member");
