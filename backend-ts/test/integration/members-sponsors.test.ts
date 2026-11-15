@@ -66,6 +66,24 @@ describe("members and sponsors database integration", () => {
     expect((await request(app).get("/sponsors/1")).headers["x-cache"]).toBe("HIT");
   });
 
+  test("member public reads build PG JSON in exactly one query without user_id", async () => {
+    const app = createApp(deps);
+    for (const path of ["/members/leaderboard", "/members", "/members/1/stats", "/members/1/projects"]) {
+      deps.counter.reset();
+      const r = await request(app).get(path).auth("garbage", { type: "bearer" });
+      expect(r.status).toBe(200);
+      expect(deps.counter.count()).toBe(1);
+      const statement = deps.counter.queries()[0] ?? "";
+      expect(statement).toContain("json_build_object");
+      expect(statement).not.toContain("user_id");
+      expect(r.text).not.toContain("user_id");
+      if (!path.endsWith("/stats")) expect(statement).toMatch(/json_agg\(.*ORDER BY/is);
+      if (!path.endsWith("/projects")) {
+        const member = path.endsWith("/stats") ? r.body : (r.body as { id: number }[]).find(row => row.id === 1);
+        expect(member).toMatchObject({ created_at: "2026-01-01T12:00:00.123456Z" });
+      }
+    }
+  });
   test("leaderboard issues exactly one aggregate SQL and returns required counts", async () => {
     deps.counter.reset(); const r = await request(createApp(deps)).get("/members/leaderboard").auth("garbage", { type: "bearer" });
     expect(r.status).toBe(200); expect((r.body as { id: number; project_count: number; total_contributions: number }[]).map(({ id, project_count, total_contributions }) => ({ id, project_count, total_contributions }))).toEqual([
@@ -81,6 +99,36 @@ describe("members and sponsors database integration", () => {
       expect(deps.counter.count()).toBeGreaterThan(0); expect(deps.counter.count()).toBeLessThanOrEqual(2);
       expect(deps.counter.queries().every(query => !query.includes("hashed_password") && !query.includes("user_id"))).toBe(true);
     }
+  });
+  test("member writes invalidate members and projects only after commit; rollback keeps caches warm", async () => {
+    const cached = testDeps({ db: deps.db, sql: deps.sql, counter: deps.counter, env: { ...deps.env, RESPONSE_CACHE: true, RATELIMIT_ENABLED: false } });
+    const app = createApp(cached);
+    await request(app).get("/members/1");
+    await request(app).get("/projects/1");
+    const memberGeneration = cached.cache.generation("members");
+    const projectGeneration = cached.cache.generation("projects");
+    const token = await mod();
+    const failed = await request(app).post("/members").auth(token, { type: "bearer" }).send({ full_name: "Ayşe Yılmaz" });
+    expect(failed.status).toBe(400);
+    expect(cached.cache.generation("members")).toBe(memberGeneration);
+    expect(cached.cache.generation("projects")).toBe(projectGeneration);
+    expect((await request(app).get("/members/1")).headers["x-cache"]).toBe("HIT");
+    expect((await request(app).get("/projects/1")).headers["x-cache"]).toBe("HIT");
+    deps.counter.reset();
+    const invalidate = cached.cache.invalidate.bind(cached.cache);
+    const commits: string[] = [];
+    const spy = spyOn(cached.cache, "invalidate").mockImplementation(domain => {
+      commits.push(deps.counter.queries().at(-1)?.trim().toLowerCase() ?? "");
+      invalidate(domain);
+    });
+    try {
+      const updated = await request(app).put("/members/1").auth(token, { type: "bearer" }).send({ full_name: "Renamed" });
+      expect(updated.status).toBe(200);
+      expect(updated.body).toMatchObject({ id: 1, full_name: "Renamed" });
+      expect(commits).toEqual(["commit"]);
+      expect(cached.cache.generation("members")).toBeGreaterThan(memberGeneration);
+      expect(cached.cache.generation("projects")).toBeGreaterThan(projectGeneration);
+    } finally { spy.mockRestore(); }
   });
   test("member deletion cascades only its memberships in the database", async () => {
     const r = await request(createApp(deps)).delete("/members/1").auth(await mod(), { type: "bearer" }); expect(r.status).toBe(204); expect(r.text).toBe("");
