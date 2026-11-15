@@ -1,0 +1,247 @@
+14:46  up 26 days, 20:37, 5 users, load averages: 6.65 4.79 3.98
+  PID  %CPU %MEM ELAPSED COMM
+11971  73.9  0.4   00:00 bun
+11971  73.9  0.4 bun
+97280  26.8 10.6 /System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine
+35910   9.9  0.5 codex
+ 9117   5.4  1.3 /Applications/Docker.app/Contents/MacOS/com.docker.backend
+16306   3.2  1.0 /Applications/Firefox Developer Edition.app/Contents/MacOS/plugin-container.app/Contents/MacOS/plugin-container
+  570   3.1  0.1 /usr/sbin/coreaudiod
+11453   2.6  1.4 /Applications/Firefox Developer Edition.app/Contents/MacOS/plugin-container.app/Contents/MacOS/plugin-container
+  577   2.4  0.1 /System/Library/DriverExtensions/com.apple.DriverKit-AppleBCMWLAN.dext/com.apple.DriverKit-AppleBCMWLAN
+36364   2.2  0.7 /Applications/Firefox Developer Edition.app/Contents/MacOS/plugin-container.app/Contents/MacOS/plugin-container
+94589   2.2  0.3 /Applications/Antigravity.app/Contents/Frameworks/Antigravity Helper (Renderer).app/Contents/MacOS/Antigravity Helper (Renderer)
+14:46  up 26 days, 20:37, 5 users, load averages: 6.62 4.85 4.00
+  PID  %CPU %MEM ELAPSED COMM
+11971 105.1  0.7   00:10 bun
+11971 105.1  0.7 bun
+12113  46.6  0.1 oha
+31489  32.2  0.6 /Users/yusufefetasdelen/.nvm/versions/node/v24.6.0/bin/node
+97280  20.9 10.7 /System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine
+ 9117   5.2  1.3 /Applications/Docker.app/Contents/MacOS/com.docker.backend
+  570   3.5  0.1 /usr/sbin/coreaudiod
+16306   3.2  1.0 /Applications/Firefox Developer Edition.app/Contents/MacOS/plugin-container.app/Contents/MacOS/plugin-container
+11453   2.7  1.4 /Applications/Firefox Developer Edition.app/Contents/MacOS/plugin-container.app/Contents/MacOS/plugin-container
+94589   2.3  0.3 /Applications/Antigravity.app/Contents/Frameworks/Antigravity Helper (Renderer).app/Contents/MacOS/Antigravity Helper (Renderer)
+  413   1.6  0.2 /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer
+14:46  up 26 days, 20:37, 5 users, load averages: 5.99 4.77 3.99
+  PID  %CPU %MEM ELAPSED COMM
+11971 101.4  0.7   00:21 bun
+11971 101.4  0.7 bun
+12113  50.3  0.3 oha
+31489  33.7  0.6 /Users/yusufefetasdelen/.nvm/versions/node/v24.6.0/bin/node
+97280  12.9 10.7 /System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine
+36364   6.4  0.7 /Applications/Firefox Developer Edition.app/Contents/MacOS/plugin-container.app/Contents/MacOS/plugin-container
+  413   4.2  0.2 /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer
+16306   4.0  1.0 /Applications/Firefox Developer Edition.app/Contents/MacOS/plugin-container.app/Contents/MacOS/plugin-container
+  570   3.4  0.1 /usr/sbin/coreaudiod
+ 9117   3.4  1.3 /Applications/Docker.app/Contents/MacOS/com.docker.backend
+11453   2.8  1.4 /Applications/Firefox Developer Edition.app/Contents/MacOS/plugin-container.app/Contents/MacOS/plugin-container
+14:46  up 26 days, 20:38, 5 users, load averages: 5.61 4.73 3.98
+  PID  %CPU %MEM ELAPSED COMM
+11971 101.7  0.7   00:31 bun
+11971 101.7  0.7 bun
+31489  37.0  0.6 /Users/yusufefetasdelen/.nvm/versions/node/v24.6.0/bin/node
+97280  20.1 10.8 /System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine
+  413   3.9  0.2 /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer
+ 9117   3.9  1.3 /Applications/Docker.app/Contents/MacOS/com.docker.backend
+11453   3.8  1.4 /Applications/Firefox Developer Edition.app/Contents/MacOS/plugin-container.app/Contents/MacOS/plugin-container
+16306   3.8  1.0 /Applications/Firefox Developer Edition.app/Contents/MacOS/plugin-container.app/Contents/MacOS/plugin-container
+  570   3.4  0.1 /usr/sbin/coreaudiod
+  643   2.7  0.1 /System/Library/CoreServices/ControlCenter.app/Contents/MacOS/ControlCenter
+94589   2.3  0.3 /Applications/Antigravity.app/Contents/Frameworks/Antigravity Helper (Renderer).app/Contents/MacOS/Antigravity Helper (Renderer)
+14:47  up 26 days, 20:38, 5 users, load averages: 5.52 4.74 3.99
+  PID  %CPU %MEM ELAPSED COMM
+11971 101.7  0.7   00:41 bun
+11971 101.7  0.7 bun
+12686  61.8  0.2 oha
+31489  38.1  0.6 /Users/yusufefetasdelen/.nvm/versions/node/v24.6.0/bin/node
+97280  17.0 10.8 /System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine
+16306   3.8  1.0 /Applications/Firefox Developer Edition.app/Contents/MacOS/plugin-container.app/Contents/MacOS/plugin-container
+  413   3.7  0.2 /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer
+11453   3.7  1.4 /Applications/Firefox Developer Edition.app/Contents/MacOS/plugin-container.app/Contents/MacOS/plugin-container
+  570   3.4  0.1 /usr/sbin/coreaudiod
+ 9117   3.0  1.3 /Applications/Docker.app/Contents/MacOS/com.docker.backend
+94589   2.3  0.3 /Applications/Antigravity.app/Contents/Frameworks/Antigravity Helper (Renderer).app/Contents/MacOS/Antigravity Helper (Renderer)
+14:47  up 26 days, 20:38, 5 users, load averages: 5.14 4.68 3.98
+  PID  %CPU %MEM ELAPSED COMM
+11971  88.6  0.7   00:51 bun
+11971  88.6  0.7 bun
+97280  61.8 10.8 /System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine
+31489  33.7  0.6 /Users/yusufefetasdelen/.nvm/versions/node/v24.6.0/bin/node
+35910  28.5  0.5 codex
+93178   4.7  0.9 /Applications/T3 Code (Nightly).app/Contents/MacOS/T3 Code (Nightly)
+ 9117   4.6  1.3 /Applications/Docker.app/Contents/MacOS/com.docker.backend
+11453   4.0  1.4 /Applications/Firefox Developer Edition.app/Contents/MacOS/plugin-container.app/Contents/MacOS/plugin-container
+  570   3.6  0.1 /usr/sbin/coreaudiod
+16306   3.3  1.0 /Applications/Firefox Developer Edition.app/Contents/MacOS/plugin-container.app/Contents/MacOS/plugin-container
+  413   3.1  0.2 /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer
+14:47  up 26 days, 20:38, 5 users, load averages: 5.25 4.72 4.00
+  PID  %CPU %MEM ELAPSED COMM
+11971 106.9  0.7   01:01 bun
+11971 106.9  0.7 bun
+97280  46.7 10.8 /System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine
+13231  40.5  0.1 oha
+31489  22.5  0.6 /Users/yusufefetasdelen/.nvm/versions/node/v24.6.0/bin/node
+ 9117  11.7  1.3 /Applications/Docker.app/Contents/MacOS/com.docker.backend
+11453   8.5  1.4 /Applications/Firefox Developer Edition.app/Contents/MacOS/plugin-container.app/Contents/MacOS/plugin-container
+16306   3.6  1.0 /Applications/Firefox Developer Edition.app/Contents/MacOS/plugin-container.app/Contents/MacOS/plugin-container
+  570   3.5  0.1 /usr/sbin/coreaudiod
+94589   2.2  0.3 /Applications/Antigravity.app/Contents/Frameworks/Antigravity Helper (Renderer).app/Contents/MacOS/Antigravity Helper (Renderer)
+  413   1.8  0.2 /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer
+14:47  up 26 days, 20:38, 5 users, load averages: 4.98 4.68 4.00
+  PID  %CPU %MEM ELAPSED COMM
+11971 103.8  0.7   01:11 bun
+11971 103.8  0.7 bun
+13231  43.5  0.2 oha
+31489  24.2  0.6 /Users/yusufefetasdelen/.nvm/versions/node/v24.6.0/bin/node
+34624   8.9  2.0 /Applications/Firefox Developer Edition.app/Contents/MacOS/plugin-container.app/Contents/MacOS/plugin-container
+97280   6.6 10.9 /System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine
+11453   5.2  1.4 /Applications/Firefox Developer Edition.app/Contents/MacOS/plugin-container.app/Contents/MacOS/plugin-container
+16306   3.7  1.0 /Applications/Firefox Developer Edition.app/Contents/MacOS/plugin-container.app/Contents/MacOS/plugin-container
+  570   3.4  0.1 /usr/sbin/coreaudiod
+93575   2.5  0.0 /Applications/T3 Code (Nightly).app/Contents/Resources/resource-monitor/t3-resource-monitor
+94589   2.5  0.3 /Applications/Antigravity.app/Contents/Frameworks/Antigravity Helper (Renderer).app/Contents/MacOS/Antigravity Helper (Renderer)
+14:47  up 26 days, 20:38, 5 users, load averages: 4.99 4.69 4.01
+  PID  %CPU %MEM ELAPSED COMM
+11971 102.6  0.7   01:21 bun
+11971 102.6  0.7 bun
+86786  36.8  1.3 /Applications/Firefox Developer Edition.app/Contents/MacOS/plugin-container.app/Contents/MacOS/plugin-container
+31489  34.8  0.6 /Users/yusufefetasdelen/.nvm/versions/node/v24.6.0/bin/node
+13803  25.2  0.1 oha
+97280  10.2 11.0 /System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine
+86774   9.3  1.2 /Applications/Firefox Developer Edition.app/Contents/MacOS/firefox
+  413   3.7  0.2 /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer
+  570   3.5  0.1 /usr/sbin/coreaudiod
+16306   3.0  1.0 /Applications/Firefox Developer Edition.app/Contents/MacOS/plugin-container.app/Contents/MacOS/plugin-container
+89462   2.9  0.5 /Applications/Spotify.app/Contents/MacOS/Spotify
+14:47  up 26 days, 20:39, 5 users, load averages: 5.05 4.72 4.02
+  PID  %CPU %MEM ELAPSED COMM
+11971 101.4  0.7   01:31 bun
+11971 101.4  0.7 bun
+13803  58.4  0.2 oha
+31489  37.0  0.6 /Users/yusufefetasdelen/.nvm/versions/node/v24.6.0/bin/node
+97280   9.3 11.0 /System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine
+  413   4.3  0.2 /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer
+16306   3.8  1.0 /Applications/Firefox Developer Edition.app/Contents/MacOS/plugin-container.app/Contents/MacOS/plugin-container
+  570   3.4  0.1 /usr/sbin/coreaudiod
+93575   3.0  0.0 /Applications/T3 Code (Nightly).app/Contents/Resources/resource-monitor/t3-resource-monitor
+11453   2.6  1.4 /Applications/Firefox Developer Edition.app/Contents/MacOS/plugin-container.app/Contents/MacOS/plugin-container
+94589   2.5  0.3 /Applications/Antigravity.app/Contents/Frameworks/Antigravity Helper (Renderer).app/Contents/MacOS/Antigravity Helper (Renderer)
+14:48  up 26 days, 20:39, 5 users, load averages: 4.98 4.71 4.03
+  PID  %CPU %MEM ELAPSED COMM
+11971  94.2  0.7   01:41 bun
+11971  94.2  0.7 bun
+  413  43.9  0.2 /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer
+31489  31.7  0.6 /Users/yusufefetasdelen/.nvm/versions/node/v24.6.0/bin/node
+14197  30.9  0.1 oha
+97280  17.4 10.7 /System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine
+  409  16.4  0.0 /usr/libexec/corebrightnessd
+34624  14.0  2.0 /Applications/Firefox Developer Edition.app/Contents/MacOS/plugin-container.app/Contents/MacOS/plugin-container
+73567   8.1  0.0 /usr/libexec/PerfPowerServices
+  643   7.0  0.1 /System/Library/CoreServices/ControlCenter.app/Contents/MacOS/ControlCenter
+ 9472   4.3  0.4 /Applications/Docker.app/Contents/MacOS/Docker Desktop.app/Contents/Frameworks/Docker Desktop Helper (Renderer).app/Contents/MacOS/Docker Desktop Helper (Renderer)
+14:48  up 26 days, 20:39, 5 users, load averages: 4.90 4.70 4.03
+  PID  %CPU %MEM ELAPSED COMM
+11971 101.0  0.7   01:51 bun
+11971 101.0  0.7 bun
+14314  59.4  0.1 oha
+97280  43.4 10.7 /System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine
+31489  36.9  0.6 /Users/yusufefetasdelen/.nvm/versions/node/v24.6.0/bin/node
+  413   8.8  0.3 /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer
+89462   7.4  0.5 /Applications/Spotify.app/Contents/MacOS/Spotify
+  570   3.4  0.1 /usr/sbin/coreaudiod
+16306   3.3  1.0 /Applications/Firefox Developer Edition.app/Contents/MacOS/plugin-container.app/Contents/MacOS/plugin-container
+ 9117   2.7  1.3 /Applications/Docker.app/Contents/MacOS/com.docker.backend
+93167   2.7  0.2 /Applications/T3 Code (Nightly).app/Contents/Frameworks/T3 Code (Nightly) Helper.app/Contents/MacOS/T3 Code (Nightly) Helper
+14:48  up 26 days, 20:39, 5 users, load averages: 5.14 4.76 4.06
+  PID  %CPU %MEM ELAPSED COMM
+11971 101.5  0.7   02:01 bun
+11971 101.5  0.7 bun
+14314  58.0  0.4 oha
+31489  37.2  0.6 /Users/yusufefetasdelen/.nvm/versions/node/v24.6.0/bin/node
+97280   8.1 10.7 /System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine
+  413   6.4  0.3 /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer
+  394   4.4  0.0 /usr/libexec/dasd
+86786   3.9  1.2 /Applications/Firefox Developer Edition.app/Contents/MacOS/plugin-container.app/Contents/MacOS/plugin-container
+16306   3.5  1.0 /Applications/Firefox Developer Edition.app/Contents/MacOS/plugin-container.app/Contents/MacOS/plugin-container
+  570   3.4  0.1 /usr/sbin/coreaudiod
+86774   2.7  1.2 /Applications/Firefox Developer Edition.app/Contents/MacOS/firefox
+14:48  up 26 days, 20:39, 5 users, load averages: 5.78 4.91 4.13
+  PID  %CPU %MEM ELAPSED COMM
+11971  96.6  0.7   02:11 bun
+11971  96.6  0.7 bun
+31489  34.9  0.6 /Users/yusufefetasdelen/.nvm/versions/node/v24.6.0/bin/node
+14876  30.9  0.1 oha
+97280  17.4 10.5 /System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine
+  487   9.4  0.3 /System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/Metadata.framework/Versions/A/Support/mds_stores
+  413   4.6  0.3 /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer
+  570   3.4  0.1 /usr/sbin/coreaudiod
+16306   3.4  1.0 /Applications/Firefox Developer Edition.app/Contents/MacOS/plugin-container.app/Contents/MacOS/plugin-container
+ 9472   2.7  0.4 /Applications/Docker.app/Contents/MacOS/Docker Desktop.app/Contents/Frameworks/Docker Desktop Helper (Renderer).app/Contents/MacOS/Docker Desktop Helper (Renderer)
+86774   2.3  1.2 /Applications/Firefox Developer Edition.app/Contents/MacOS/firefox
+14:48  up 26 days, 20:39, 5 users, load averages: 5.42 4.87 4.12
+  PID  %CPU %MEM ELAPSED COMM
+11971 105.0  0.7   02:21 bun
+11971 104.4  0.7 bun
+14876  57.1  0.2 oha
+31489  36.4  0.6 /Users/yusufefetasdelen/.nvm/versions/node/v24.6.0/bin/node
+97280  25.3 10.5 /System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine
+86786  12.0  1.2 /Applications/Firefox Developer Edition.app/Contents/MacOS/plugin-container.app/Contents/MacOS/plugin-container
+86774   3.8  1.2 /Applications/Firefox Developer Edition.app/Contents/MacOS/firefox
+  570   3.6  0.1 /usr/sbin/coreaudiod
+  413   3.1  0.3 /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer
+16306   2.9  1.0 /Applications/Firefox Developer Edition.app/Contents/MacOS/plugin-container.app/Contents/MacOS/plugin-container
+94589   2.3  0.3 /Applications/Antigravity.app/Contents/Frameworks/Antigravity Helper (Renderer).app/Contents/MacOS/Antigravity Helper (Renderer)
+14:48  up 26 days, 20:40, 5 users, load averages: 5.08 4.82 4.12
+  PID  %CPU %MEM ELAPSED COMM
+11971  95.6  0.7   02:31 bun
+11971  95.6  0.7 bun
+31489  30.7  0.6 /Users/yusufefetasdelen/.nvm/versions/node/v24.6.0/bin/node
+15321  30.6  0.1 oha
+97280  12.4 10.5 /System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine
+  570   3.4  0.1 /usr/sbin/coreaudiod
+16306   3.4  1.0 /Applications/Firefox Developer Edition.app/Contents/MacOS/plugin-container.app/Contents/MacOS/plugin-container
+  413   3.3  0.3 /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer
+ 9117   3.3  1.3 /Applications/Docker.app/Contents/MacOS/com.docker.backend
+94589   2.3  0.3 /Applications/Antigravity.app/Contents/Frameworks/Antigravity Helper (Renderer).app/Contents/MacOS/Antigravity Helper (Renderer)
+11453   2.0  1.4 /Applications/Firefox Developer Edition.app/Contents/MacOS/plugin-container.app/Contents/MacOS/plugin-container
+14:49  up 26 days, 20:40, 5 users, load averages: 4.60 4.73 4.09
+  PID  %CPU %MEM ELAPSED COMM
+11971 101.1  0.7   02:41 bun
+11971 101.1  0.7 bun
+15430  50.6  0.1 oha
+31489  34.2  0.6 /Users/yusufefetasdelen/.nvm/versions/node/v24.6.0/bin/node
+16306   3.5  1.0 /Applications/Firefox Developer Edition.app/Contents/MacOS/plugin-container.app/Contents/MacOS/plugin-container
+97280   3.5 10.5 /System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine
+  570   3.3  0.1 /usr/sbin/coreaudiod
+94589   2.3  0.3 /Applications/Antigravity.app/Contents/Frameworks/Antigravity Helper (Renderer).app/Contents/MacOS/Antigravity Helper (Renderer)
+11453   2.1  1.4 /Applications/Firefox Developer Edition.app/Contents/MacOS/plugin-container.app/Contents/MacOS/plugin-container
+  413   1.8  0.3 /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer
+ 9472   1.5  0.4 /Applications/Docker.app/Contents/MacOS/Docker Desktop.app/Contents/Frameworks/Docker Desktop Helper (Renderer).app/Contents/MacOS/Docker Desktop Helper (Renderer)
+14:49  up 26 days, 20:40, 5 users, load averages: 5.08 4.82 4.13
+  PID  %CPU %MEM ELAPSED COMM
+11971  99.8  0.7   02:51 bun
+97280 250.9  9.4 /System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine
+11971  99.8  0.7 bun
+15430  61.7  0.3 oha
+31489  36.3  0.6 /Users/yusufefetasdelen/.nvm/versions/node/v24.6.0/bin/node
+  570   3.9  0.1 /usr/sbin/coreaudiod
+ 9117   3.3  1.3 /Applications/Docker.app/Contents/MacOS/com.docker.backend
+16306   2.9  1.0 /Applications/Firefox Developer Edition.app/Contents/MacOS/plugin-container.app/Contents/MacOS/plugin-container
+89462   1.9  0.5 /Applications/Spotify.app/Contents/MacOS/Spotify
+11453   1.8  1.4 /Applications/Firefox Developer Edition.app/Contents/MacOS/plugin-container.app/Contents/MacOS/plugin-container
+94589   1.8  0.3 /Applications/Antigravity.app/Contents/Frameworks/Antigravity Helper (Renderer).app/Contents/MacOS/Antigravity Helper (Renderer)
+14:49  up 26 days, 20:40, 5 users, load averages: 4.46 4.70 4.09
+  PID  %CPU %MEM ELAPSED COMM
+11971   0.6  0.7   03:02 bun
+16013  30.1  0.8 claude
+16023  29.7  0.8 claude
+93178  17.2  1.0 /Applications/T3 Code (Nightly).app/Contents/MacOS/T3 Code (Nightly)
+33484  13.2  0.1 /System/Library/Frameworks/AppKit.framework/Versions/C/XPCServices/com.apple.appkit.xpc.openAndSavePanelService.xpc/Contents/MacOS/com.apple.appkit.xpc.openAndSavePanelService
+  651  13.0  0.2 /System/Library/CoreServices/Finder.app/Contents/MacOS/Finder
+  413   7.3  0.3 /System/Library/PrivateFrameworks/SkyLight.framework/Resources/WindowServer
+97280   7.1  9.4 /System/Library/Frameworks/Virtualization.framework/Versions/A/XPCServices/com.apple.Virtualization.VirtualMachine.xpc/Contents/MacOS/com.apple.Virtualization.VirtualMachine
+  643   4.1  0.1 /System/Library/CoreServices/ControlCenter.app/Contents/MacOS/ControlCenter
+  570   4.0  0.1 /usr/sbin/coreaudiod
+36364   4.0  0.7 /Applications/Firefox Developer Edition.app/Contents/MacOS/plugin-container.app/Contents/MacOS/plugin-container

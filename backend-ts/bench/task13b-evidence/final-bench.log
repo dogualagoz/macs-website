@@ -1,0 +1,26 @@
+bun test v1.3.5 (1e86cebd)
+
+bench/compare.test.ts:
+(pass) passes when p95 and RPS equal the baseline [1.95ms]
+(pass) fails on slower p95 even with high RPS [0.36ms]
+(pass) fails on lower RPS even with low p95 [0.07ms]
+(pass) fails on missing endpoint
+(pass) fails when successRate is below 0.999 [0.14ms]
+(pass) accepts successRate of exactly 0.999 [0.04ms]
+(pass) 2x target does not affect gate and respects custom multiplier [0.06ms]
+(pass) every endpoint must pass
+(pass) empty baseline, extra endpoint, invalid numbers and invalid multiplier fail closed [0.23ms]
+(pass) CLI reads benchmark envelopes and reports pass, target miss and fail exit codes [66.77ms]
+(pass) CLI rejects cached and missing cache metadata, and informational mode never passes a gate [225.05ms]
+
+bench/run.test.ts:
+(pass) two-request cache probe observes [ "MISS", "MISS" ] as false [2.84ms]
+(pass) two-request cache probe observes [ "MISS", "HIT" ] as true [1.15ms]
+(pass) two-request cache probe observes [ "HIT", "HIT" ] as true [0.95ms]
+(pass) two-request cache probe observes [ undefined, undefined ] as false [0.90ms]
+(pass) cache probe rejects non-200 responses rather than asserting cache-off [0.97ms]
+
+ 16 pass
+ 0 fail
+ 76 expect() calls
+Ran 16 tests across 2 files. [325.00ms]

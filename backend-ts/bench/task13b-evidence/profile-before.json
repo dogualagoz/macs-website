@@ -1,0 +1,97 @@
+{
+  "bun": "1.3.5",
+  "iterations": 20000,
+  "rounds": 7,
+  "results": [
+    {
+      "name": "Hono route + CORS + Response",
+      "medianUs": 2.182295799999997,
+      "minUs": 2.1426208499999917,
+      "maxUs": 2.4997520499999952
+    },
+    {
+      "name": "completion logging (sync pino /dev/null)",
+      "medianUs": 1.9583646000000015,
+      "minUs": 1.89560415,
+      "maxUs": 2.1664146
+    },
+    {
+      "name": "Hono route + canonical path + Response",
+      "medianUs": 1.1136958499999992,
+      "minUs": 1.0967645999999946,
+      "maxUs": 1.1227750000000014
+    },
+    {
+      "name": "validateRequestHead (4 headers)",
+      "medianUs": 0.90619375,
+      "minUs": 0.8707708000000024,
+      "maxUs": 0.9325437499999963
+    },
+    {
+      "name": "security headers",
+      "medianUs": 0.7942604000000018,
+      "minUs": 0.7827791999999989,
+      "maxUs": 0.852166699999998
+    },
+    {
+      "name": "client IP",
+      "medianUs": 0.5314458500000001,
+      "minUs": 0.5260270499999989,
+      "maxUs": 0.5471541999999999
+    },
+    {
+      "name": "Response construction",
+      "medianUs": 0.4899708499999974,
+      "minUs": 0.44924164999999905,
+      "maxUs": 0.5713166999999999
+    },
+    {
+      "name": "cache lookup metadata + warmup touch",
+      "medianUs": 0.48270415000000066,
+      "minUs": 0.40618749999999865,
+      "maxUs": 0.5293958000000032
+    },
+    {
+      "name": "handler timeout",
+      "medianUs": 0.4506146000000058,
+      "minUs": 0.42886040000000775,
+      "maxUs": 0.49212499999999865
+    },
+    {
+      "name": "encoding negotiation",
+      "medianUs": 0.17131665,
+      "minUs": 0.17024584999999776,
+      "maxUs": 0.24110415000000102
+    },
+    {
+      "name": "global token bucket",
+      "medianUs": 0.10968124999999987,
+      "minUs": 0.10917705000000524,
+      "maxUs": 0.11080625000000169
+    },
+    {
+      "name": "request id (randomUUID)",
+      "medianUs": 0.10842710000000011,
+      "minUs": 0.10235205000000178,
+      "maxUs": 0.25272080000000013
+    },
+    {
+      "name": "write token bucket (not used on GET)",
+      "medianUs": 0.10772084999999834,
+      "minUs": 0.10254999999999655,
+      "maxUs": 0.1415728999999999
+    },
+    {
+      "name": "cache key",
+      "medianUs": 0.09022709999999848,
+      "minUs": 0.08564579999999751,
+      "maxUs": 0.14354789999999867
+    },
+    {
+      "name": "ETag match",
+      "medianUs": 0.06355420000000436,
+      "minUs": 0.06242710000000216,
+      "maxUs": 0.06433125000000359
+    }
+  ]
+}

@@ -1,0 +1,317 @@
+bun test v1.3.5 (1e86cebd)
+
+src/app.test.ts:
+(pass) GET / returns welcome [1.82ms]
+(pass) GET /health [0.13ms]
+(pass) system responses omit framework and automatic cache headers [0.10ms]
+(pass) Hono fetch shell ignores forwarded spoofing [0.14ms]
+(pass) global and write limiters use real IP and run before route parsing [5.05ms]
+(pass) handler timeout returns JSON 503 with CORS and security headers [7.66ms]
+(pass) production docs are disabled by default, and an explicit override enables them [11.08ms]
+(pass) normalizing Content-Type preserves caller Request headers [0.95ms]
+(pass) HEAD on a missing docs asset remains 404 rather than 405, and notFound precompiles route regexes once [1.29ms]
+(pass) static and uploads mounts enforce resolved-prefix containment [0.12ms]
+(pass) OpenAPI 3.1 info matches FastAPI [0.30ms]
+(pass) all 63 operations document tags and responses [0.67ms]
+(pass) seven described tags and OAuth2 password security [0.10ms]
+(pass) form, JSON, multipart binary and ZIP metadata [0.30ms]
+(pass) parameters and shared validation response [0.29ms]
+(pass) two apps have independent registries and documents [22.52ms]
+(pass) public local Swagger assets and docs bypass cache; redoc 404 [8.40ms]
+(pass) exact /docs redirects to /docs/ and preserves the raw query string [0.33ms]
+(pass) every relative Swagger HTML asset resolves successfully from /docs/ [4.17ms]
+(pass) HEAD ZIP authenticates and lists but never resolves or opens file paths [5.13ms]
+
+src/middleware/cors.test.ts:
+(pass) CORS retains Vary, allowlist and credentials on cached and other responses [0.93ms]
+
+src/middleware/http.test.ts:
+(pass) missing/non-Bearer Authorization: %s [2.20ms]
+(pass) missing/non-Bearer Authorization: Basic secret [1.14ms]
+(pass) missing/non-Bearer Authorization: bearer secret [0.93ms]
+(pass) valid token loads the current user [1.32ms]
+(pass) current user authorization: Kimlik doğrulanamadı [1.53ms]
+(pass) current user authorization: Hesap aktif değil [1.45ms]
+(pass) current user authorization: Hesabınız henüz onaylanmadı [1.15ms]
+(pass) token errors preserve all four messages and Bearer challenge [5.83ms]
+(pass) rate limit: 4th request is 429, counters are per-route and per-IP [1.47ms]
+(pass) RATELIMIT_ENABLED=false allows 20 requests [1.96ms]
+(pass) unknown path is JSON 404; known path unsupported method is 405 with Allow [1.74ms]
+(pass) body >2 MB is 413 for JSON and form [5.17ms]
+(pass) malformed JSON is FastAPI 422 [1.70ms]
+(pass) PG 23505 maps to 409 [1.05ms]
+(pass) PG 23503 maps to 409 [0.47ms]
+(pass) PG 57014 maps to 503 [0.99ms]
+(pass) Drizzle-wrapped PG 23505 maps to 409 [0.92ms]
+(pass) Drizzle-wrapped PG 23503 maps to 409 [1.08ms]
+(pass) Drizzle-wrapped PG 57014 maps to 503 [1.01ms]
+(pass) plain and nested causes preserve PostgreSQL error mapping [1.56ms]
+(pass) non-object, cyclic and excessive cause chains fall back to 500 [4.34ms]
+(pass) unexpected error includes CORS headers and logs a stack [1.16ms]
+(pass) HttpError headers are emitted with a single detail envelope [0.86ms]
+(pass) every response carries security headers and validated request ID [3.23ms]
+(pass) request completion logs exactly one line with correlation fields [1.26ms]
+(pass) CORS allows configured origins, rejects others, preflight is 200 [0.59ms]
+(pass) forwarded-for spoofing shares the default socket IP bucket [1.15ms]
+(pass) non-PG inherited error code __proto__ stays a JSON 500 [1.03ms]
+(pass) non-PG inherited error code constructor stays a JSON 500 [0.79ms]
+(pass) non-PG inherited error code toString stays a JSON 500 [0.70ms]
+
+src/config/env.test.ts:
+(pass) parseEnv applies defaults [0.31ms]
+(pass) parseEnv disables DOCS_ENABLED by default in production and enables otherwise [0.36ms]
+(pass) parseEnv fails fast without JWT_SECRET_KEY [0.07ms]
+(pass) parseEnv normalizes an empty ADMIN_SECRET_KEY to disabled [0.03ms]
+(pass) parseEnv merges CORS_ORIGINS without duplicates [0.02ms]
+(pass) parseEnv accepts uppercase LOG_LEVEL [0.04ms]
+(pass) parseEnv parses configured values and postgres URLs [0.07ms]
+(pass) parseEnv disables boolean flags for off [0.11ms]
+(pass) parseEnv disables boolean flags for false [0.02ms]
+(pass) parseEnv disables boolean flags for 0 [0.02ms]
+(pass) parseEnv enables boolean flags for on [0.03ms]
+(pass) parseEnv enables boolean flags for true [0.01ms]
+(pass) parseEnv enables boolean flags for 1
+(pass) parseEnv rejects invalid DATABASE_URL= [0.08ms]
+(pass) parseEnv rejects invalid DATABASE_URL=https://db.test/x [0.03ms]
+(pass) parseEnv rejects invalid DATABASE_URL=postgresql:// [0.03ms]
+(pass) parseEnv rejects invalid JWT_SECRET_KEY=short [0.06ms]
+(pass) parseEnv rejects invalid NODE_ENV=invalid [0.03ms]
+(pass) parseEnv rejects invalid LOG_LEVEL=trace [0.02ms]
+(pass) parseEnv rejects invalid PORT=65536 [0.03ms]
+(pass) parseEnv rejects invalid PORT=1.5 [0.03ms]
+(pass) parseEnv rejects invalid ACCESS_TOKEN_EXPIRE_MINUTES=0 [0.03ms]
+(pass) parseEnv rejects invalid MAX_LOGIN_ATTEMPTS=-1 [0.06ms]
+(pass) parseEnv rejects invalid LOCKOUT_DURATION=invalid [0.04ms]
+(pass) parseEnv rejects invalid MIN_PASSWORD_LENGTH=0 [0.04ms]
+(pass) parseEnv rejects invalid MAX_UPLOAD_SIZE=0
+(pass) parseEnv rejects invalid UPLOAD_DIR= [0.04ms]
+(pass) parseEnv rejects invalid STATIC_DIR= [0.01ms]
+(pass) parseEnv rejects invalid RATELIMIT_ENABLED=invalid [0.05ms]
+(pass) parseEnv rejects invalid RESPONSE_CACHE=invalid [0.02ms]
+(pass) parseEnv rejects invalid RUN_MIGRATIONS=invalid [0.02ms]
+(pass) parseEnv rejects invalid NOMINATIM_USER_AGENT= [0.02ms]
+(pass) parseEnv requires DATABASE_URL [0.04ms]
+(pass) parseRunMigrations shares booleanFlag semantics for 0/off/false/1/on/true/unset [0.26ms]
+
+src/security/security.test.ts:
+(pass) security primitives > exact defaults
+(pass) security primitives > single hop X-Real-IP only from private/loopback/test sockets [0.25ms]
+(pass) security primitives > token burst, fractional refill, cap, and LRU touch [0.22ms]
+(pass) security primitives > fixed windows reset at boundary and remain bounded [0.12ms]
+(pass) security primitives > login check precedes DB: twenty failures allowed, next blocked; window resets [0.10ms]
+(pass) security primitives > login LRU checks refresh recency; successful checks do not count as failures [0.03ms]
+(pass) security primitives > clean login probes cannot allocate entries or evict a blocked IP [0.08ms]
+(pass) security primitives > checking an expired login entry deletes it without allocating a replacement [0.06ms]
+(pass) security primitives > headers: API/docs policies, exact HTTPS only, remove disclosure [0.10ms]
+(pass) security primitives > raw path/method guards and exact URL length boundary [0.09ms]
+(pass) security primitives > header count/UTF8 bytes boundaries (wire name + colon-space + CRLF) [0.18ms]
+(pass) security primitives > bounded reader accepts exact/empty and cancels chunked overflow immediately [0.41ms]
+(pass) security primitives > overflow remains 413 even if producer cancellation fails [0.09ms]
+(pass) security primitives > dishonest small Content-Length cannot bypass streaming cap [0.11ms]
+(pass) security primitives > Content-Length over limit rejected without pulling [0.07ms]
+(pass) security primitives > body middleware preserves JSON/form validators, default cap, and 413 [1.91ms]
+(pass) security primitives > handler timeout succeeds, propagates errors, and returns 503 [2.41ms]
+(pass) security primitives > security logger allowlists fields and removes query/secret path segments [0.30ms]
+(pass) security primitives > security logs retain actual static routes and redact ids and free text [0.39ms]
+(pass) security primitives > Hono route limit slowapi JSON and disable switch [0.40ms]
+
+src/security/hit-cost.test.ts:
+(pass) header byte limit matches TextEncoder for Unicode and Latin1 at exact boundary [0.13ms]
+(pass) static header reuse cannot leak docs CSP or HSTS to next response [0.05ms]
+(pass) IP resolution preserves direct and trusted proxy behavior with or without real IP [0.05ms]
+
+src/lib/native-validation.test.ts:
+(pass) order: 401 precedes 422, including malformed JSON [1.87ms]
+(pass) order: 403 precedes 422 [1.40ms]
+(pass) bodyInvalid overrides malformed JSON and schema failure [1.40ms]
+(pass) malformed field produces the entire FastAPI body [1.08ms]
+(pass) status 204 skips serialization and sends empty body [1.29ms]
+(pass) handler returning null sends JSON null [0.94ms]
+(pass) Response leaves ownership with handler [1.10ms]
+(pass) extra query params are ignored and parsed inputs reach handler [1.44ms]
+(pass) form bodies are parsed before validation [1.28ms]
+(pass) missing body field retains parent input in the entire 422 envelope [0.93ms]
+(pass) protected route registration requires an injected user loader [0.56ms]
+(pass) form-only route rejects JSON credentials as missing fields [0.98ms]
+(pass) unauthenticated text body precedes media type validation [1.31ms]
+(pass) rate limit precedes auth and params/query/body validation [4.51ms]
+(pass) native OpenAPI hook retains raw input; JSON errors and overrides match FastAPI [2.14ms]
+(pass) native param and query failures are tested separately (F11 validator ordering) [1.52ms]
+(pass) legacy JSON route maps non-JSON media to a model_attributes_type 422 [1.33ms]
+(pass) legacy JSON media types are case insensitive [1.24ms]
+
+src/lib/cache.test.ts:
+(pass) exported cache v2 constants match specification
+(pass) cacheKey sorts query, ignores undefined values, and encodes separators without collisions [0.33ms]
+(pass) selectEncoding respects q=0 exclusions, quality weights, priority, and explicit identity exclusion [0.09ms]
+(pass) compressBytes skips payloads < 1024 bytes and precompresses >= 1024 bytes with lossless round-trip [1.11ms]
+(pass) entry expires at ttl without extending on a hit and releases byteSize [0.16ms]
+(pass) LRU evicts the least recently used at max [0.04ms]
+(pass) replacing a key refreshes LRU position, updates byteSize, and never exceeds capacity [0.03ms]
+(pass) byte cap evicts LRU entries when maxBytes is exceeded and rejects single entry > maxBytes [0.08ms]
+(pass) invalidate removes only mapped domains and updates byteSize [0.05ms]
+(pass) INVALIDATES includes embedded creator and member/project dependencies [0.02ms]
+(pass) generations advance for every mapped domain even with no entries [0.04ms]
+(pass) disabled cache never stores [0.01ms]
+(pass) weakEtag is stable, body-sensitive, weak, and identical for string and Uint8Array [0.05ms]
+(pass) getOrLoad coalesces 10 concurrent misses into 1 loader call and clears inFlight on rejection [17.97ms]
+(pass) getOrLoad caches literal 'null' 200 payload (F2) but never caches non-cacheable or 404 results [0.12ms]
+(pass) generation race guard (F29): invalidate during in-flight getOrLoad returns payload without caching [0.15ms]
+(pass) warmupStartup fills up to 7 registered keys with max concurrency 2 [50.05ms]
+(pass) invalidate re-warms only keys seen within recent 10-minute window with max concurrency 2 and respects stop/drain [84.05ms]
+(pass) warmupRegistry is bounded by maxEntries/LRU and prunes expired/evicted registrations [0.55ms]
+(pass) warmup failures report only safe classifications (keyHash + path, no query/PII/message/stack), walk error cause codes, fall back to logger.error, keep peers warming, and retry on next trigger [0.60ms]
+(pass) empty invalidation targets do not even consult warmup clock [0.23ms]
+
+src/lib/http-error.test.ts:
+(pass) HttpError preserves validation items as detail without a wrapper
+(pass) unauthorized carries the detail and Bearer challenge [0.16ms]
+
+src/lib/slug.test.ts:
+(pass) createSlug(Yapay Zekâ & Öğrenme Günü) matches python unidecode [0.26ms]
+(pass) createSlug(İstanbul Şişli ÇAĞRI) matches python unidecode [0.06ms]
+(pass) createSlug(ığüşöç IĞÜŞÖÇ) matches python unidecode
+(pass) createSlug(C++ / C# Atölyesi) matches python unidecode
+(pass) createSlug(  --Merhaba   Dünya!!  ) matches python unidecode
+(pass) createSlug(München Straße) matches python unidecode
+(pass) createSlug(Kahve ☕ Sohbeti) matches python unidecode [0.07ms]
+(pass) createSlug(½ maraton №5) matches python unidecode
+(pass) createSlug(ﬁnal ’tırnak’ “çift”) matches python unidecode
+(pass) createSlug(Ǆ ǅ æ Æ ß þ) matches python unidecode [0.01ms]
+(pass) createSlug(é café) matches python unidecode
+(pass) createSlug(€100 Ödül) matches python unidecode
+(pass) createSlug() matches python unidecode [0.04ms]
+(pass) createSlug(!!!) matches python unidecode
+(pass) createSlug(MACS 2026 Bahar Tanışma) matches python unidecode
+(pass) createSlug(Hackathon'26: 48 Saat) matches python unidecode
+(pass) createSlug(Ağ Güvenliği 101 — CTF) matches python unidecode [0.04ms]
+(pass) createSlug(a_b.c/d\e) matches python unidecode [0.01ms]
+(pass) createSlug(ÀÁÂÃÄÅ àáâãäå Ññ Øø Łł Đđ) matches python unidecode
+(pass) createSlug(Œuvre cœur) matches python unidecode
+(pass) transliterate maps Latin letters, symbols and combining marks [0.03ms]
+(pass) resolveSlug handles collisions and empty bases [0.08ms]
+(pass) non-latin title yields empty base [0.02ms]
+
+src/lib/public-cache.test.ts:
+(pass) public cache negotiates compressed variants and consistent conditional responses [2.80ms]
+
+src/lib/jwt.test.ts:
+(pass) accepts python-jose token [0.41ms]
+(pass) sign/verify round trip, exp = now + minutes [1.11ms]
+(pass) expired [0.40ms]
+(pass) expiration boundary is rejected [0.16ms]
+(pass) bad signature [0.16ms]
+(pass) garbage [0.02ms]
+(pass) missing or empty sub: %s [0.17ms]
+(pass) missing or empty sub:  [0.14ms]
+(pass) rejects algorithms other than HS256 [0.17ms]
+(pass) strips Bearer prefix [0.08ms]
+(pass) rejects signed tokens with missing or wrong claims: {"sub":"a@b.co","exp":4102444800} [0.22ms]
+(pass) rejects signed tokens with missing or wrong claims: {"sub":"a@b.co","role":"admin"} [0.10ms]
+(pass) rejects signed tokens with missing or wrong claims: {"sub":"a@b.co","role":123,"exp":4102444800} [0.14ms]
+(pass) rejects signed tokens with missing or wrong claims: {"sub":"a@b.co","role":"admin","exp":"4102444800"} [0.16ms]
+(pass) rejects non-string subject in a valid HS256 token [0.13ms]
+(pass) rejects a tampered payload [0.14ms]
+
+src/lib/storage.test.ts:
+(pass) local disk creates directory, saves bytes, sorted flat regular files only, removes idempotently [2.77ms]
+(pass) localDiskStorage rejects traversal on every method [0.70ms]
+(pass) signature .jpg <Buffer ff d8 ff> → true [0.38ms]
+(pass) signature .jpeg <Buffer ff d8 ff> → true [0.19ms]
+(pass) signature .png <Buffer 89 50 4e 47 0d 0a 1a 0a> → true [0.21ms]
+(pass) signature .gif <Buffer 47 49 46 38 37 61> → true [0.42ms]
+(pass) signature .gif <Buffer 47 49 46 38 39 61> → true [0.29ms]
+(pass) signature .webp <Buffer 52 49 46 46 31 32 33 34 57 45 42 50> → true [0.19ms]
+(pass) signature .webp <Buffer 52 49 46 46 31 32 33 34 57 41 56 45> → false [0.35ms]
+(pass) signature .webp <Buffer 52 49 46 46 31 32 33 34 57 45 42> → false [0.30ms]
+(pass) signature .png <Buffer 89 50 4e> → false [0.15ms]
+(pass) signature .png <Buffer 4d 5a 20 6e 6f 74 20 61 20 70 6e 67> → false [0.14ms]
+(pass) signature .bmp <Buffer 42 4d> → false [0.14ms]
+(pass) signature .toString <Buffer 78> → false [0.15ms]
+(pass) saveImage lowercases extension and validates before any write [1.04ms]
+
+src/lib/password.test.ts:
+(pass) verifies passlib hash [206.18ms]
+(pass) rejects wrong password [215.20ms]
+(pass) 72-byte truncation matches bcrypt 4.0.1 [616.97ms]
+(pass) truncation counts UTF-8 bytes, not characters [407.23ms]
+(pass) truncation may cut inside a multibyte character [612.41ms]
+(pass) hashPassword truncates ASCII input before Bun can prehash it [613.16ms]
+(pass) malformed or empty input returns false, never throws [0.22ms]
+(pass) hashPassword emits a cost-12 bcrypt hash and verifies [411.80ms]
+
+src/lib/datetime.test.ts:
+(pass) pgToNaiveIso(2026-05-01 11:00:00) preserves wall time and microseconds
+(pass) pgToNaiveIso(2026-05-01 11:00:00.5) preserves wall time and microseconds [0.78ms]
+(pass) pgToNaiveIso(2026-05-01T11:00:00) preserves wall time and microseconds
+(pass) pgToNaiveIso(2026-05-01T11:00:00.123456) preserves wall time and microseconds
+(pass) pgToNaiveIso(%s) preserves wall time and microseconds
+(pass) pgToUtcIso(2026-05-01 11:00:00.123456+00) handles text and json_agg formats
+(pass) pgToUtcIso(2026-05-01 11:00:00+00) handles text and json_agg formats
+(pass) pgToUtcIso(2026-05-01 11:00:00.12+00) handles text and json_agg formats
+(pass) pgToUtcIso(2026-05-01T11:00:00.123456+00:00) handles text and json_agg formats
+(pass) pgToUtcIso(2026-05-01T11:00:00Z) handles text and json_agg formats
+(pass) pgToUtcIso(%s) handles text and json_agg formats
+(pass) pgToUtcIso rejects non-UTC or missing offsets: 2026-05-01 14:00:00+03 [0.06ms]
+(pass) pgToUtcIso rejects non-UTC or missing offsets: 2026-05-01T14:00:00+03:00
+(pass) pgToUtcIso rejects non-UTC or missing offsets: 2026-05-01 11:00:00
+(pass) parseDateTimeInput(2026-05-01T10:00:00) produces a naive UTC PG literal [0.05ms]
+(pass) parseDateTimeInput(2026-05-01T10:00) produces a naive UTC PG literal
+(pass) parseDateTimeInput(2026-05-01 10:00:00.250) produces a naive UTC PG literal
+(pass) parseDateTimeInput(2026-05-01T10:00:00Z) produces a naive UTC PG literal
+(pass) parseDateTimeInput(2026-05-01T10:00:00+03:00) produces a naive UTC PG literal
+(pass) parseDateTimeInput(2026-01-01T01:30:00+03:00) produces a naive UTC PG literal [0.02ms]
+(pass) parseDateTimeInput(2026-05-01) produces a naive UTC PG literal
+(pass) parseDateTimeInput(2024-02-29T23:59:59.123456-02:30) produces a naive UTC PG literal
+(pass) parseDateTimeInput(0099-01-01T00:00:00) produces a naive UTC PG literal
+(pass) parseDateTimeInput(2026-05-01T10:00:00.000000) produces a naive UTC PG literal
+(pass) parseDateTimeInput rejects invalid date  [0.01ms]
+(pass) parseDateTimeInput rejects invalid date yarin
+(pass) parseDateTimeInput rejects invalid date 2026-13-01T00:00:00
+(pass) parseDateTimeInput rejects invalid date 2026-02-30T00:00:00
+(pass) parseDateTimeInput rejects invalid date 2026-05-01T25:00:00
+(pass) parseDateTimeInput rejects invalid date 2026-00-01
+(pass) parseDateTimeInput rejects invalid date 2026-01-00 [0.01ms]
+(pass) parseDateTimeInput rejects invalid date 2025-02-29
+(pass) parseDateTimeInput rejects invalid date 2026-05-01T10:60:00 [0.01ms]
+(pass) parseDateTimeInput rejects invalid date 2026-05-01T10:00:60
+(pass) parseDateTimeInput rejects invalid date 2026-05-01T10:00:00+24:00
+(pass) parseDateTimeInput rejects invalid date 2026-05-01T10:00:00+03:60
+(pass) parseDateTimeInput rejects invalid date 2026-05-01T10:00:00junk
+(pass) parseDateTimeInput rejects invalid date 0000-01-01
+(pass) parseDateTimeInput rejects invalid date 2026-05-01T10:00:00
+
+(pass) slugTimestamp uses UTC [0.02ms]
+
+src/lib/validation.test.ts:
+(pass) missing body field [0.22ms]
+(pass) query int parsing [0.25ms]
+(pass) query le bound [0.12ms]
+(pass) query ge bound [0.12ms]
+(pass) qInt default + absent [0.04ms]
+(pass) qInt rejects floats and blanks [0.15ms]
+(pass) qBool [0.11ms]
+(pass) enum [0.15ms]
+(pass) string bounds [0.08ms]
+(pass) custom refine → value_error [0.29ms]
+(pass) path int [0.13ms]
+(pass) nested array loc [0.11ms]
+(pass) qStr normalizes empty and absent values [0.14ms]
+(pass) query helpers reject non-scalar values [0.07ms]
+(pass) query defaults apply only when absent [0.03ms]
+(pass) datetime input becomes a PostgreSQL literal [0.16ms]
+(pass) validationError stores items without double nesting [0.02ms]
+(pass) primitive type errors and missing query input [0.07ms]
+(pass) bodyInt matches Pydantic 2.11.7 lax int accept, reject, and error-type table [0.41ms]
+(pass) intentional int4 safety deviation: reject integers beyond Number.MAX_SAFE_INTEGER (Pydantic accepts; old DB writes fail) [0.33ms]
+(pass) bodyBool matches Pydantic lax aliases, defaults, nullability and error types [0.32ms]
+(pass) bodyFloat matches Pydantic coordinate parsing and bounded error types [0.15ms]
+(pass) qBool accepts Pydantic single-letter query aliases [0.23ms]
+
+src/lib/logger.test.ts:
+(pass) buffered logger drains every completion and security record on normal exit [37.90ms]
+
+ 276 pass
+ 0 fail
+ 3563 expect() calls
+Ran 276 tests across 17 files. [3.68s]

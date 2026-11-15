@@ -1,0 +1,9 @@
+Endpoint	p95 old (ms)	p95 new (ms)	RPS old	RPS new	gate
+/events?limit=100	18.904	4.128	3089.17	15837.16	PASS
+/events/featured	30.118	2.736	1980.33	24384.53	PASS
+/projects?limit=100	41.729	5.572	1482.38	11763.98	PASS
+/projects/featured	18.553	2.768	3561.96	23375.20	PASS
+/members/leaderboard	18.949	3.482	3666.19	19684.78	PASS
+/members	14.190	3.215	5519.49	21574.58	PASS
+/sponsors/	22.404	3.660	3006.23	18565.43	PASS
+GATE PASS (7/7)

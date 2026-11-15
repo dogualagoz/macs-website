@@ -1,0 +1,30 @@
+{
+  "/events?limit=100": [
+    "MISS",
+    "HIT"
+  ],
+  "/events/featured": [
+    "MISS",
+    "HIT"
+  ],
+  "/projects?limit=100": [
+    "MISS",
+    "HIT"
+  ],
+  "/projects/featured": [
+    "MISS",
+    "HIT"
+  ],
+  "/members/leaderboard": [
+    "MISS",
+    "HIT"
+  ],
+  "/members": [
+    "MISS",
+    "HIT"
+  ],
+  "/sponsors/": [
+    "MISS",
+    "HIT"
+  ]
+}
