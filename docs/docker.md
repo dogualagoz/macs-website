@@ -1,9 +1,8 @@
 # Docker ile Çalıştırma
 
-Frontend (React/nginx) + Backend (FastAPI) + PostgreSQL 13, `docker-compose.yml`
-üzerinden ayağa kalkar. Üçü **ayrı container**; frontend ve backend farklı
-origin'lerden servis edilir (`macsclub.com.tr` / `api.macsclub.com.tr`),
-aralarındaki iletişim CORS ile açılır.
+Frontend (React/nginx) + Backend (`backend` FastAPI :8000 ve paralel `backend-ts` Bun/Hono `127.0.0.1:8010`) + PostgreSQL 13, `docker-compose.yml` üzerinden ayağa kalkar. Frontend ve API farklı origin'lerden servis edilir (`macsclub.com.tr` / `api.macsclub.com.tr`), aralarındaki iletişim CORS ile açılır.
+
+> `backend-ts` yapılandırması ve canlı VPS cutover runbook'u için bkz. [backend-ts/README.md](../backend-ts/README.md) ve [docs/backend-ts-cutover.md](backend-ts-cutover.md).
 
 ## Kurulum
 
@@ -133,12 +132,11 @@ Kurallar:
 2. Dump'ın sonundaki `setval()` çağrıları sequence'ları son id'ye ayarlar
    (`events` 32, `sponsors` 30, `users` 7 ...). Yeni kayıtlar bu verinin
    üstüne, sıradaki id'den devam eder.
-3. `docker/initdb/00-roles.sql` dump'tan **önce** çalışır ve `macs_admin` ile
-   `root` rollerini oluşturur. Dump bu rollere `GRANT` verdiği için rol yoksa
-   yükleme "role does not exist" ile yarıda kalır.
-4. Container açılışında `docker-entrypoint.sh` DB'yi bekler, sonra
-   `alembic upgrade head` çalıştırır. Dump `345ed2086eb2` sürümünde;
-   `b1f4c7a92e10` (user role/status backfill) container ilk açılışta uygulanır.
+3. `docker/initdb/00-roles.sql` dump'tan **önce** çalışır ve `macs_admin`, `root`
+   ve `postgres` rollerini `NOLOGIN` olarak oluşturur. Dump bu rollere `GRANT`
+   veya sahiplik verdiği için rol yoksa yükleme "role does not exist" ile yarıda kalır.
+4. Container açılışında `docker-entrypoint.sh` DB'yi bekler; Python `backend`
+   `alembic upgrade head`, `backend-ts` ise `bun src/db/migrate.ts` çalıştırır.
    Kapatmak için `.env` içinde `RUN_MIGRATIONS=0`.
 
 **`docker compose down -v` tüm veriyi siler** ve bir sonraki `up` dump'ı
@@ -187,8 +185,7 @@ tarafında. Her iki vhost için nginx yönlendirmesi:
 | Domain | Hedef |
 |---|---|
 | `macsclub.com.tr` | `http://127.0.0.1:8080` (frontend) |
-| `api.macsclub.com.tr` | `http://127.0.0.1:8000` (backend) |
+| `api.macsclub.com.tr` | `http://127.0.0.1:8010` (`backend-ts`) veya geçiş öncesi `http://127.0.0.1:8000` (`backend`) |
 
-Backend vhost'unda `X-Forwarded-For` iletilmeli; slowapi rate limit'i client
-IP'sine göre sayıyor, iletilmezse tüm istekler proxy'nin tek IP'sinden geliyor
-görünür ve limit herkesi birden kilitler.
+- Python `backend` (8000) `X-Forwarded-For` ile çalışır (`--proxy-headers`);
+- **`backend-ts` (8010)** için [`deploy/nginx/README.md`](../deploy/nginx/README.md) ve [`docs/backend-ts-cutover.md`](backend-ts-cutover.md) kullanılır: nginx yalnızca `X-Real-IP $remote_addr` ayarlar ve `X-Forwarded-For` değerini siler.
