@@ -79,7 +79,7 @@ const ProjectsToolbar = ({
                 type="button"
                 aria-pressed={selected}
                 onClick={() => onCategoryChange(category)}
-                className={`shrink-0 cursor-pointer whitespace-nowrap rounded-lg border px-4 py-1.5 text-sm transition-colors ${
+                className={`shrink-0 cursor-pointer whitespace-nowrap rounded-full border px-4 py-1.5 text-sm transition-colors ${
                   selected
                     ? 'border-macs-accent/40 bg-macs-accent-500/20 text-macs-accent-300'
                     : 'border-transparent bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'

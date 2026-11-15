@@ -218,37 +218,6 @@
   flex-wrap: wrap;
 }
 
-.buttons {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  padding: 0.2rem 0.2rem;
-  background-color: #f3f4f6;
-  border-radius: 10px;
-}
-
-.filter-button {
-  padding: 0.5rem 1.25rem;
-  border: none;
-  border-radius: 6px;
-  background-color: #f3f4f6;
-  color: #343a40;
-  font-weight: 500;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.filter-button:hover {
-  background-color: #ffffff;
-}
-
-.filter-button.active {
-  background-color: #ffffff;
-  color: #000000;
-}
-
 .First {
   display: grid;
   grid-template-rows: repeat(6, 50px);
@@ -986,21 +955,8 @@
     font-size: 1rem;
   }
 
-  .buttons {
-    padding: 0.5rem 0.25rem;
-  }
-
   .events-filters {
     gap: 0.5rem;
-  }
-
-  .filter-button {
-    padding: 0.35rem 0.9rem;
-    font-size: 0.85rem;
-  }
-
-  .filter-button.active {
-    padding: 0.35rem 0.9rem;
   }
 
   /* Featured card responsive - tablet */
