@@ -3,7 +3,7 @@ import '../../../styles/components/team.css'
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from 'react-router-dom';
 import { X } from 'lucide-react';
-import { motion, useReducedMotion } from 'framer-motion';
+import { m, useReducedMotion } from 'framer-motion';
 import { getInitialsAvatar } from '../../../shared/utils/media';
 
 /* pic  : 3:4 portre masterlari (900x1200; ceren 482x642) — kaynak dosyalardan
@@ -110,7 +110,7 @@ const Plate = ({ person, tier, index, reduce, onOpen }) => {
       aria-haspopup="dialog"
       onClick={(event) => onOpen(person, event.currentTarget)}
     >
-      <motion.span
+      <m.span
         className="team-plate"
         initial={reduce ? false : { opacity: 0 }}
         whileInView={{ opacity: 1 }}
@@ -130,7 +130,7 @@ const Plate = ({ person, tier, index, reduce, onOpen }) => {
         <span className="team-plate__ink" aria-hidden="true" />
         <span className="team-plate__grain" aria-hidden="true" />
         {inside && <span className="team-plate__id">{caption}</span>}
-      </motion.span>
+      </m.span>
       {!inside && <span className="team-person__cap">{caption}</span>}
     </button>
   );

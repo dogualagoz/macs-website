@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import '../../../styles/components/loader.css';
 
 /**
@@ -23,14 +23,14 @@ export default function Loading({
         ))}
       </div>
       {message && (
-        <motion.p 
+        <m.p 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
           className="loader-text"
         >
           {message}
-        </motion.p>
+        </m.p>
       )}
     </div>
   );

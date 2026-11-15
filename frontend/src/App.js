@@ -17,6 +17,7 @@ import './styles/admin-reset.css';
 import Page404 from './shared/components/Page404';
 import ErrorBoundary from './shared/components/feedback/ErrorBoundary';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { LazyMotion, domAnimation } from 'framer-motion';
 import './styles/App.css';
 import ScrollToTop from './shared/components/navigation/ScrollToTop';
 
@@ -38,6 +39,12 @@ const AdminPanel = lazy(() => import('./features/admin/pages/AdminPanel'));
 
 // Sayfa chunk'ı inerken footer yukarı zıplamasın diye ekran yüksekliği tutulur.
 const PageFallback = () => <div style={{ minHeight: '100vh' }} aria-busy="true" />;
+
+// Bilesenler `motion.x` yerine `m.x` kullanir; ozellik seti burada bir kez
+// verilir (domAnimation: animasyon, varyant, exit, hover/tap, inView).
+// Senkron: ozellikler lazy yuklendiginde, ozellikler gelmeden mount olan ic ice
+// whileInView bolumleri (Hakkimizda > Degerlerimiz) hic tetiklenmiyordu.
+// strict: yanlislikla `motion` kullanilirsa hata verir.
 
 function App() {
   // State to track whether the page has been scrolled
@@ -103,6 +110,7 @@ function App() {
   }, [pathname, search]);
 
   return (
+    <LazyMotion features={domAnimation} strict>
     <AuthProvider>
       <ScrollToTop />
       <div className="app">
@@ -159,6 +167,7 @@ function App() {
         </Routes>
       </div>
     </AuthProvider>
+    </LazyMotion>
   );
 }
 

@@ -10,7 +10,7 @@ import ProjectsPageSkeleton from '../components/ProjectsPageSkeleton';
 import { ALL_TAB, countByTab, filterProjects } from '../utils/filterProjects';
 import { ProjectShowcase } from '../components/ProjectShowcase';
 import { GlassFold } from 'components/ui/glass-fold';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import ErrorMessage from '../../../shared/components/feedback/ErrorMessage';
 import SEO from '../../../shared/components/seo/SEO';
 import { USE_MOCK_FALLBACK } from '../../../shared/utils/mockFallback';
@@ -127,19 +127,19 @@ const NewProjectsPage = () => {
         <div className="relative z-10">
         <AnimatePresence mode="wait">
         {loading ? (
-          <motion.div
+          <m.div
             key="skeleton"
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
           >
             <ProjectsPageSkeleton />
-          </motion.div>
+          </m.div>
         ) : error ? (
           <div className="pt-32 pb-16 px-4">
             <ErrorMessage message={error} onRetry={fetchData} />
           </div>
         ) : (
-          <motion.div
+          <m.div
             key="content"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -210,7 +210,7 @@ const NewProjectsPage = () => {
                 </div>
               </div>
             </div>
-          </motion.div>
+          </m.div>
         )}
         </AnimatePresence>
         </div>

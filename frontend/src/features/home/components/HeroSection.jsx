@@ -9,7 +9,7 @@
  */
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { m, AnimatePresence, useReducedMotion } from 'framer-motion';
 import '../../../styles/components/hero.css';
 
 const HERO_NAMES = ['codedrink', 'devbreak', 'log'];
@@ -78,7 +78,7 @@ const HeroSection = () => {
       {/* Background Slider */}
       <div className="hero-background-wrapper">
         <AnimatePresence initial={false}>
-          <motion.div
+          <m.div
             key={currentIndex}
             initial={reduceMotion ? false : { x: '100%' }}
             animate={{ x: 0 }}
@@ -93,7 +93,7 @@ const HeroSection = () => {
               className="hero-background-image"
               style={{ backgroundImage: `url(${images[currentIndex]})` }}
             />
-          </motion.div>
+          </m.div>
         </AnimatePresence>
         <div className="hero-overlay" />
       </div>

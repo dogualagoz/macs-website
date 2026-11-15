@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
-import { motion, useReducedMotion } from 'framer-motion';
+import { m, useReducedMotion } from 'framer-motion';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { handleImageError } from '../../../utils/imageUtils';
 import { responsiveImgProps, withVariantFallback } from '../../../shared/utils/responsiveImage';
@@ -16,7 +16,7 @@ const ENTER_VARIANTS = {
   hidden: { opacity: 0, y: 56, scale: 0.88 },
   shown: { opacity: 1, y: 0, scale: 1 },
 };
-const MotionLink = motion.create(Link);
+const MotionLink = m.create(Link);
 
 const initialsOf = (name = '') =>
   name.trim().split(/\s+/).slice(0, 2).map((word) => word.charAt(0)).join('').toLocaleUpperCase('tr-TR') || '?';

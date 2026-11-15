@@ -1,5 +1,5 @@
 import React from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { m, useReducedMotion } from "framer-motion";
 
 /**
  * Ic sayfalarin ust bandi (Etkinlikler, Ekibimiz).
@@ -15,7 +15,7 @@ export default function PageHero({ title, description }) {
   return (
     <div className="pt-20">
       <section className="bg-gradient-to-br from-macs-navy-900 to-macs-navy-800 text-white">
-        <motion.div
+        <m.div
           initial={reduce ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
@@ -25,7 +25,7 @@ export default function PageHero({ title, description }) {
           {description && (
             <p className="max-w-2xl text-lg text-white/80">{description}</p>
           )}
-        </motion.div>
+        </m.div>
       </section>
     </div>
   );

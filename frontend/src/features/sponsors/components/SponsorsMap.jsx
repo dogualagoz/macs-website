@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import Map, { Marker, Popup, NavigationControl } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { eskisehirCenter } from '../data/mockSponsors';
@@ -62,7 +62,7 @@ export default function SponsorsMap({ sponsors }) {
 
   if (mapFallback) {
     return (
-      <motion.div
+      <m.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -88,12 +88,12 @@ export default function SponsorsMap({ sponsors }) {
             {markerCount} sponsor konumu listeden görüntülenebilir.
           </span>
         </div>
-      </motion.div>
+      </m.div>
     );
   }
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -217,7 +217,7 @@ export default function SponsorsMap({ sponsors }) {
             const hasLocation = Boolean(sponsor.location?.lat && sponsor.location?.lng);
 
             return (
-            <motion.div
+            <m.div
               key={sponsor.id}
               onClick={() => handleSidebarClick(sponsor)}
               whileHover={hasLocation ? { scale: 1.02 } : undefined}
@@ -252,11 +252,11 @@ export default function SponsorsMap({ sponsors }) {
                   )}
                 </div>
               </div>
-            </motion.div>
+            </m.div>
             );
           })}
         </div>
       </div>
-    </motion.div>
+    </m.div>
   );
 }

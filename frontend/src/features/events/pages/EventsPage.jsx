@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { useEventsData, useEventFilters } from '../hooks';
 import FeaturedEventCard from '../components/FeaturedEventCard';
 import EventCard from '../components/EventCard';
@@ -53,14 +53,14 @@ export default function Events() {
 
         {/* Featured Event */}
         {featuredEvent && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
             className="mb-16"
           >
             <FeaturedEventCard event={featuredEvent} />
-          </motion.div>
+          </m.div>
         )}
 
         {/* Events Grid */}
@@ -80,7 +80,7 @@ export default function Events() {
 // Category Filters Component
 function CategoryFilters({ categories, activeFilter, onFilterChange }) {
   return (
-    <motion.div 
+    <m.div 
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: 0.2 }}
@@ -111,7 +111,7 @@ function CategoryFilters({ categories, activeFilter, onFilterChange }) {
           </button>
         ))}
       </div>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -141,14 +141,14 @@ function EventsGrid({ events, featuredEventId }) {
       {upcoming.length > 0 && (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {upcoming.map((event, index) => (
-            <motion.div
+            <m.div
               key={event.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: Math.min(index, 6) * 0.06 }}
             >
               <EventCard event={event} />
-            </motion.div>
+            </m.div>
           ))}
         </div>
       )}
@@ -202,12 +202,12 @@ function EventsGrid({ events, featuredEventId }) {
 // Empty State Component
 function EmptyState() {
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="text-center py-20"
     >
       <p className="text-gray-500 text-lg">Bu kategoride etkinlik bulunamadı.</p>
-    </motion.div>
+    </m.div>
   );
 }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { mockSponsors } from '../data/mockSponsors';
 import { sponsorService } from '../../../shared/services/api';
 import { handleAvatarError } from '../../../utils/imageUtils';
@@ -50,7 +50,7 @@ function DeferredSponsorsMap({ sponsors }) {
   // motion kok: AnimatePresence (grid/harita gecisi) cikis animasyonunu
   // dogrudan cocugunda arar.
   return (
-    <motion.div ref={ref} exit={{ opacity: 0 }}>
+    <m.div ref={ref} exit={{ opacity: 0 }}>
       {visible ? (
         <Suspense fallback={<MapPlaceholder />}>
           <SponsorsMap sponsors={sponsors} />
@@ -58,7 +58,7 @@ function DeferredSponsorsMap({ sponsors }) {
       ) : (
         <MapPlaceholder />
       )}
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -158,7 +158,7 @@ export default function SponsorsPage() {
         <FeaturedSplit sponsors={featuredSponsors} />
       ) : (
         <section className="sponsors-hero">
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
@@ -168,13 +168,13 @@ export default function SponsorsPage() {
             <p className="sponsors-hero__subtitle">
               MACS Kulübü'nü destekleyen değerli kurumlar ve işletmeler
             </p>
-          </motion.div>
+          </m.div>
         </section>
       )}
 
       <div className="sponsors-main" id="sponsorlar-icerik">
         {error && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="sponsors-error"
@@ -184,10 +184,10 @@ export default function SponsorsPage() {
                 ? 'Sponsorlar yüklenirken bir hata oluştu. Örnek veriler gösteriliyor.'
                 : 'Sponsorlar şu an yüklenemedi. Lütfen biraz sonra tekrar deneyin.'}
             </p>
-          </motion.div>
+          </m.div>
         )}
 
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.2 }}
@@ -215,7 +215,7 @@ export default function SponsorsPage() {
               Harita Görünüm
             </button>
           </div>
-        </motion.div>
+        </m.div>
 
         {/* Content */}
         <div id="sponsors-content" role="tabpanel">
@@ -236,18 +236,18 @@ export default function SponsorsPage() {
         </div>
 
         {sponsors.length === 0 && !loading && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="sponsors-empty"
           >
             <p className="sponsors-empty__text">Henüz sponsor bulunmamaktadır.</p>
-          </motion.div>
+          </m.div>
         )}
       </div>
 
       <section className="sponsors-cta">
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
@@ -264,7 +264,7 @@ export default function SponsorsPage() {
           >
             İletişime Geçin
           </a>
-        </motion.div>
+        </m.div>
       </section>
 
       <AnimatePresence>
@@ -282,14 +282,14 @@ export default function SponsorsPage() {
 
 function SponsorsGrid({ sponsors, onSponsorClick }) {
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="sponsors-grid"
     >
       {sponsors.map((sponsor, index) => (
-        <motion.div
+        <m.div
           key={sponsor.id}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -352,9 +352,9 @@ function SponsorsGrid({ sponsors, onSponsorClick }) {
               </div>
             )}
           </div>
-        </motion.div>
+        </m.div>
       ))}
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -412,7 +412,7 @@ function FeaturedSplit({ sponsors }) {
         style={{ '--split-count': Math.min(sponsors.length, 2) }}
       >
         {sponsors.map((sponsor, index) => (
-          <motion.div
+          <m.div
             key={sponsor.id}
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
@@ -438,11 +438,11 @@ function FeaturedSplit({ sponsors }) {
             {sponsor.description && (
               <p className="split-panel__desc">{sponsor.description}</p>
             )}
-          </motion.div>
+          </m.div>
         ))}
       </div>
 
-      <motion.button
+      <m.button
         type="button"
         onClick={scrollToContent}
         className="sponsors-split__cue"
@@ -455,7 +455,7 @@ function FeaturedSplit({ sponsors }) {
         <span className="sponsors-split__cue-icon">
           <ChevronDown size={20} />
         </span>
-      </motion.button>
+      </m.button>
     </section>
   );
 }
@@ -475,7 +475,7 @@ function SponsorModal({ sponsor, onClose }) {
   }, [onClose]);
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -485,7 +485,7 @@ function SponsorModal({ sponsor, onClose }) {
       aria-modal="true"
       aria-labelledby="sponsor-modal-title"
     >
-      <motion.div
+      <m.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -552,7 +552,7 @@ function SponsorModal({ sponsor, onClose }) {
             </a>
           )}
         </div>
-      </motion.div>
-    </motion.div>
+      </m.div>
+    </m.div>
   );
 }
