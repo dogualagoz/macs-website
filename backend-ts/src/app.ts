@@ -1,3 +1,4 @@
+import { classifyLogPath } from "./security/security-log";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import type { Hook } from "@hono/zod-openapi";
 import type { Logger } from "pino";
@@ -81,7 +82,7 @@ export function createApp(deps: AppDeps, registerRoutes?: (router: AppRouter, de
     c.header("X-Request-ID", c.get("requestId"));
     const start = performance.now();
     await next();
-    deps.logger.info({ reqId: c.get("requestId"), method: c.req.method, path: c.req.path, status: c.res.status, ms: performance.now() - start }, "Request completed");
+    deps.logger.info({ reqId: c.get("requestId"), method: c.req.method, path: classifyLogPath(c.req.path), status: c.res.status, ms: performance.now() - start }, "Request completed");
   });
   app.use("*", async (c, next) => {
     // Fetch parsers also compare media types case sensitively; preserve boundary parameters.

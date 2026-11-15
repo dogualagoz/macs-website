@@ -1,3 +1,4 @@
+import { classifyLogPath } from "../security/security-log";
 import { brotliCompressSync, constants } from "node:zlib";
 import { readErrorCode } from "../middleware/error-handler";
 
@@ -50,15 +51,9 @@ export interface WarmupErrorEvent {
 }
 
 function classifyWarmupKey(key: string): { keyHash: string; path: string } {
-  const queryIndex = key.indexOf("?");
-  const hashIndex = key.indexOf("#");
-  const end =
-    queryIndex >= 0 && hashIndex >= 0
-      ? Math.min(queryIndex, hashIndex)
-      : Math.max(queryIndex, hashIndex);
   return {
     keyHash: Bun.hash(key).toString(36),
-    path: end >= 0 ? key.slice(0, end) : key,
+    path: classifyLogPath(key),
   };
 }
 
