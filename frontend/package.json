@@ -4,11 +4,7 @@
   "private": true,
   "dependencies": {
     "@csstools/postcss-progressive-custom-properties": "^1.0.0",
-    "@testing-library/dom": "^10.4.0",
-    "@testing-library/jest-dom": "^6.6.3",
-    "@testing-library/react": "^16.3.0",
-    "@testing-library/user-event": "^13.5.0",
-    "axios": "^1.13.2",
+    "axios": "~1.21.0",
     "framer-motion": "^12.23.12",
     "lucide-react": "^0.544.0",
     "mapbox-gl": "^2.15.0",
@@ -24,7 +20,7 @@
   },
   "scripts": {
     "start": "craco start",
-    "build": "craco build",
+    "build": "GENERATE_SOURCEMAP=false craco build",
     "test": "craco test",
     "eject": "react-scripts eject"
   },
@@ -48,6 +44,10 @@
   },
   "devDependencies": {
     "@craco/craco": "^7.1.0",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^13.5.0",
     "@types/jest": "^27.5.2",
     "@types/react": "^18.3.31",
     "@types/react-dom": "^18.3.7",

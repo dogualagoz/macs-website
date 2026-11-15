@@ -4,6 +4,7 @@ import EventsSection from "./EventsSection";
 import { eventService, projectService } from "../../../shared/services/api";
 import { mockEvents, mockEventCategories } from "../../events/data/mockEvents";
 import { mockProjects, mockProjectCategories } from "../../projects/data/mockProjects";
+import { USE_MOCK_FALLBACK } from "../../../shared/utils/mockFallback";
 import '../../../styles/pages/DashBoard.css';
 
 const Dashboard = () => {
@@ -40,39 +41,42 @@ const Dashboard = () => {
 
         // Projects
         const projectsList = projectsData?.projects || projectsData;
-        const allProjects = (projectsList && projectsList.length > 0) 
-          ? projectsList 
-          : mockProjects.map(projectService._mapProject);
+        // Boş liste geçerli bir yanıt ("henüz proje yok"); örnek veriyle doldurulmaz.
+        const allProjects = Array.isArray(projectsList) ? projectsList : [];
         
         // Anasayfada proje türü ayrımı yok: developed, supported ve showcase'in
         // tamamı listeleniyor, en yeni eklenen başta olacak şekilde.
         // Backend zaten created_at'e göre sıralı dönüyor; burada tekrar
-        // sıralamak sıranın kaynağını açık kılıyor ve mock fallback verisi
-        // devreye girdiğinde de aynı davranışı garantiliyor.
+        // sıralamak sıranın kaynağını açık kılıyor.
         const sortedProjects = [...allProjects].sort(
           (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)
         );
 
         setProjects(sortedProjects);
-        setProjectCategories((projectCategoriesData && projectCategoriesData.length > 0) ? projectCategoriesData : mockProjectCategories);
+        setProjectCategories(Array.isArray(projectCategoriesData) ? projectCategoriesData : []);
         // Öne çıkan proje admin panelinden seçiliyor (is_featured). /projects/featured
         // işaretli projeyi, yoksa en yeniyi döndürür; 404'te getFeatured null verir.
         setFeaturedProject(featuredProjectData || sortedProjects.find(p => p.is_featured) || sortedProjects[0]);
 
         // Events
-        const finalEvents = (eventsData && eventsData.length > 0) ? eventsData : mockEvents.map(eventService._mapEvent);
+        const finalEvents = Array.isArray(eventsData) ? eventsData : [];
         setEvents(finalEvents);
-        setEventCategories((eventCategoriesData && eventCategoriesData.length > 0) ? eventCategoriesData : mockEventCategories);
+        setEventCategories(Array.isArray(eventCategoriesData) ? eventCategoriesData : []);
         setFeaturedEvent(featuredEventData || finalEvents.find(e => e.is_featured) || finalEvents[0]);
 
         setError(null);
       } catch (err) {
         console.error('Error loading dashboard data:', err);
-        console.log('Using mock data for dashboard');
+
+        // Production'da arıza arıza olarak görünmeli; örnek veri yalnızca geliştirmede.
+        if (!USE_MOCK_FALLBACK) {
+          setError('Etkinlik ve projeler yüklenemedi. Lütfen biraz sonra tekrar deneyin.');
+          return;
+        }
+
         const mappedMockProjects = mockProjects.map(projectService._mapProject);
         
-        // Mock data için de filtre uygula
-        const filteredMockProjects = mappedMockProjects.filter(p => p.tab !== 'showcase');
+        const filteredMockProjects = mappedMockProjects;
         
         const mappedMockEvents = mockEvents.map(eventService._mapEvent);
         

@@ -39,6 +39,7 @@ export const AuthProvider = ({ children }) => {
     clearLogoutTimer();
     localStorage.removeItem('token');
     localStorage.removeItem('token_exp');
+    localStorage.removeItem('user');
     setUser(null);
   }, []);
 
@@ -84,20 +85,15 @@ export const AuthProvider = ({ children }) => {
       }
 
       try {
-        const userData = await authService.getCurrentUser(token).catch(() => null);
+        const userData = await authService.getCurrentUser().catch(() => null);
         
-        if (userData) {
-          setUser({
-            ...userData,
-            isAuthenticated: true,
-            token
-          });
-        } else {
-          setUser({
-            isAuthenticated: true,
-            token
-          });
-        }
+        // /users/me ulaşılamazsa rol JWT'den okunur; yetkiyi asıl backend uygular.
+        setUser({
+          ...(userData || {}),
+          role: userData?.role ?? payload?.role ?? null,
+          isAuthenticated: true,
+          token
+        });
         scheduleAutoLogout(token);
       } catch (err) {
         console.error('Authentication error:', err);
@@ -120,7 +116,11 @@ export const AuthProvider = ({ children }) => {
 
       localStorage.setItem('token', access_token);
 
+      const payload = decodeJwt(access_token);
+      const profile = await authService.getCurrentUser().catch(() => null);
       setUser({
+        ...(profile || {}),
+        role: profile?.role ?? payload?.role ?? null,
         isAuthenticated: true,
         token: access_token
       });
@@ -149,6 +149,8 @@ export const AuthProvider = ({ children }) => {
     return true;
   };
 
+  const hasRole = (...roles) => Boolean(user?.role) && roles.includes(user.role);
+
   const getAuthHeader = () => {
     const token = localStorage.getItem('token');
     return token ? { Authorization: `Bearer ${token}` } : {};
@@ -161,6 +163,7 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     isAuthenticated,
+    hasRole,
     getAuthHeader
   };
 

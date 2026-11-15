@@ -1,18 +1,10 @@
 import { useState, useEffect } from 'react';
 import { eventService } from '../services/contentService';
 import { handleApiError } from '../../../shared/utils/errorHandler';
-import env from '../../../shared/config/env';
+import { toSiteDateTimeInput, siteDateTimeInputToApi } from '../../../shared/utils/apiDate';
+import { safeExternalUrl, isValidOptionalUrl } from '../../../shared/utils/safeUrl';
+import { getMediaUrl } from '../../../shared/utils/media';
 
-// Backend URL'den /api kısmını çıkar ve image URL ile birleştir
-const getImageUrl = (imageUrl) => {
-  if (!imageUrl) return null;
-  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-    return imageUrl;
-  }
-  const apiUrl = env.apiUrl || 'http://localhost:8000';
-  const baseUrl = apiUrl.replace(/\/api$/, '');
-  return `${baseUrl}${imageUrl}`;
-};
 
 export const useEventForm = (editData = null, onUpdateSuccess = null) => {
   const [formData, setFormData] = useState({
@@ -42,12 +34,10 @@ export const useEventForm = (editData = null, onUpdateSuccess = null) => {
       setIsEditMode(true);
       setEditId(editData.id);
       
-      // Tarih formatını düzenle (datetime-local için)
-      let formattedDate = '';
-      if (editData.start_time) {
-        const date = new Date(editData.start_time);
-        formattedDate = date.toISOString().slice(0, 16);
-      }
+      // API UTC döndürüyor, input İstanbul saatini göstermeli.
+      // toISOString() burada UTC verip kayıtta +03:00 eklenince her
+      // düzenleme etkinliği saatlerce geri kaydırıyordu.
+      const formattedDate = toSiteDateTimeInput(editData.start_time);
       
       setFormData({
         title: editData.title || '',
@@ -64,7 +54,7 @@ export const useEventForm = (editData = null, onUpdateSuccess = null) => {
       
       // Mevcut resmi önizlemeye ekle
       if (editData.image_url) {
-        setImagePreview(getImageUrl(editData.image_url));
+        setImagePreview(getMediaUrl(editData.image_url, 'Project'));
       }
     } else {
       setIsEditMode(false);
@@ -95,6 +85,10 @@ export const useEventForm = (editData = null, onUpdateSuccess = null) => {
     setSubmitSuccess(false);
     
     try {
+      if (!isValidOptionalUrl(formData.registrationLink) || !isValidOptionalUrl(formData.directionsLink)) {
+        throw new Error('Kayıt ve yol tarifi bağlantıları http:// ya da https:// ile başlayan geçerli adresler olmalı.');
+      }
+
       // 1. Görsel yükle (yeni resim seçildiyse)
       let imageUrl = null;
       if (image) {
@@ -102,13 +96,13 @@ export const useEventForm = (editData = null, onUpdateSuccess = null) => {
       }
       
       // 2. Etkinlik verisi hazırla
-      const startTimeWithTZ = formData.date + ':00+03:00';
+      const startTimeWithTZ = siteDateTimeInputToApi(formData.date);
       const eventData = {
         title: formData.title,
         description: formData.description,
         location: formData.location,
-        registration_link: formData.registrationLink || null,
-        directions_link: formData.directionsLink || null,
+        registration_link: safeExternalUrl(formData.registrationLink),
+        directions_link: safeExternalUrl(formData.directionsLink),
         start_time: startTimeWithTZ,
         category_id: formData.category !== '' ? parseInt(formData.category) : null,
         content: formData.content,

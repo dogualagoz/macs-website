@@ -1,13 +1,24 @@
 import { useState, useEffect } from 'react';
 import { memberService } from '../../../shared/services/api';
+import { handleApiError } from '../../../shared/utils/errorHandler';
+import { getMediaUrl } from '../../../shared/utils/media';
 
+const EMPTY_FORM = {
+  fullName: '',
+  profileImage: '',
+  isActive: true
+};
+
+/**
+ * Üye ekleme/güncelleme formu.
+ *
+ * Görsel, diğer formlardaki gibi yalnızca kayıt sırasında yüklenir. Eskiden
+ * dosya seçildiği anda yükleniyordu; form iptal edilince ya da başka dosya
+ * seçilince sunucuda sahipsiz dosyalar kalıyordu.
+ */
 export const useMemberForm = (editData = null, onSuccess = null) => {
-  const [formData, setFormData] = useState({
-    fullName: '',
-    profileImage: '',
-    isActive: true
-  });
-
+  const [formData, setFormData] = useState(EMPTY_FORM);
+  const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -16,23 +27,19 @@ export const useMemberForm = (editData = null, onSuccess = null) => {
   const isEditMode = !!editData;
 
   useEffect(() => {
+    setImage(null);
+    setError(null);
+
     if (editData) {
       setFormData({
         fullName: editData.full_name || '',
         profileImage: editData.profile_image || '',
         isActive: editData.is_active !== undefined ? editData.is_active : true
       });
-      
-      if (editData.profile_image) {
-        // Backend URL'den /api kısmını çıkar ve image URL ile birleştir
-        const getImageUrl = (imageUrl) => {
-          if (!imageUrl) return null;
-          if (imageUrl.startsWith('http')) return imageUrl;
-          const baseUrl = (process.env.REACT_APP_API_URL || 'http://localhost:8000').replace(/\/api$/, '');
-          return `${baseUrl}${imageUrl}`;
-        };
-        setImagePreview(getImageUrl(editData.profile_image));
-      }
+      setImagePreview(editData.profile_image ? getMediaUrl(editData.profile_image, editData.full_name) : null);
+    } else {
+      setFormData(EMPTY_FORM);
+      setImagePreview(null);
     }
   }, [editData]);
 
@@ -43,30 +50,14 @@ export const useMemberForm = (editData = null, onSuccess = null) => {
     }));
   };
 
-  const handleImageChange = async (file) => {
+  const handleImageChange = (file) => {
     if (!file) return;
-
-    try {
-      setLoading(true);
-      setError(null);
-      
-      // Dosya önizlemesi
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-
-      // Sunucuya yükle
-      const imageUrl = await memberService.uploadImage(file);
-      handleChange('profileImage', imageUrl);
-      
-    } catch (err) {
-      console.error("Resim yükleme hatası:", err);
-      setError("Resim yüklenirken bir hata oluştu.");
-    } finally {
-      setLoading(false);
-    }
+    setImage(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result);
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSubmit = async (e) => {
@@ -76,9 +67,14 @@ export const useMemberForm = (editData = null, onSuccess = null) => {
     setSubmitSuccess(false);
 
     try {
+      let profileImage = formData.profileImage || null;
+      if (image) {
+        profileImage = await memberService.uploadImage(image);
+      }
+
       const payload = {
         full_name: formData.fullName,
-        profile_image: formData.profileImage,
+        profile_image: profileImage,
         is_active: formData.isActive
       };
 
@@ -89,23 +85,21 @@ export const useMemberForm = (editData = null, onSuccess = null) => {
       }
 
       setSubmitSuccess(true);
+      setImage(null);
       if (onSuccess) {
         setTimeout(() => {
           onSuccess();
         }, 1500);
       }
-      
+
       if (!isEditMode) {
-        setFormData({
-          fullName: '',
-          profileImage: '',
-          isActive: true
-        });
+        setFormData(EMPTY_FORM);
         setImagePreview(null);
+      } else {
+        setFormData(prev => ({ ...prev, profileImage: profileImage || '' }));
       }
     } catch (err) {
-      console.error("Üye kaydetme hatası:", err);
-      setError(err.response?.data?.detail || "Üye kaydedilirken bir hata oluştu.");
+      setError(handleApiError(err, 'üye'));
     } finally {
       setLoading(false);
     }

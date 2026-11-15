@@ -47,10 +47,14 @@ const NewProjectsPage = () => {
     const startTime = Date.now();
     try {
       setLoading(true);
+      // Katkıcı listesi yan bilgi: o istek düşerse projeler yine gösterilmeli.
       const [projectsData, categoriesData, leaderboardData] = await Promise.all([
         projectService.getAll(),
         projectService.getCategories(),
-        memberService.getLeaderboard(5)
+        memberService.getLeaderboard(5).catch((leaderboardError) => {
+          console.error('Katkıcı listesi yüklenemedi:', leaderboardError);
+          return [];
+        })
       ]);
 
       setLeaderboard(leaderboardData || []);

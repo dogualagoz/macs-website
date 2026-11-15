@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { memberService } from '../../../shared/services/api';
-import env from '../../../shared/config/env';
 import { handleAvatarError } from '../../../utils/imageUtils';
+import { getMediaUrl } from '../../../shared/utils/media';
 
 /**
  * Üye Seçici Bileşeni
@@ -14,13 +14,6 @@ const MemberSelector = ({ selectedMembers = [], onChange }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Backend URL'den /api kısmını çıkar ve image URL ile birleştir
-  const getImageUrl = (imageUrl) => {
-    if (!imageUrl) return null;
-    if (imageUrl.startsWith('http')) return imageUrl;
-    const baseUrl = (env.apiUrl || 'http://localhost:8000').replace(/\/api$/, '');
-    return `${baseUrl}${imageUrl}`;
-  };
 
   // Üyeleri ara
   useEffect(() => {
@@ -141,7 +134,7 @@ const MemberSelector = ({ selectedMembers = [], onChange }) => {
                   overflow: 'hidden'
                 }}>
                   {member.profile_image ? (
-                    <img src={getImageUrl(member.profile_image)} alt="" style={{width: '100%', height: '100%', objectFit: 'cover'}} onError={(e) => handleAvatarError(e, member.full_name)} />
+                    <img src={getMediaUrl(member.profile_image, member.full_name)} alt="" style={{width: '100%', height: '100%', objectFit: 'cover'}} onError={(e) => handleAvatarError(e, member.full_name)} />
                   ) : (
                     <div style={{display:'flex', alignItems:'center', justifyContent:'center', height:'100%', fontSize:'12px'}}>
                       {member.full_name.charAt(0)}
@@ -177,7 +170,7 @@ const MemberSelector = ({ selectedMembers = [], onChange }) => {
                 flexShrink: 0
               }}>
                 {member.profile_image ? (
-                  <img src={getImageUrl(member.profile_image)} alt="" style={{width: '100%', height: '100%', objectFit: 'cover'}} onError={(e) => handleAvatarError(e, member.full_name)} />
+                  <img src={getMediaUrl(member.profile_image, member.full_name)} alt="" style={{width: '100%', height: '100%', objectFit: 'cover'}} onError={(e) => handleAvatarError(e, member.full_name)} />
                 ) : (
                   <div style={{display:'flex', alignItems:'center', justifyContent:'center', height:'100%', fontSize:'14px'}}>
                     {member.full_name?.charAt(0)}

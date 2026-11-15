@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Sidebar from '../components/Sidebar';
 import { userService } from '../../../shared/services/api';
+import { handleApiError } from '../../../shared/utils/errorHandler';
 
 /**
  * Kullanıcılar Sayfası
@@ -29,7 +30,7 @@ const Users = () => {
       }
     } catch (err) {
       console.error("Kullanıcıları getirme hatası:", err);
-      setError("Kullanıcıları getirirken bir hata oluştu.");
+      setError(`Kullanıcıları getirilemedi: ${handleApiError(err)}`);
     } finally {
       setLoading(false);
     }
@@ -48,7 +49,7 @@ const Users = () => {
       alert("Kullanıcı başarıyla silindi!");
     } catch (err) {
       console.error("Kullanıcı silme hatası:", err);
-      alert("Kullanıcı silinirken bir hata oluştu: " + err.message);
+      alert("Kullanıcı silinirken bir hata oluştu: " + handleApiError(err));
     }
   };
 

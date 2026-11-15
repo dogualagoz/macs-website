@@ -20,6 +20,8 @@ import { getImageUrl } from '../../../utils/imageUtils';
 import { markdownishToHtml } from '../../../shared/utils/richText';
 import '../../../styles/pages/events2.css'
 import SEO from '../../../shared/components/seo/SEO';
+import { USE_MOCK_FALLBACK } from '../../../shared/utils/mockFallback';
+import { parseApiDate, isPastApiDate } from '../../../shared/utils/apiDate';
 
 /**
  * MACS Etkinlik Sayfası – Plan A (arka plan beyaz, hero lacivert overlay, kartlar beyaz)
@@ -33,9 +35,8 @@ import SEO from '../../../shared/components/seo/SEO';
 
 function formatDateOnly(dt) {
   try {
-    const dateStr = dt && !dt.endsWith('Z') ? dt + 'Z' : dt;
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return dt;
+    const d = parseApiDate(dt);
+    if (!d) return dt || '';
     return new Intl.DateTimeFormat("tr-TR", {
       weekday: "long",
       year: "numeric",
@@ -50,9 +51,8 @@ function formatDateOnly(dt) {
 
 function formatTimeOnly(dt) {
   try {
-    const dateStr = dt && !dt.endsWith('Z') ? dt + 'Z' : dt;
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return '';
+    const d = parseApiDate(dt);
+    if (!d) return '';
     return new Intl.DateTimeFormat("tr-TR", {
       hour: "2-digit",
       minute: "2-digit",
@@ -126,7 +126,7 @@ function combineDateTime(date, hhmm) {
 }
 
 function EventPageView({ event }) {
-  const isPast = new Date(event.end_time || event.start_time) < new Date();
+  const isPast = isPastApiDate(event.end_time || event.start_time);
   const { aboutHtml, programLines } = splitContent(event.content);
 
   return (
@@ -485,7 +485,7 @@ function Accordion({ items = [] }) {
 }
 
 function Timeline({ start, end, contentProgramLines }) {
-  const startDate = new Date(start);
+  const startDate = parseApiDate(start);
   const items = contentProgramLines && contentProgramLines.length
     ? parseProgram(contentProgramLines, startDate)
     : [];
@@ -535,14 +535,15 @@ export default function EventPageContainer() {
       })
       .catch(err => {
         if (mounted) {
-          // API hatası durumunda mock data'dan bul
-          console.log('Using mock data for event detail');
-          const mockEvent = mockEvents.find(e => e.slug === slug);
+          // Örnek veri yalnızca geliştirmede; production'da hata görünür kalmalı.
+          const mockEvent = USE_MOCK_FALLBACK ? mockEvents.find(e => e.slug === slug) : null;
           if (mockEvent) {
             setEvent(mockEvent);
             setError(null);
+          } else if (err.response?.status === 404) {
+            setError('Etkinlik bulunamadı.');
           } else {
-            setError(err.message || 'Etkinlik bulunamadı');
+            setError('Etkinlik yüklenemedi. Lütfen biraz sonra tekrar deneyin.');
           }
         }
       })
@@ -557,33 +558,5 @@ export default function EventPageContainer() {
   return <EventPageView event={event} />;
 }
 
-/* -------------------------- BASİT TESTLER -------------------------- */
-function runEventPageTests() {
-  try {
-    // 1) Markdown başlık ayracı
-    const in1 = "## Hakkında\nAçıklama\n\n## Program\n09:30 - Açılış\n10:00 - Keynote";
-    const s1 = splitContent(in1);
-    console.assert(s1.aboutHtml.includes("Açıklama"), "aboutHtml dönüşümü başarısız");
-    console.assert(s1.programLines.length === 2, "programLines ayrıştırma başarısız");
-    const p1 = parseProgram(s1.programLines, new Date("2025-10-25T09:00:00+03:00"));
-    console.assert(p1[0].title.includes("Açılış"), "parseProgram başlık hatası");
-
-    // 2) HTML başlık ayracı
-    const in2 = "<h2>Hakkında</h2><p>X</p><h2>Program</h2>09:00 - Y";
-    const s2 = splitContent(in2);
-    console.assert(s2.programLines.length === 1, "HTML başlık ayracı başarısız");
-
-    // 3) Düz metin 'PROGRAM:' ayracı
-    const in3 = "Hakkında metin\n\nPROGRAM:\n09:15 Z";
-    const s3 = splitContent(in3);
-    console.assert(s3.programLines.length === 1, "PROGRAM: ayracı başarısız");
-
-    console.log("[EventPage] Tüm testler geçti ✅");
-  } catch (e) {
-    console.error("[EventPage] Test hata ❌", e);
-  }
-}
-if (typeof window !== "undefined" && !window.__EVENTPAGE_TESTED__) {
-  runEventPageTests();
-  window.__EVENTPAGE_TESTED__ = true;
-}
+// Saf yardımcılar testlerde kullanılıyor.
+export { splitContent, parseProgram };

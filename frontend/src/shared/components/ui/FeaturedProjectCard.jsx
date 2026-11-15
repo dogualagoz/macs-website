@@ -71,7 +71,7 @@ const FeaturedProjectCard = ({ title, description, image, technologies, githubUr
               </Link>
             ) : (
               <a href={liveUrl || '#'} className='Detail-Project-button' style={{ textDecoration: 'none' }}>
-                <img className='Project-icon' src="assets/images/img_linking.png" alt="detay" loading="lazy" />
+                <img className='Project-icon' src="/assets/images/img_linking.png" alt="detay" loading="lazy" />
                 Projeyi İncele
               </a>
             )}
@@ -85,7 +85,7 @@ const FeaturedProjectCard = ({ title, description, image, technologies, githubUr
               </a>
             ) : (
               <div className="Git-button" style={{ opacity: 0.6 }}>
-                <img src="assets/images/img_github_18x17.png" alt="Github" className="Git-img" loading="lazy" />
+                <img src="/assets/images/img_github_18x17.png" alt="Github" className="Git-img" loading="lazy" />
                 <span className="Git-span">Git Hub</span>
               </div>
             )}

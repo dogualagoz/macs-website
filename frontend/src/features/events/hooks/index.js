@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { eventService } from '../../../shared/services/api';
 import { mockEvents, mockEventCategories } from '../data/mockEvents';
 import { USE_MOCK_FALLBACK } from '../../../shared/utils/mockFallback';
+import { apiDateValue } from '../../../shared/utils/apiDate';
 
 /**
  * Custom hook for fetching and managing events data
@@ -79,7 +80,7 @@ export const useEventFilters = (events) => {
       : events.slice();
 
     return filteredList.sort((a, b) =>
-      new Date(b.start_time) - new Date(a.start_time)
+      apiDateValue(b.start_time) - apiDateValue(a.start_time)
     );
   }, [events, activeFilter]);
 

@@ -2,21 +2,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import { memberService } from '../../../shared/services/api';
-import env from '../../../shared/config/env';
 import { handleAvatarError } from '../../../utils/imageUtils';
+import { handleApiError } from '../../../shared/utils/errorHandler';
+import { getMediaUrl } from '../../../shared/utils/media';
 
-// Backend URL'den /api kısmını çıkar ve image URL ile birleştir
-const getImageUrl = (imageUrl) => {
-  if (!imageUrl) return null;
-  // Eğer zaten tam URL ise direkt döndür
-  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-    return imageUrl;
-  }
-  // Backend base URL'ini al (API URL'den /api kısmını çıkar)
-  const apiUrl = env.apiUrl || 'http://localhost:8000';
-  const baseUrl = apiUrl.replace(/\/api$/, '');
-  return `${baseUrl}${imageUrl}`;
-};
 
 /**
  * Üyeler Sayfası
@@ -40,7 +29,7 @@ const Members = () => {
       setMembers(Array.isArray(response) ? response : []);
     } catch (err) {
       console.error("Üyeleri getirme hatası:", err);
-      setError("Üyeleri getirirken bir hata oluştu.");
+      setError(`Üyeleri getirilemedi: ${handleApiError(err)}`);
     } finally {
       setLoading(false);
     }
@@ -60,7 +49,7 @@ const Members = () => {
       alert("Üye başarıyla silindi!");
     } catch (err) {
       console.error("Üye silme hatası:", err);
-      const errorMsg = err.response?.data?.detail || err.message || "Bilinmeyen bir hata oluştu";
+      const errorMsg = handleApiError(err);
       alert("Üye silinirken bir hata oluştu: " + errorMsg);
     } finally {
       setLoading(false);
@@ -76,7 +65,7 @@ const Members = () => {
       alert(`Üye ${!member.is_active ? 'aktif' : 'pasif'} duruma getirildi.`);
     } catch (err) {
       console.error("Üye güncelleme hatası:", err);
-      alert("Üye güncellenirken bir hata oluştu: " + err.message);
+      alert("Üye güncellenirken bir hata oluştu: " + handleApiError(err));
     }
   };
 
@@ -133,7 +122,7 @@ const Members = () => {
                           <div className="dashboard-table-cell">
                             {member.profile_image ? (
                               <img 
-                                src={getImageUrl(member.profile_image)} 
+                                src={getMediaUrl(member.profile_image, member.full_name)} 
                                 alt={member.full_name}
                                 className="table-thumb"
                                 style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }}

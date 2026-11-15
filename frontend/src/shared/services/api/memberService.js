@@ -4,6 +4,7 @@
  */
 import apiClient from './apiClient';
 import uploadService from './uploadService';
+import { fetchAllPages } from './paginate';
 import { getMediaUrl } from '../../utils/media';
 
 const memberService = {
@@ -23,7 +24,7 @@ const memberService = {
   /**
    * Get all members
    */
-  getAll: async (params = {}) => {
+  getPage: async (params = {}) => {
     const queryParams = new URLSearchParams();
     if (params.skip) queryParams.append('skip', params.skip);
     if (params.limit) queryParams.append('limit', params.limit);
@@ -34,6 +35,18 @@ const memberService = {
     const response = await apiClient.get(`/members${queryString ? `?${queryString}` : ''}`);
     const members = response.data.members || response.data;
     return Array.isArray(members) ? members.map(memberService._mapMember) : [];
+  },
+
+  /**
+   * Backend varsayılanı limit=50 (tavan 200). params.limit verilmezse tüm
+   * sayfalar dolaşılır; aksi halde 51. üye admin listesinde görünmüyordu.
+   */
+  getAll: async (params = {}) => {
+    if (params.limit) return memberService.getPage(params);
+    return fetchAllPages(
+      async (skip, limit) => ({ items: await memberService.getPage({ ...params, skip, limit }) }),
+      200
+    );
   },
 
   /**

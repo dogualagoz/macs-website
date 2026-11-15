@@ -18,11 +18,16 @@
 
     <!-- SEO Meta Etiketleri -->
     <title>MACS - Matematik ve Bilgisayar Bilimleri Topluluğu | ESOGÜ</title>
+    <!-- data-rh: react-helmet-async istemcide bu etiketleri sayfaya özel olanlarla
+         değiştiriyor (kopya kalmıyor). JS çalıştırmayan paylaşım botları
+         (WhatsApp, X, LinkedIn, Facebook) ise bu varsayılanları görüyor. -->
     <meta
+      data-rh="true"
       name="description"
       content="MACS, Eskişehir Osmangazi Üniversitesi Matematik ve Bilgisayar Bilimleri Bölümü öğrencilerinin kurduğu, yazılım projeleri ve etkinlikler düzenleyen aktif bir öğrenci topluluğudur."
     />
     <meta
+      data-rh="true"
       name="keywords"
       content="MACS, Matematik, Bilgisayar Bilimleri, ESOGÜ, Eskişehir Osmangazi Üniversitesi, yazılım, topluluk, öğrenci kulübü, etkinlik, proje"
     />
@@ -43,10 +48,34 @@
 
     <!-- Sitenin paylasim kimligi; sayfaya ozel OG/Twitter etiketleri SEO bileseninden gelir -->
     <meta
+      data-rh="true"
       property="og:site_name"
       content="MACS - Matematik ve Bilgisayar Bilimleri Topluluğu"
     />
-    <meta name="twitter:site" content="@esogumacs" />
+    <meta data-rh="true" name="twitter:site" content="@esogumacs" />
+    <meta data-rh="true" property="og:type" content="website" />
+    <meta data-rh="true" property="og:locale" content="tr_TR" />
+    <meta data-rh="true" property="og:url" content="https://macsclub.com.tr" />
+    <meta
+      data-rh="true"
+      property="og:title"
+      content="MACS - Matematik ve Bilgisayar Bilimleri Topluluğu | ESOGÜ"
+    />
+    <meta
+      data-rh="true"
+      property="og:description"
+      content="Eskişehir Osmangazi Üniversitesi Matematik ve Bilgisayar Bilimleri öğrencilerinin yazılım projeleri ve etkinlikler düzenleyen topluluğu."
+    />
+    <meta data-rh="true" property="og:image" content="https://macsclub.com.tr/assets/images/og-image.jpg" />
+    <meta data-rh="true" property="og:image:width" content="1200" />
+    <meta data-rh="true" property="og:image:height" content="630" />
+    <meta data-rh="true" name="twitter:card" content="summary_large_image" />
+    <meta
+      data-rh="true"
+      name="twitter:title"
+      content="MACS - Matematik ve Bilgisayar Bilimleri Topluluğu | ESOGÜ"
+    />
+    <meta data-rh="true" name="twitter:image" content="https://macsclub.com.tr/assets/images/og-image.jpg" />
 <!-- Canonical URL: sayfa basina SEO bileseni (react-helmet-async) basiyor.
          Burada sabit bir tane durursa her sayfada iki canonical oluyor ve
          statik olan -ana sayfaya isaret eden- once geliyordu. -->

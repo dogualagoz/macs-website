@@ -4,4 +4,5 @@
 
 export * from './dateHelpers';
 export * from './formatters';
-export { default as handleApiError, logError, isNetworkError, isAuthError, getValidationErrors } from './errorHandler';
+export { handleApiError, extractApiMessage, logError, isNetworkError, isAuthError, getValidationErrors } from './errorHandler';
+export * from './apiDate';

@@ -421,45 +421,6 @@ body, html {
   display: inline-block;
 }
 
-/* Loglar tablosu */
-.logs-container {
-  width: 100%;
-  overflow-x: auto;
-}
-
-.logs-table-header,
-.logs-table-body {
-  width: 100%;
-}
-
-.logs-table-row {
-  display: grid;
-  grid-template-columns: 0.3fr 1fr 1fr 1.5fr 1fr;
-  gap: 1rem;
-  padding: 0.75rem 1rem;
-  align-items: center;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.logs-table-row.header {
-  font-weight: 600;
-  color: #374151;
-  background-color: #f9fafb;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-
-.logs-table-body .logs-table-row:hover {
-  background-color: #f9fafb;
-}
-
-.logs-table-cell {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 /* Sponsor Form Styles */
 .form-section {
   margin: 1.5rem 0;

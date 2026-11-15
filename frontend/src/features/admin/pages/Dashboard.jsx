@@ -2,21 +2,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import { eventService, projectService, sponsorService } from '../../../shared/services/api';
-import env from '../../../shared/config/env';
 import { handleImageError, handleAvatarError } from '../../../utils/imageUtils';
+import { formatShortDate } from '../../../shared/utils/dateHelpers';
+import { handleApiError } from '../../../shared/utils/errorHandler';
+import { getMediaUrl } from '../../../shared/utils/media';
 
-// Backend URL'den /api kısmını çıkar ve image URL ile birleştir
-const getImageUrl = (imageUrl) => {
-  if (!imageUrl) return null;
-  // Eğer zaten tam URL ise direkt döndür
-  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-    return imageUrl;
-  }
-  // Backend base URL'ini al (API URL'den /api kısmını çıkar)
-  const apiUrl = env.apiUrl || 'http://localhost:8000';
-  const baseUrl = apiUrl.replace(/\/api$/, '');
-  return `${baseUrl}${imageUrl}`;
-};
 
 /**
  * Dashboard sayfası
@@ -52,11 +42,11 @@ const Dashboard = () => {
     setError(null);
     
     try {
-      const eventsData = await eventService.getAllAdmin({ limit: 100 });
+      const eventsData = await eventService.getAllAdmin();
       setEvents(eventsData);
     } catch (err) {
       console.error("Etkinlikleri getirme hatası:", err);
-      setError("Etkinlikleri getirirken bir hata oluştu.");
+      setError(`Etkinlikleri getirilemedi: ${handleApiError(err)}`);
     } finally {
       setLoading(false);
     }
@@ -68,7 +58,7 @@ const Dashboard = () => {
     setError(null);
     
     try {
-      const response = await projectService.getAllAdmin({ limit: 100 });
+      const response = await projectService.getAllAdmin();
       if (response.projects) {
         setProjects(response.projects);
       } else {
@@ -76,7 +66,7 @@ const Dashboard = () => {
       }
     } catch (err) {
       console.error("Projeleri getirme hatası:", err);
-      setError("Projeleri getirirken bir hata oluştu.");
+      setError(`Projeleri getirilemedi: ${handleApiError(err)}`);
     } finally {
       setLoading(false);
     }
@@ -88,11 +78,11 @@ const Dashboard = () => {
     setError(null);
     
     try {
-      const sponsorsData = await sponsorService.getAll();
+      const sponsorsData = await sponsorService.getAllAdmin();
       setSponsors(Array.isArray(sponsorsData) ? sponsorsData : []);
     } catch (err) {
       console.error("Sponsorları getirme hatası:", err);
-      setError("Sponsorları getirirken bir hata oluştu.");
+      setError(`Sponsorları getirilemedi: ${handleApiError(err)}`);
     } finally {
       setLoading(false);
     }
@@ -111,7 +101,7 @@ const Dashboard = () => {
       alert("Etkinlik başarıyla silindi!");
     } catch (err) {
       console.error("Etkinlik silme hatası:", err);
-      alert("Etkinlik silinirken bir hata oluştu: " + err.message);
+      alert("Etkinlik silinirken bir hata oluştu: " + handleApiError(err));
     }
   };
   
@@ -127,7 +117,7 @@ const Dashboard = () => {
       alert(`Etkinlik ${updatedEvent.is_active ? 'aktif' : 'pasif'} duruma getirildi.`);
     } catch (err) {
       console.error("Etkinlik güncelleme hatası:", err);
-      alert("Etkinlik güncellenirken bir hata oluştu: " + err.message);
+      alert("Etkinlik güncellenirken bir hata oluştu: " + handleApiError(err));
     }
   };
   
@@ -151,7 +141,7 @@ const Dashboard = () => {
       alert(`Etkinlik ${updatedEvent.is_featured ? 'öne çıkarıldı' : 'öne çıkarma özelliği kaldırıldı'}.`);
     } catch (err) {
       console.error("Etkinlik güncelleme hatası:", err);
-      alert("Etkinlik güncellenirken bir hata oluştu: " + err.message);
+      alert("Etkinlik güncellenirken bir hata oluştu: " + handleApiError(err));
     }
   };
 
@@ -168,7 +158,7 @@ const Dashboard = () => {
       alert("Proje başarıyla silindi!");
     } catch (err) {
       console.error("Proje silme hatası:", err);
-      alert("Proje silinirken bir hata oluştu: " + err.message);
+      alert("Proje silinirken bir hata oluştu: " + handleApiError(err));
     }
   };
   
@@ -184,7 +174,7 @@ const Dashboard = () => {
       alert(`Proje ${updatedProject.is_active ? 'aktif' : 'pasif'} duruma getirildi.`);
     } catch (err) {
       console.error("Proje güncelleme hatası:", err);
-      alert("Proje güncellenirken bir hata oluştu: " + err.message);
+      alert("Proje güncellenirken bir hata oluştu: " + handleApiError(err));
     }
   };
   
@@ -208,7 +198,7 @@ const Dashboard = () => {
       alert(`Proje ${updatedProject.is_featured ? 'öne çıkarıldı' : 'öne çıkarma özelliği kaldırıldı'}.`);
     } catch (err) {
       console.error("Proje güncelleme hatası:", err);
-      alert("Proje güncellenirken bir hata oluştu: " + err.message);
+      alert("Proje güncellenirken bir hata oluştu: " + handleApiError(err));
     }
   };
 
@@ -224,7 +214,7 @@ const Dashboard = () => {
       alert("Sponsor başarıyla silindi!");
     } catch (err) {
       console.error("Sponsor silme hatası:", err);
-      alert("Sponsor silinirken bir hata oluştu: " + err.message);
+      alert("Sponsor silinirken bir hata oluştu: " + handleApiError(err));
     }
   };
   
@@ -236,7 +226,7 @@ const Dashboard = () => {
       alert(`Sponsor ${!sponsor.is_active ? 'aktif' : 'pasif'} duruma getirildi.`);
     } catch (err) {
       console.error("Sponsor güncelleme hatası:", err);
-      alert("Sponsor güncellenirken bir hata oluştu: " + err.message);
+      alert("Sponsor güncellenirken bir hata oluştu: " + handleApiError(err));
     }
   };
 
@@ -317,7 +307,7 @@ const Dashboard = () => {
                             <div className="dashboard-table-cell">
                               {event.image_url ? (
                                 <img 
-                                  src={getImageUrl(event.image_url)} 
+                                  src={getMediaUrl(event.image_url, 'Event')} 
                                   alt={event.title}
                                   className="table-thumb"
                                   style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover' }}
@@ -345,7 +335,7 @@ const Dashboard = () => {
                             </div>
                             <div className="dashboard-table-cell">{event.title}</div>
                             <div className="dashboard-table-cell">
-                              {new Date(event.start_time).toLocaleDateString('tr-TR')}
+                              {formatShortDate(event.start_time) || '-'}
                             </div>
                             <div className="dashboard-table-cell">{event.location}</div>
                             <div className="dashboard-table-cell">
@@ -378,7 +368,7 @@ const Dashboard = () => {
                                 className={`featured-btn ${event.is_featured ? 'unfeatured' : 'featured'}`}
                                 title={event.is_featured ? 'Öne çıkarmayı kaldır' : 'Öne çıkar'}
                               >
-                                {event.is_featured ? 'Öne Çıkar' : 'Öne Çıkar'}
+                                {event.is_featured ? 'Öne Çıkarmayı Kaldır' : 'Öne Çıkar'}
                               </button>
                               <button 
                                 onClick={() => handleDeleteEvent(event.id)}
@@ -428,7 +418,7 @@ const Dashboard = () => {
                             <div className="dashboard-table-cell">
                               {project.image_url ? (
                                 <img 
-                                  src={getImageUrl(project.image_url)} 
+                                  src={getMediaUrl(project.image_url, 'Project')} 
                                   alt={project.title}
                                   className="table-thumb"
                                   style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover' }}
@@ -456,7 +446,7 @@ const Dashboard = () => {
                             </div>
                             <div className="dashboard-table-cell">{project.title}</div>
                             <div className="dashboard-table-cell">
-                              {project.category?.name || '-'}
+                              {(typeof project.category === 'string' ? project.category : project.category?.name) || '-'}
                             </div>
                             <div className="dashboard-table-cell">
                               {project.technologies || '-'}
@@ -491,7 +481,7 @@ const Dashboard = () => {
                                 className={`featured-btn ${project.is_featured ? 'unfeatured' : 'featured'}`}
                                 title={project.is_featured ? 'Öne çıkarmayı kaldır' : 'Öne çıkar'}
                               >
-                                {project.is_featured ? 'Öne Çıkar' : 'Öne Çıkar'}
+                                {project.is_featured ? 'Öne Çıkarmayı Kaldır' : 'Öne Çıkar'}
                               </button>
                               <button 
                                 onClick={() => handleDeleteProject(project.id)}
@@ -540,7 +530,7 @@ const Dashboard = () => {
                             <div className="dashboard-table-cell">
                               {sponsor.image_url ? (
                                 <img 
-                                  src={getImageUrl(sponsor.image_url)} 
+                                  src={getMediaUrl(sponsor.image_url, 'Sponsor')} 
                                   alt={sponsor.name}
                                   className="sponsor-logo-thumb"
                                   style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }}
