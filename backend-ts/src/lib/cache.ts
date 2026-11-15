@@ -39,6 +39,23 @@ export interface WarmupRegistration {
   loader: () => Promise<CacheLoadResult>;
 }
 
+export interface WarmupErrorEvent {
+  key: string;
+  domain: Domain;
+  errorKind: string;
+  message: string;
+}
+
+export interface WarmupSummary {
+  warmed: number;
+  failed: number;
+}
+
+export interface WarmupLogger {
+  warn?: (obj: Record<string, unknown>, msg?: string) => void;
+  error?: (obj: Record<string, unknown>, msg?: string) => void;
+}
+
 export interface ResponseCacheOptions {
   max?: number;
   maxEntries?: number;
@@ -49,6 +66,9 @@ export interface ResponseCacheOptions {
   recentWindowMs?: number;
   warmupConcurrency?: number;
   minCompressBytes?: number;
+  onWarmupError?: (event: WarmupErrorEvent) => void;
+  onError?: (event: WarmupErrorEvent) => void;
+  logger?: WarmupLogger;
 }
 
 export interface ResponseCache {
@@ -65,8 +85,8 @@ export interface ResponseCache {
   byteSize(): number;
   registerWarmup(key: string, domain: Domain, loader: () => Promise<CacheLoadResult>): void;
   registerWarmup(spec: WarmupRegistration): void;
-  warmupStartup(): Promise<void>;
-  drain(): Promise<void>;
+  warmupStartup(): Promise<WarmupSummary>;
+  drain(): Promise<WarmupSummary>;
   stop(): void;
 }
 
@@ -217,10 +237,36 @@ export function createResponseCache(o: ResponseCacheOptions = {}): ResponseCache
 
   let totalBytes = 0;
   let stopped = false;
+  let cycleWarmed = 0;
+  let cycleFailed = 0;
+  let lastSummary: WarmupSummary = { warmed: 0, failed: 0 };
   const warmupQueue: Array<{ key: string; domain: Domain; loader: () => Promise<CacheLoadResult> }> = [];
   const queuedKeys = new Set<string>();
   const activeWorkers = new Set<Promise<void>>();
-  const drainWaiters: Array<() => void> = [];
+  const drainWaiters: Array<(summary: WarmupSummary) => void> = [];
+
+  function reportWarmupError(key: string, domain: Domain, err: unknown): void {
+    let errorKind = "Error";
+    if (
+      typeof err === "object" &&
+      err !== null &&
+      "code" in err &&
+      typeof err.code === "string" &&
+      err.code.length > 0
+    ) {
+      errorKind = err.code;
+    } else if (err instanceof Error && err.name) {
+      errorKind = err.name;
+    }
+    const message = err instanceof Error ? err.message : "Warmup loader failed";
+    const event: WarmupErrorEvent = { key, domain, errorKind, message };
+    o.onWarmupError?.(event);
+    o.onError?.(event);
+    o.logger?.warn?.(
+      { event: "cache_warmup_failed", key, domain, errorKind },
+      "Cache warmup failed",
+    );
+  }
 
   function removeEntry(key: string): void {
     const existing = entries.get(key);
@@ -351,8 +397,9 @@ export function createResponseCache(o: ResponseCacheOptions = {}): ResponseCache
 
   function notifyIdleIfDrained(): void {
     if (activeWorkers.size === 0 && (stopped || warmupQueue.length === 0)) {
+      lastSummary = { warmed: cycleWarmed, failed: cycleFailed };
       const waiters = drainWaiters.splice(0);
-      for (const resolve of waiters) resolve();
+      for (const resolve of waiters) resolve(lastSummary);
     }
   }
 
@@ -364,10 +411,17 @@ export function createResponseCache(o: ResponseCacheOptions = {}): ResponseCache
       const worker = (async () => {
         try {
           const existing = entries.get(next.key);
-          if (existing && existing.expires > now()) return;
-          await loadSingleFlight(next.key, next.domain, next.loader, false);
-        } catch {
-          // Background warmup failures are intentionally ignored so teardown/runtime never leaks unhandled rejections.
+          if (existing && existing.expires > now()) {
+            cycleWarmed += 1;
+            return;
+          }
+          const loaded = await loadSingleFlight(next.key, next.domain, next.loader, false);
+          if (loaded.cacheable && loaded.status === 200 && entries.has(next.key)) {
+            cycleWarmed += 1;
+          }
+        } catch (err: unknown) {
+          cycleFailed += 1;
+          reportWarmupError(next.key, next.domain, err);
         }
       })().finally(() => {
         activeWorkers.delete(worker);
@@ -389,6 +443,11 @@ export function createResponseCache(o: ResponseCacheOptions = {}): ResponseCache
     if (!enabled || stopped || maxEntries <= 0) return;
     if (queuedKeys.has(key)) return;
     if (activeWorkers.size + warmupQueue.length >= maxEntries) return;
+    if (activeWorkers.size === 0 && warmupQueue.length === 0) {
+      cycleWarmed = 0;
+      cycleFailed = 0;
+      lastSummary = { warmed: 0, failed: 0 };
+    }
     queuedKeys.add(key);
     warmupQueue.push({ key, domain, loader });
     pumpWarmup();
@@ -460,7 +519,15 @@ export function createResponseCache(o: ResponseCacheOptions = {}): ResponseCache
       upsertWarmupEntry(spec.key, spec.domain, spec.loader, existing?.lastSeenAt ?? now());
     },
     warmupStartup() {
-      if (!enabled || stopped) return Promise.resolve();
+      if (!enabled || stopped) {
+        lastSummary = { warmed: 0, failed: 0 };
+        return Promise.resolve(lastSummary);
+      }
+      if (activeWorkers.size === 0 && warmupQueue.length === 0) {
+        cycleWarmed = 0;
+        cycleFailed = 0;
+        lastSummary = { warmed: 0, failed: 0 };
+      }
       let count = 0;
       for (const [key, item] of startupRegistry) {
         if (count >= MAX_STARTUP_WARMUP_KEYS) break;
@@ -471,9 +538,9 @@ export function createResponseCache(o: ResponseCacheOptions = {}): ResponseCache
     },
     drain() {
       if (activeWorkers.size === 0 && (stopped || warmupQueue.length === 0)) {
-        return Promise.resolve();
+        return Promise.resolve(lastSummary);
       }
-      return new Promise<void>((resolve) => {
+      return new Promise<WarmupSummary>((resolve) => {
         drainWaiters.push(resolve);
       });
     },
@@ -488,8 +555,34 @@ export function createResponseCache(o: ResponseCacheOptions = {}): ResponseCache
   };
 }
 
+function canonicalizeValue(val: unknown): unknown {
+  if (Array.isArray(val)) return val.map(canonicalizeValue);
+  if (typeof val === "object" && val !== null) {
+    const record = val as Record<string, unknown>;
+    const sorted: Record<string, unknown> = {};
+    for (const k of Object.keys(record).sort()) {
+      if (record[k] !== undefined) {
+        sorted[k] = canonicalizeValue(record[k]);
+      }
+    }
+    return sorted;
+  }
+  return val;
+}
+
 function stringifyQueryValue(item: unknown): string {
-  return String(item);
+  if (typeof item === "object" && item !== null) {
+    return JSON.stringify(canonicalizeValue(item));
+  }
+  if (
+    typeof item === "string" ||
+    typeof item === "number" ||
+    typeof item === "boolean" ||
+    typeof item === "bigint"
+  ) {
+    return String(item);
+  }
+  return "";
 }
 
 export function cacheKey(canonicalPath: string, validatedQuery: Record<string, unknown>): string {

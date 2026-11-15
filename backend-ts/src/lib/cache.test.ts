@@ -41,6 +41,7 @@ test("cacheKey sorts query, ignores undefined values, and encodes separators wit
   expect(cacheKey("/events", { search: "a&b" })).not.toBe(cacheKey("/events", { search: "a", b: "" }));
   expect(cacheKey("/events", { search: ["a", "b"] })).not.toBe(cacheKey("/events", { search: "a,b" }));
   expect(cacheKey("/events", { "a=b": "c" })).not.toBe(cacheKey("/events", { a: "b=c" }));
+  expect(cacheKey("/events", { filter: { id: 1 } })).not.toBe(cacheKey("/events", { filter: { id: 2 } }));
 });
 
 test("selectEncoding respects q=0 exclusions, quality weights, priority, and explicit identity exclusion", () => {
@@ -489,4 +490,76 @@ test("warmupRegistry is bounded by maxEntries/LRU and prunes expired/evicted reg
   expect(oldCalls).toBe(1);
   expect(freshCalls).toBe(2);
 });
+
+test("warmup failures are reported via onWarmupError/logger, return summary counts, keep peers warming, and retry on next trigger", async () => {
+  const errors: Array<{ key: string; domain: string; errorKind: string; message: string }> = [];
+  const logWarnings: Array<{ obj: Record<string, unknown>; msg?: string }> = [];
+
+  const c = createResponseCache({
+    maxEntries: 500,
+    ttlMs: 60_000,
+    now: () => 0,
+    enabled: true,
+    onWarmupError: (event) => {
+      errors.push(event);
+    },
+    logger: {
+      warn: (obj, msg) => {
+        logWarnings.push(msg !== undefined ? { obj, msg } : { obj });
+      },
+    },
+  });
+
+  let flakyAttempts = 0;
+  c.registerWarmup("/events?k=1", "events", () =>
+    Promise.resolve({ status: 200, bodyText: '{"k":1}', cacheable: true }),
+  );
+  c.registerWarmup("/events?k=flaky", "events", () => {
+    flakyAttempts += 1;
+    if (flakyAttempts === 1) {
+      const dbErr = new TypeError("connection refused");
+      return Promise.reject(dbErr);
+    }
+    return Promise.resolve({ status: 200, bodyText: '{"k":"recovered"}', cacheable: true });
+  });
+  c.registerWarmup("/events?k=3", "events", () =>
+    Promise.resolve({ status: 200, bodyText: '{"k":3}', cacheable: true }),
+  );
+
+  const startupSummary = await c.warmupStartup();
+  const drainSummary = await c.drain();
+
+  expect(startupSummary).toEqual({ warmed: 2, failed: 1 });
+  expect(drainSummary).toEqual({ warmed: 2, failed: 1 });
+  expect(errors).toEqual([
+    {
+      key: "/events?k=flaky",
+      domain: "events",
+      errorKind: "TypeError",
+      message: "connection refused",
+    },
+  ]);
+  expect(logWarnings).toEqual([
+    {
+      obj: {
+        event: "cache_warmup_failed",
+        key: "/events?k=flaky",
+        domain: "events",
+        errorKind: "TypeError",
+      },
+      msg: "Cache warmup failed",
+    },
+  ]);
+  expect(c.get("/events?k=1")).toBeDefined();
+  expect(c.get("/events?k=3")).toBeDefined();
+  expect(c.get("/events?k=flaky")).toBeUndefined();
+
+  // Next trigger (invalidate) retries "/events?k=flaky" and succeeds
+  c.invalidate("events");
+  const retrySummary = await c.drain();
+  expect(retrySummary).toEqual({ warmed: 3, failed: 0 });
+  expect(flakyAttempts).toBe(2);
+  expect(Buffer.from(c.get("/events?k=flaky")?.raw ?? []).toString("utf8")).toBe('{"k":"recovered"}');
+});
+
 
