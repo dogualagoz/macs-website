@@ -27,7 +27,9 @@ export async function readBoundedBody(req: Request, maxBytes: number): Promise<U
   const tooLarge = () => new HttpError(413, "İstek gövdesi çok büyük");
   const length = req.headers.get("Content-Length");
   if (length !== null && /^\d+$/.test(length) && Number(length) > maxBytes) {
-    try { await req.body?.cancel(); } finally { throw tooLarge(); }
+    // Bun cancellation can wait for the peer to finish sending. Reject immediately.
+    void req.body?.cancel().catch(() => {});
+    throw tooLarge();
   }
   if (!req.body) return new Uint8Array();
   const reader = req.body.getReader();
@@ -36,7 +38,7 @@ export async function readBoundedBody(req: Request, maxBytes: number): Promise<U
     for (;;) {
       const { done, value } = await reader.read();
       if (done) break;
-      if (value.byteLength > maxBytes - total) { try { await reader.cancel(); } finally { throw tooLarge(); } }
+      if (value.byteLength > maxBytes - total) { void reader.cancel().catch(() => {}); throw tooLarge(); }
       total += value.byteLength; chunks.push(value);
     }
   } finally { reader.releaseLock(); }
