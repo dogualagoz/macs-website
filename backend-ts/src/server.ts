@@ -36,7 +36,7 @@ try {
       await server.stop(false);
       await cache.drain();
       await database.sql.end({ timeout: 5 });
-    })().catch((error: unknown) => { logger.error({ err: error }, "Shutdown failed"); process.exitCode = 1; }).finally(() => { clearTimeout(timeout); });
+    })().catch((error: unknown) => { logger.error({ err: error }, "Shutdown failed"); process.exitCode = 1; }).finally(() => { logger.flush(); clearTimeout(timeout); });
   };
   process.once("SIGTERM", () => { shutdown("SIGTERM"); });
   process.once("SIGINT", () => { shutdown("SIGINT"); });
