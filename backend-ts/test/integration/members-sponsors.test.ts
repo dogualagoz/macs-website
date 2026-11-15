@@ -158,6 +158,11 @@ describe("members and sponsors database integration", () => {
     await deps.sql`UPDATE members SET created_at = '2026-01-01 12:00:00.123456+00'`;
     const r = await request(createApp(deps)).get("/members"); expect(r.status).toBe(200); expect((r.body as { id: number }[]).map(row => row.id)).toEqual([4, 3, 2, 1]);
   });
+  test("successful sponsor DELETE is private and empty", async () => {
+    const r = await request(createApp(deps)).delete("/sponsors/1").auth(await mod(), { type: "bearer" });
+    expect(r.status).toBe(204); expect(r.text).toBe("");
+    expect(r.headers["cache-control"]).toBe("no-store");
+  });
   test("sponsor categories include inactive sponsors, exclude empty category and support both slash forms", async () => {
     await deps.sql`UPDATE sponsors SET category = 'Inactive only' WHERE id = 4`;
     await deps.sql`UPDATE sponsors SET category = '' WHERE id = 5`;

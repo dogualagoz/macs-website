@@ -75,6 +75,7 @@ export function registerSponsorRoutes(app: AppRouter, deps: AppDeps): void {
   app.openapi(remove, async c => {
     await queries.deleteSponsor(deps.db, c.req.valid("param").sponsor_id);
     deps.cache.invalidate("sponsors");
+    c.header("Cache-Control", "no-store");
     return c.body(null, 204);
   });
 }
