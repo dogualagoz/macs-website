@@ -75,6 +75,33 @@ test("production docs are disabled by default, and an explicit override enables 
   }
 });
 
+
+test("normalizing Content-Type preserves caller Request headers", async () => {
+  const req = new Request("http://localhost/auth/register", { method: "POST", headers: { "Content-Type": "Application/JSON" }, body: "{}" });
+  await app.fetch(req);
+  expect(req.headers.get("Content-Type")).toBe("Application/JSON");
+});
+test("HEAD on a missing docs asset remains 404 rather than 405, and notFound precompiles route regexes once", async () => {
+  expect((await app.request("/docs/missing.js", { method: "HEAD" })).status).toBe(404);
+  const isolatedDeps = testDeps({ env });
+  try {
+    const isolatedApp = createApp(isolatedDeps);
+    isolatedApp.routes.length = 0;
+    const methodNotAllowed = await isolatedApp.request("/health", { method: "POST" });
+    expect(methodNotAllowed.status).toBe(405);
+    expect(methodNotAllowed.headers.get("Allow")).toBe("GET");
+  } finally {
+    await isolatedDeps.sql.end();
+  }
+});
+test("static and uploads mounts enforce resolved-prefix containment", async () => {
+  for (const path of ["/uploads/%2f", "/static/%2f"]) {
+    const res = await app.request(path);
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ detail: "Bad Request" });
+  }
+});
+
 {
 const deps = testDeps({ cache: createResponseCache({ max: 500, ttlMs: 60_000, now: Date.now, enabled: true }) });
 const docsApp = createApp(deps);
@@ -178,3 +205,15 @@ test("every relative Swagger HTML asset resolves successfully from /docs/", asyn
 
 }
 
+test("HEAD ZIP authenticates and lists but never resolves or opens file paths", async () => {
+  const { signAccessToken } = await import("./lib/jwt");
+  const admin = { id: 1, email: "head@example.com", full_name: "Admin", role: "admin", status: "approved", is_active: true, last_login: null, failed_login_attempts: 0, password_changed_at: null };
+  const deps = testDeps({ env, loadUser: () => Promise.resolve(admin) });
+  deps.storage = { ...deps.storage, list: () => Promise.resolve(["missing-file.png"]), path: () => { throw new Error("HEAD must not open files"); } };
+  try {
+    const token = await signAccessToken({ sub: admin.email, role: "admin" }, env.JWT_SECRET_KEY, 60, new Date());
+    const response = await createApp(deps).request("/api/upload/download-all", { method: "HEAD", headers: { Authorization: `Bearer ${token}` } });
+    expect(response.status).toBe(200); expect(await response.text()).toBe("");
+    expect(response.headers.get("Content-Type")).toBe("application/zip");
+  } finally { await deps.sql.end(); }
+});

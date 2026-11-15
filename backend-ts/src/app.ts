@@ -21,7 +21,7 @@ import { registerDocs } from "./security/docs";
 import { createCors } from "./middleware/cors";
 import { notFound } from "./middleware/not-found";
 import { readFile, stat } from "node:fs/promises";
-import { join } from "node:path";
+import { resolve, sep } from "node:path";
 import { registerAuthRoutes } from "./modules/auth/routes";
 import type { FetchImpl } from "./modules/sponsors/service";
 import { registerProjectRoutes } from "./modules/projects/routes";
@@ -89,7 +89,9 @@ export function createApp(deps: AppDeps, registerRoutes?: (router: AppRouter, de
     if (contentType) {
       const separator = contentType.indexOf(";");
       const mediaType = separator < 0 ? contentType : contentType.slice(0, separator);
-      c.req.raw.headers.set("Content-Type", mediaType.toLowerCase() + (separator < 0 ? "" : contentType.slice(separator)));
+      const headers = new Headers(c.req.raw.headers);
+      headers.set("Content-Type", mediaType.toLowerCase() + (separator < 0 ? "" : contentType.slice(separator)));
+      c.req.raw = new Request(c.req.raw, { headers });
     }
     validateRequestHead(c.req.raw, c.req.raw.url.replace(/^[^:]+:\/\/[^/]+/, ""), security);
     await next();
@@ -113,8 +115,11 @@ export function createApp(deps: AppDeps, registerRoutes?: (router: AppRouter, de
   for (const [prefix, root] of [["/uploads", deps.env.UPLOAD_DIR], ["/static", deps.env.STATIC_DIR]] as const) {
     app.get(`${prefix}/*`, async c => {
       const relative = decodeURIComponent(c.req.path.slice(prefix.length));
+      if (relative === "" || relative === "/") throw new HttpError(404, "Not Found");
       if (relative.split("/").some(part => part.startsWith("."))) throw new HttpError(404, "Not Found");
-      const path = join(root, relative);
+      const resolvedRoot = resolve(root);
+      const path = resolve(resolvedRoot, `.${relative}`);
+      if (!path.startsWith(resolvedRoot + sep)) throw new HttpError(400, "Bad Request");
       const info = await stat(path).catch(() => null);
       if (!info?.isFile()) throw new HttpError(404, "Not Found");
       c.header("Cache-Control", "public, max-age=0");

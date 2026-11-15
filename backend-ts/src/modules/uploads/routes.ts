@@ -40,6 +40,7 @@ export function registerUploadRoutes(app: AppRouter, deps: AppDeps): void {
     requireRoles(user, ["admin"]);
     const files = await deps.storage.list();
     if (!files.length) throw new HttpError(404, "Yüklenecek dosya bulunamadı");
+    if (c.req.method === "HEAD") return c.newResponse(null, 200, { "Content-Type": "application/zip", "Cache-Control": "no-store" });
     const archive = new ZipArchive();
     const pt = new PassThrough();
     const sources = new Set<ReadStream>();

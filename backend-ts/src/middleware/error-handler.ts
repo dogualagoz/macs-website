@@ -39,7 +39,8 @@ export function errorHandler(logger: Logger): ErrorHandler<AppEnv> {
       : mapped.status === 413 ? "body_too_large" : mapped.status === 414 ? "url_too_long" : mapped.status === 503 && mapped.detail === "Service Unavailable" ? "handler_timeout"
       : mapped.status === 401 && typeof mapped.detail === "string" && mapped.detail.includes("dakika kilitlendi") ? "lockout" : null;
     if (kind) logSecurityEvent(logger, { kind, ip: c.get("clientIp") ?? resolveClientIp(c.req.raw.headers, (c.env as AppEnv["Bindings"] | undefined)?.socketIp), path: c.req.path, status: mapped.status });
-    if (mapped.status === 500) logger.error({ err: error }, "Unhandled request error");
+    if (mapped.status === 500 && !(error instanceof HttpError)) logger.error({ err: error, reqId: c.get("requestId") }, "Unhandled request error");
+    if (mapped.status === 413) c.header("Connection", "close");
     for (const [key, value] of Object.entries(mapped.headers ?? {})) c.header(key, value);
     const response = sendJsonResponse(c, JSON.stringify(mapped.status === 429 ? mapped.detail : { detail: mapped.detail }), { status: mapped.status });
     applySecurityHeaders(response.headers, { forwardedProto: c.req.header("X-Forwarded-Proto"), isDocs: c.req.path === "/docs" || c.req.path.startsWith("/docs/") });

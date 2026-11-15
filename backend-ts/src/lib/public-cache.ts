@@ -5,6 +5,11 @@ import { cacheKey, toCachedResponse, selectEncoding } from "./cache";
 import type { CachedResponse, Domain } from "./cache";
 
 function respond(c: Context, value: CachedResponse, isPublic: boolean): Response {
+  if (value.status === 204) {
+    c.header("Cache-Control", "no-store");
+    c.header("Content-Type", undefined); c.header("Content-Length", undefined);
+    return c.newResponse(null, 204);
+  }
   c.header("Cache-Control", isPublic ? "public, max-age=30, stale-while-revalidate=300" : "no-store");
   c.header("Vary", "Accept-Encoding, Origin");
   if (isPublic) {
