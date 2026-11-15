@@ -32,6 +32,7 @@ import { registerEventRoutes } from "./modules/events/routes";
 import { registerUserRoutes } from "./modules/users/routes";
 import { registerSystemRoutes } from "./modules/system/routes";
 import { registerUploadRoutes } from "./modules/uploads/routes";
+import { ensureVariant, parseVariantPath } from "./modules/uploads/variants";
 
 export interface AppDeps {
   security?: Partial<SecurityConfig>;
@@ -131,6 +132,12 @@ export function createApp(deps: AppDeps, registerRoutes?: (router: AppRouter, de
       const resolvedRoot = resolve(root);
       const path = resolve(resolvedRoot, `.${relative}`);
       if (!path.startsWith(resolvedRoot + sep)) throw new HttpError(400, "Bad Request");
+      // Responsive WebP variant of an upload (/uploads/<uuid>-<480|960|1600>.webp): built from the original
+      // on first request, then served from disk like any other file.
+      const variant = prefix === "/uploads" ? parseVariantPath(relative) : null;
+      if (variant && !(await stat(path).catch(() => null))?.isFile() && !(await ensureVariant(resolvedRoot, variant))) {
+        throw new HttpError(404, "Not Found");
+      }
       const info = await stat(path).catch(() => null);
       if (!info?.isFile()) throw new HttpError(404, "Not Found");
       c.header("Cache-Control", "public, max-age=0");

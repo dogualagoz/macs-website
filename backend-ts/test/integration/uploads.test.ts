@@ -90,6 +90,24 @@ test("large photo upload is resized to IMAGE_MAX_DIMENSION, keeps format and ext
   const raw2 = await readFile(join(deps.env.UPLOAD_DIR, (untouched.body as { url: string }).url.slice("/uploads/".length)));
   expect(raw2.equals(photo)).toBe(true);
 });
+test("responsive WebP variants are built on first request and served from disk; other widths and missing ids 404", async () => {
+  const app = createApp(deps);
+  const photo = await sharp({ create: { width: 1800, height: 1200, channels: 3, background: "#07132b" } }).png().toBuffer();
+  const { url } = (await upload("poster.png", photo)).body as { url: string };
+  const id = url.slice("/uploads/".length, -".png".length);
+
+  const first = await request(app).get(`/uploads/${id}-480.webp`);
+  expect(first.status).toBe(200);
+  expect(first.headers["content-type"]).toBe("image/webp");
+  expect((await sharp(first.body as Buffer).metadata()).width).toBe(480);
+  expect(await readdir(deps.env.UPLOAD_DIR)).toContain(`${id}-480.webp`);
+  expect((await request(app).get(`/uploads/${id}-480.webp`)).status).toBe(200);
+
+  for (const path of [`/uploads/${id}-500.webp`, "/uploads/00000000-0000-4000-8000-000000000000-480.webp", `/static/uploads/${id}-960.webp`]) {
+    expect((await request(app).get(path)).status).toBe(404);
+  }
+  expect(await readdir(deps.env.UPLOAD_DIR)).not.toContain(`${id}-960.webp`);
+});
 test("size exactly at configured max succeeds; max + 1 reports floored MB", async () => {
   deps.env.MAX_UPLOAD_SIZE = 12; const bytes = Buffer.concat([png, Buffer.alloc(1)]);
   expect((await upload("x.png", bytes)).status).toBe(200);
