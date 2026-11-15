@@ -1,5 +1,7 @@
 # MACS Website — VPS Deployment (Docker + Plesk)
 
+> **`backend-ts` Geçiş Notu:** Bu doküman başlangıçtaki Python/FastAPI (`backend`, port `8000`) Docker Compose kurulumunu ve `frontend`/`db`/Plesk temel kurulumunu anlatır. Yeni TypeScript/Bun (`backend-ts`, `127.0.0.1:8010`) canlı geçişi, shadow-diff doğrulaması, güncellenmiş Plesk nginx kuralları (`/uploads/` doğrudan nginx `alias` yerine `macs_backend_ts` proxy'si ve rate limit ayarları) ve geri alma (rollback) adımları için **[docs/backend-ts-cutover.md](backend-ts-cutover.md)** ile **[deploy/nginx/README.md](../deploy/nginx/README.md)** kılavuzlarını takip edin.
+
 Backend, frontend ve PostgreSQL sunucuda **Docker Compose** ile ayaga kalkar.
 Plesk'in nginx'i yalnizca SSL sonlandirip container'lara proxy yapar.
 
@@ -136,7 +138,9 @@ curl -sI http://127.0.0.1:8080/ | head -1  # HTTP/1.1 200 OK
 
 ## Adım 6 — Plesk nginx
 
-### 6a. `api.macsclub.com.tr`
+> **`backend-ts` kullanıyorsanız** aşağıdaki eski Python (`8000`) örnekleri yerine [deploy/nginx/README.md](../deploy/nginx/README.md) ve [docs/backend-ts-cutover.md](backend-ts-cutover.md) içindeki güncel `api.macsclub-http.conf` / `api.macsclub-server.conf` yönergelerini uygulayın (`X-Forwarded-For` temizlenir, `X-Real-IP $remote_addr` kullanılır ve `/uploads/` path doğrulaması ile cache başlıkları için uygulamaya proxy edilir).
+
+### 6a. `api.macsclub.com.tr` (eski Python `backend` :8000 kurulumu)
 
 Plesk → **Apache & Nginx Settings** → *Additional nginx directives* (HTTPS):
 

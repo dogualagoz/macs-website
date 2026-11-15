@@ -1,0 +1,30 @@
+Phase: after; EXPLAIN (ANALYZE, BUFFERS); enable_seqscan=on
+
+SQL: SELECT coalesce(json_agg(q.row_json ORDER BY q.id ASC), '[]'::json)::text AS body
+    FROM (SELECT "sponsors"."id" AS id, json_build_object(
+    'name', "sponsors"."name", 'description', "sponsors"."description", 'image_url', "sponsors"."image_url",
+    'category', "sponsors"."category", 'discount_info', "sponsors"."discount_info",
+    'latitude', "sponsors"."latitude", 'longitude', "sponsors"."longitude", 'address', "sponsors"."address",
+    'is_active', coalesce("sponsors"."is_active", false), 'is_featured', coalesce("sponsors"."is_featured", false),
+    'id', "sponsors"."id", 'created_at', CASE
+    WHEN "sponsors"."created_at" IS NULL THEN NULL
+    WHEN date_trunc('second', ("sponsors"."created_at"::timestamptz AT TIME ZONE 'UTC')) = ("sponsors"."created_at"::timestamptz AT TIME ZONE 'UTC')
+      THEN to_char(("sponsors"."created_at"::timestamptz AT TIME ZONE 'UTC'), 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+    ELSE to_char(("sponsors"."created_at"::timestamptz AT TIME ZONE 'UTC'), 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')
+  END, 'updated_at', null) AS row_json FROM "sponsors"
+      WHERE "sponsors"."is_active" = $1
+      ORDER BY "sponsors"."id" ASC LIMIT $2 OFFSET $3) q
+Bindings: ["t","50","0"]
+Aggregate  (cost=2.07..2.09 rows=1 width=32) (actual time=0.108..0.109 rows=1 loops=1)
+  Buffers: shared hit=1
+  ->  Limit  (cost=1.86..1.90 rows=14 width=36) (actual time=0.098..0.100 rows=28 loops=1)
+        Buffers: shared hit=1
+        ->  Sort  (cost=1.86..1.90 rows=14 width=36) (actual time=0.098..0.098 rows=28 loops=1)
+              Sort Key: sponsors.id
+              Sort Method: quicksort  Memory: 39kB
+              Buffers: shared hit=1
+              ->  Seq Scan on sponsors  (cost=0.00..1.59 rows=14 width=36) (actual time=0.008..0.093 rows=28 loops=1)
+                    Filter: is_active
+                    Buffers: shared hit=1
+Planning Time: 0.029 ms
+Execution Time: 0.115 ms

@@ -49,7 +49,8 @@ const projectService = {
       // Category Çevirisi (Object to String)
       category: p.category?.name || p.category || 'Proje',
       
-      // Status Çevirisi
+      // Status Çevirisi (ham API enum değerini admin edit formu için ayrıca koru)
+      rawStatus: p.status,
       status: p.status === 'COMPLETED' ? 'Tamamlandı' : 
               p.status === 'IN_PROGRESS' ? 'Geliştirme Aşamasında' : 
               p.status === 'PLANNING' ? 'Planlama Aşamasında' : 'Yayında',

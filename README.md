@@ -44,13 +44,11 @@ MACS Kulübü Web Sitesi, Eskişehir Osmangazi Üniversitesi Matematik ve Bilgis
 - **Deploy**: Vercel
 
 ### Backend
-- **Framework**: FastAPI 0.110.0
-- **Database**: PostgreSQL (Railway)
-- **ORM**: SQLAlchemy 2.0.41
-- **Migration**: Alembic 1.16.2
-- **Auth**: JWT (python-jose)
-- **Security**: Bcrypt, slowapi (rate limiting)
-- **Deploy**: Railway
+- **Yeni API (`backend-ts`)**: Bun `1.3.5`, Hono (`@hono/zod-openapi`), Zod, Drizzle ORM, `postgres`, Pino — [backend-ts/README.md](backend-ts/README.md)
+- **Mevcut / Geçiş Dönemi API (`backend`)**: FastAPI 0.110.0, SQLAlchemy 2.0, Alembic (cutover tamamlanana kadar paralel; bkz. [docs/backend-ts-cutover.md](docs/backend-ts-cutover.md))
+- **Database**: PostgreSQL 13+ (Docker Compose)
+- **Auth & Security**: JWT (`jose`), Bcrypt, IP/route rate limiting, güvenlik başlıkları
+- **Deploy**: VPS üzerinde Docker Compose + Plesk nginx ([docs/VPS_DEPLOYMENT.md](docs/VPS_DEPLOYMENT.md), [docs/backend-ts-cutover.md](docs/backend-ts-cutover.md))
 
 ---
 
@@ -123,7 +121,13 @@ macs-website/
 │   │   └── utils/         # Yardımcı fonksiyonlar
 │   └── package.json
 │
-├── backend/               # FastAPI Backend
+├── backend-ts/            # TypeScript/Bun Backend (bkz. backend-ts/README.md)
+│   ├── src/              # Hono + Zod + Drizzle modülleri ve güvenlik katmanı
+│   ├── drizzle/          # SQL migration dosyaları
+│   ├── scripts/          # Yönetici CLI araçları
+│   └── contract/         # FastAPI <-> backend-ts parite ve shadow-diff araçları
+│
+├── backend/               # Eski FastAPI Backend (geçiş süresince paralel)
 │   ├── alembic/          # Database migrations
 │   ├── models/           # SQLAlchemy modelleri
 │   ├── routers/          # API endpoints
@@ -133,9 +137,12 @@ macs-website/
 │   └── requirements.txt
 │
 └── docs/                 # Dokümantasyon
-    ├── DOCUMENTATION.md  # Detaylı teknik dokümantasyon
-    ├── prd.md           # Product Requirements Document
-    └── api-contract.md  # API Contract
+    ├── backend-ts-cutover.md  # Canlı backend-ts geçiş runbook'u
+    ├── VPS_DEPLOYMENT.md      # VPS Docker + Plesk kurulumu
+    ├── docker.md              # Docker Compose rehberi
+    ├── DOCUMENTATION.md       # Detaylı teknik dokümantasyon
+    ├── prd.md                 # Product Requirements Document
+    └── api-contract.md        # API Contract
 ```
 
 ---
@@ -191,22 +198,22 @@ Detaylı şema için [DOCUMENTATION.md](docs/DOCUMENTATION.md) dosyasına bakın
 
 ## 🌐 Deployment
 
-### Frontend (Vercel)
-- Otomatik deployment (git push ile)
-- Custom domain: macsclub.com.tr
-- Environment variables Vercel dashboard'dan ayarlanır
-
-### Backend (Railway)
-- Otomatik deployment (git push ile)
-- PostgreSQL managed database
-- Persistent volume: /app/uploads
-- Environment variables Railway dashboard'dan ayarlanır
+VPS üzerinde Docker Compose + Plesk nginx ile yayınlanır:
+- Docker Compose yerel/sunucu kurulumu: [docs/docker.md](docs/docker.md)
+- Temel VPS + Plesk kurulumu: [docs/VPS_DEPLOYMENT.md](docs/VPS_DEPLOYMENT.md)
+- `backend-ts` cutover, shadow-diff, nginx geçişi ve rollback runbook'u: [docs/backend-ts-cutover.md](docs/backend-ts-cutover.md)
 
 ---
 
 ## 🧪 Testing
 
-### Backend
+### Backend (`backend-ts`)
+```bash
+cd backend-ts
+bun run verify:static
+```
+
+### Eski Backend (`backend`)
 ```bash
 cd backend
 pytest
@@ -223,10 +230,10 @@ npm test
 ## 📚 API Dokümantasyonu
 
 API endpoint'lerinin detaylı dokümantasyonu için:
-- Development: `http://localhost:8000/docs` (Swagger UI)
-- Production: `https://macs-backend.up.railway.app/docs`
+- Development: `http://localhost:8000/docs` (veya `backend-ts` Docker portu `http://127.0.0.1:8010/docs` — `NODE_ENV != production` veya `DOCS_ENABLED=true` iken)
+- Prod ortamında (`NODE_ENV=production`) `/docs` varsayılan olarak kapalıdır (`DOCS_ENABLED=true` ile açılabilir).
 
-Ayrıca [docs/DOCUMENTATION.md](docs/DOCUMENTATION.md) dosyasında tüm endpoint'lerin detaylı açıklamaları bulunmaktadır.
+Ayrıca [docs/DOCUMENTATION.md](docs/DOCUMENTATION.md) ve [backend-ts/README.md](backend-ts/README.md) dosyalarına bakınız.
 
 ---
 

@@ -1,0 +1,40 @@
+{
+  "name": "backend-ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/archiver": "8.0.0",
+    "@types/bun": "1.3.5",
+    "drizzle-kit": "0.31.11",
+    "eslint": "10.15.0",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.2"
+  },
+  "dependencies": {
+    "@hono/zod-openapi": "1.6.3",
+    "archiver": "8.0.0",
+    "drizzle-orm": "0.45.4",
+    "hono": "4.13.18",
+    "jose": "6.2.17",
+    "pino": "10.4.0",
+    "postgres": "4.1.1",
+    "swagger-ui-dist": "5.35.0",
+    "zod": "4.6.7"
+  },
+  "overrides": {
+    "minimatch": "11.0.8"
+  },
+  "packageManager": "bun@1.3.5",
+  "scripts": {
+    "dev": "bun --watch src/server.ts",
+    "start": "bun src/server.ts",
+    "migrate": "bun src/db/migrate.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "bun test src",
+    "test:int": "bun test test/integration",
+    "test:contract": "bun contract/run.ts",
+    "test:bench": "bun test bench",
+    "verify:static": "bunx tsc --noEmit && bunx eslint . && bun test src && bun test bench"
+  }
+}

@@ -1,0 +1,12 @@
+Phase: before; EXPLAIN (ANALYZE, BUFFERS); enable_seqscan=on
+
+SQL: select count(*)::int from "projects" where ("projects"."is_deleted" = $1 and "projects"."is_active" = $2)
+Bindings: ["f","t"]
+Aggregate  (cost=4.33..4.34 rows=1 width=4) (actual time=0.008..0.009 rows=1 loops=1)
+  Buffers: shared hit=4
+  ->  Seq Scan on projects  (cost=0.00..4.31 rows=8 width=0) (actual time=0.002..0.007 rows=23 loops=1)
+        Filter: ((NOT is_deleted) AND is_active)
+        Rows Removed by Filter: 8
+        Buffers: shared hit=4
+Planning Time: 0.015 ms
+Execution Time: 0.014 ms

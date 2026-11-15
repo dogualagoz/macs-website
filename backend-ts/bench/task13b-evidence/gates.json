@@ -1,0 +1,152 @@
+{
+  "uncached": {
+    "passed": true,
+    "rows": [
+      {
+        "path": "/events?limit=100",
+        "p95Express": 18.903958,
+        "p95V2": 4.127625,
+        "gapMs": -14.776333,
+        "gapPercent": -78.16528686743803,
+        "rpsExpress": 3089.1669444935555,
+        "rpsV2": 15837.157197025104,
+        "passed": true
+      },
+      {
+        "path": "/events/featured",
+        "p95Express": 30.118458,
+        "p95V2": 2.7364170000000003,
+        "gapMs": -27.382041,
+        "gapPercent": -90.9144850642752,
+        "rpsExpress": 1980.3347286897988,
+        "rpsV2": 24384.534402425976,
+        "passed": true
+      },
+      {
+        "path": "/projects?limit=100",
+        "p95Express": 41.728916999999996,
+        "p95V2": 5.571958,
+        "gapMs": -36.15695899999999,
+        "gapPercent": -86.64724991544833,
+        "rpsExpress": 1482.3811160733721,
+        "rpsV2": 11763.984865747161,
+        "passed": true
+      },
+      {
+        "path": "/projects/featured",
+        "p95Express": 18.552667,
+        "p95V2": 2.7679169999999997,
+        "gapMs": -15.784749999999999,
+        "gapPercent": -85.08075954793992,
+        "rpsExpress": 3561.9566808810946,
+        "rpsV2": 23375.200011423283,
+        "passed": true
+      },
+      {
+        "path": "/members/leaderboard",
+        "p95Express": 18.948875,
+        "p95V2": 3.481875,
+        "gapMs": -15.467,
+        "gapPercent": -81.62489857577297,
+        "rpsExpress": 3666.1920789177375,
+        "rpsV2": 19684.77612579,
+        "passed": true
+      },
+      {
+        "path": "/members",
+        "p95Express": 14.190375,
+        "p95V2": 3.214542,
+        "gapMs": -10.975833,
+        "gapPercent": -77.34702571285115,
+        "rpsExpress": 5519.485774923872,
+        "rpsV2": 21574.583790273977,
+        "passed": true
+      },
+      {
+        "path": "/sponsors/",
+        "p95Express": 22.403791,
+        "p95V2": 3.6601250000000003,
+        "gapMs": -18.743665999999997,
+        "gapPercent": -83.66292115472778,
+        "rpsExpress": 3006.2252810629616,
+        "rpsV2": 18565.433188959385,
+        "passed": true
+      }
+    ]
+  },
+  "cached": {
+    "passed": false,
+    "rows": [
+      {
+        "path": "/events?limit=100",
+        "p95Express": 2.511333,
+        "p95V2": 2.404583,
+        "gapMs": -0.1067499999999999,
+        "gapPercent": -4.250730588098028,
+        "rpsExpress": 27377.5613825475,
+        "rpsV2": 30562.38918065438,
+        "passed": true
+      },
+      {
+        "path": "/events/featured",
+        "p95Express": 2.218125,
+        "p95V2": 2.215,
+        "gapMs": -0.0031250000000002665,
+        "gapPercent": -0.14088475626938823,
+        "rpsExpress": 33643.6391841631,
+        "rpsV2": 36455.41875247938,
+        "passed": true
+      },
+      {
+        "path": "/projects?limit=100",
+        "p95Express": 3.264958,
+        "p95V2": 2.418208,
+        "gapMs": -0.8467500000000001,
+        "gapPercent": -25.934483690142418,
+        "rpsExpress": 19659.867796008068,
+        "rpsV2": 30085.302777702425,
+        "passed": true
+      },
+      {
+        "path": "/projects/featured",
+        "p95Express": 2.2725839999999997,
+        "p95V2": 2.161667,
+        "gapMs": -0.11091699999999971,
+        "gapPercent": -4.8806556765338405,
+        "rpsExpress": 31676.615839546805,
+        "rpsV2": 36185.90674291418,
+        "passed": true
+      },
+      {
+        "path": "/members/leaderboard",
+        "p95Express": 2.3037919999999996,
+        "p95V2": 2.339333,
+        "gapMs": 0.03554100000000027,
+        "gapPercent": 1.5427173980984588,
+        "rpsExpress": 31983.326963924366,
+        "rpsV2": 32800.904571645806,
+        "passed": false
+      },
+      {
+        "path": "/members",
+        "p95Express": 2.266167,
+        "p95V2": 2.32325,
+        "gapMs": 0.057082999999999995,
+        "gapPercent": 2.5189229213910647,
+        "rpsExpress": 31989.853582109834,
+        "rpsV2": 32542.179888790564,
+        "passed": false
+      },
+      {
+        "path": "/sponsors/",
+        "p95Express": 2.522167,
+        "p95V2": 2.4074999999999998,
+        "gapMs": -0.1146670000000003,
+        "gapPercent": -4.54636826189544,
+        "rpsExpress": 28644.75203517051,
+        "rpsV2": 31848.871716587375,
+        "passed": true
+      }
+    ]
+  }
+}

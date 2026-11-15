@@ -3,6 +3,27 @@ import { projectService } from '../services/contentService';
 import { handleApiError } from '../../../shared/utils/errorHandler';
 import env from '../../../shared/config/env';
 
+const PROJECT_STATUS_ENUMS = ['PLANNING', 'IN_PROGRESS', 'COMPLETED', 'ON_HOLD', 'CANCELLED'];
+const PROJECT_STATUS_LABEL_TO_ENUM = {
+  'Planlama': 'PLANNING',
+  'Planlama Aşamasında': 'PLANNING',
+  'Devam Ediyor': 'IN_PROGRESS',
+  'Geliştirme Aşamasında': 'IN_PROGRESS',
+  'Tamamlandı': 'COMPLETED',
+  'Beklemede': 'ON_HOLD',
+  'İptal Edildi': 'CANCELLED',
+};
+
+function resolveProjectStatus(editData) {
+  if (PROJECT_STATUS_ENUMS.includes(editData?.rawStatus)) {
+    return editData.rawStatus;
+  }
+  if (PROJECT_STATUS_ENUMS.includes(editData?.status)) {
+    return editData.status;
+  }
+  return PROJECT_STATUS_LABEL_TO_ENUM[editData?.status] || 'PLANNING';
+}
+
 // Backend URL'den /api kısmını çıkar ve image URL ile birleştir
 const getImageUrl = (imageUrl) => {
   if (!imageUrl) return null;
@@ -60,7 +81,7 @@ export const useProjectForm = (editData = null, onUpdateSuccess = null) => {
           profile_image: m.profile_image,
           role: m.project_role || '' // Backend role bilgisini döndürmeli
         })) : [],
-        status: editData.status || 'PLANNING',
+        status: resolveProjectStatus(editData),
         projectType: editData.project_type || 'DEVELOPED_BY_MACS',
         isFeatured: editData.is_featured || false,
         isActive: editData.is_active ?? true

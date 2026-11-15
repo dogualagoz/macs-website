@@ -1,0 +1,128 @@
+[
+  {
+    "mode": "uncached",
+    "path": "/events?limit=100",
+    "p95Express": 18.167125,
+    "p95V2": 4.359208,
+    "rpsExpress": 3215.484822476885,
+    "rpsV2": 14777.480808959093,
+    "gatePass": true
+  },
+  {
+    "mode": "uncached",
+    "path": "/events/featured",
+    "p95Express": 29.368166000000002,
+    "p95V2": 2.94625,
+    "rpsExpress": 2045.4294430817674,
+    "rpsV2": 22367.51719875635,
+    "gatePass": true
+  },
+  {
+    "mode": "uncached",
+    "path": "/projects?limit=100",
+    "p95Express": 41.836958,
+    "p95V2": 5.885042,
+    "rpsExpress": 1508.3233282031633,
+    "rpsV2": 11077.997859599336,
+    "gatePass": true
+  },
+  {
+    "mode": "uncached",
+    "path": "/projects/featured",
+    "p95Express": 18.179333,
+    "p95V2": 3.010791,
+    "rpsExpress": 3663.5176609708033,
+    "rpsV2": 21623.612411571423,
+    "gatePass": true
+  },
+  {
+    "mode": "uncached",
+    "path": "/members/leaderboard",
+    "p95Express": 18.169416000000002,
+    "p95V2": 4.103667,
+    "rpsExpress": 3864.6631212256825,
+    "rpsV2": 17664.041527280504,
+    "gatePass": true
+  },
+  {
+    "mode": "uncached",
+    "path": "/members",
+    "p95Express": 13.846583,
+    "p95V2": 3.656209,
+    "rpsExpress": 5910.249327530698,
+    "rpsV2": 19486.00108991925,
+    "gatePass": true
+  },
+  {
+    "mode": "uncached",
+    "path": "/sponsors/",
+    "p95Express": 21.313417,
+    "p95V2": 3.8471249999999997,
+    "rpsExpress": 3199.657458082264,
+    "rpsV2": 17479.01662381864,
+    "gatePass": true
+  },
+  {
+    "mode": "cached",
+    "path": "/events?limit=100",
+    "p95Express": 2.305667,
+    "p95V2": 2.657417,
+    "rpsExpress": 30189.119871213963,
+    "rpsV2": 26346.913622039003,
+    "gatePass": false
+  },
+  {
+    "mode": "cached",
+    "path": "/events/featured",
+    "p95Express": 1.952875,
+    "p95V2": 2.597125,
+    "rpsExpress": 39064.67719357814,
+    "rpsV2": 30201.50459796127,
+    "gatePass": false
+  },
+  {
+    "mode": "cached",
+    "path": "/projects?limit=100",
+    "p95Express": 2.9746249999999996,
+    "p95V2": 2.764958,
+    "rpsExpress": 21217.048627233602,
+    "rpsV2": 25980.591446532657,
+    "gatePass": true
+  },
+  {
+    "mode": "cached",
+    "path": "/projects/featured",
+    "p95Express": 2.036875,
+    "p95V2": 2.525125,
+    "rpsExpress": 36330.54729973274,
+    "rpsV2": 29898.71503699448,
+    "gatePass": false
+  },
+  {
+    "mode": "cached",
+    "path": "/members/leaderboard",
+    "p95Express": 2.0009580000000002,
+    "p95V2": 2.642208,
+    "rpsExpress": 36772.49146221011,
+    "rpsV2": 27895.887519791206,
+    "gatePass": false
+  },
+  {
+    "mode": "cached",
+    "path": "/members",
+    "p95Express": 1.997959,
+    "p95V2": 2.666084,
+    "rpsExpress": 36987.67426256896,
+    "rpsV2": 27596.307246727505,
+    "gatePass": false
+  },
+  {
+    "mode": "cached",
+    "path": "/sponsors/",
+    "p95Express": 2.217416,
+    "p95V2": 2.753625,
+    "rpsExpress": 32328.302857727336,
+    "rpsV2": 27007.924610113292,
+    "gatePass": false
+  }
+]

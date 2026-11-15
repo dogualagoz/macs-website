@@ -2,38 +2,74 @@ name: Deploy Backend
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
     paths:
-      - 'backend/**'
+      - 'backend-ts/**'
+      - 'docker-compose*.yml'
+      - 'scripts/deploy-backend-ts.sh'
+      - '.github/workflows/deploy-backend.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-backend
+  cancel-in-progress: false
 
 jobs:
+  verify:
+    uses: ./.github/workflows/ci-backend-ts.yml
+
   deploy:
+    needs: verify
+    if: vars.VPS_SSH_REACHABLE == 'true'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Setup SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          VPS_SSH_KNOWN_HOSTS: ${{ secrets.VPS_SSH_KNOWN_HOSTS }}
+        run: |
+          if [[ -z "${VPS_SSH_KNOWN_HOSTS//[[:space:]]/}" ]]; then
+            echo "ERROR: secrets.VPS_SSH_KNOWN_HOSTS is required and must not be empty (no ssh-keyscan TOFU fallback)." >&2
+            exit 1
+          fi
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          printf '%s\n' "$VPS_SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Deploy backend-ts container on VPS
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_SSH_PORT: ${{ vars.VPS_SSH_PORT || '22' }}
+        run: |
+          ssh \
+            -o BatchMode=yes \
+            -o ConnectTimeout=15 \
+            -o StrictHostKeyChecking=yes \
+            -p "$VPS_SSH_PORT" \
+            "root@$VPS_HOST" \
+            'set -euo pipefail; cd /opt/macs-website && git fetch origin main && git show origin/main:scripts/deploy-backend-ts.sh | bash -s'
+
+  manual-deploy-notice:
+    needs: verify
+    if: vars.VPS_SSH_REACHABLE != 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup SSH
+      - name: Write manual deploy instructions to job summary
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
-
-      - name: Sync backend files to VPS
-        run: |
-          rsync -avz --delete \
-            --exclude='venv' \
-            --exclude='.env' \
-            --exclude='__pycache__' \
-            --exclude='*.pyc' \
-            --exclude='static/uploads' \
-            ./backend/ \
-            root@${{ secrets.VPS_HOST }}:/var/www/vhosts/api.macsclub.com.tr/httpdocs/
-
-      - name: Install dependencies & restart gunicorn
-        run: |
-          ssh root@${{ secrets.VPS_HOST }} "
-            source /var/www/vhosts/api.macsclub.com.tr/venv/bin/activate &&
-            pip install -r /var/www/vhosts/api.macsclub.com.tr/httpdocs/requirements.txt &&
-            kill -HUP \$(cat /var/run/macs-backend.pid)
-          "
+          {
+            echo "### Manual Deploy Required (VPS SSH filtered)"
+            echo ""
+            echo "Plesk SSH Terminal (first deploy & upgrades — fetch-first subshell):"
+            echo '```bash'
+            echo '( set -euo pipefail; cd /opt/macs-website && git fetch origin main && git show origin/main:scripts/deploy-backend-ts.sh | bash -s )'
+            echo '```'
+            echo ""
+            echo "Plesk SSH Terminal: bash /opt/macs-website/scripts/deploy-backend-ts.sh"
+            echo ""
+            echo "To enable automated SSH deploys, set \`vars.VPS_SSH_REACHABLE=true\` (and optional \`vars.VPS_SSH_PORT\`) plus \`secrets.SSH_PRIVATE_KEY\`, \`secrets.VPS_HOST\`, and \`secrets.VPS_SSH_KNOWN_HOSTS\`."
+          } >> "$GITHUB_STEP_SUMMARY"

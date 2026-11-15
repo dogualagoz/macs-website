@@ -1,0 +1,15 @@
+Phase: after; EXPLAIN (ANALYZE, BUFFERS); enable_seqscan=on
+
+SQL: select "id", "name", "description", "image_url", "category", "discount_info", "latitude", "longitude", "address", "is_active", "created_at", "is_featured" from "sponsors" where "sponsors"."is_active" = $1 order by "sponsors"."id" asc limit $2
+Bindings: ["t","50"]
+Limit  (cost=1.55..1.58 rows=14 width=1376) (actual time=0.016..0.018 rows=28 loops=1)
+  Buffers: shared hit=1
+  ->  Sort  (cost=1.55..1.58 rows=14 width=1376) (actual time=0.016..0.016 rows=28 loops=1)
+        Sort Key: id
+        Sort Method: quicksort  Memory: 33kB
+        Buffers: shared hit=1
+        ->  Seq Scan on sponsors  (cost=0.00..1.28 rows=14 width=1376) (actual time=0.003..0.006 rows=28 loops=1)
+              Filter: is_active
+              Buffers: shared hit=1
+Planning Time: 0.023 ms
+Execution Time: 0.023 ms

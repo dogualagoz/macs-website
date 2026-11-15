@@ -1,0 +1,74 @@
+# Isolated, disposable contract databases. No production credentials or data.
+x-database: &database
+  image: postgres:13
+  environment:
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: postgres
+    POSTGRES_DB: macs_test
+  tmpfs:
+    - /var/lib/postgresql/data
+  volumes:
+    - ./contract/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    - ./test/helpers/init-head.sql:/docker-entrypoint-initdb.d/02-head.sql:ro
+    - ./contract/seed.sql:/docker-entrypoint-initdb.d/03-seed.sql:ro
+  healthcheck:
+    test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U postgres -d macs_test"]
+    interval: 2s
+    timeout: 2s
+    retries: 30
+x-app-env: &app-env
+  JWT_SECRET_KEY: contract-secret-key-that-is-long-enough
+  ADMIN_SECRET_KEY: contract-admin-secret
+  RATELIMIT_ENABLED: ${RATELIMIT_ENABLED:-false}
+  UPLOAD_DIR: /app/static/uploads
+  MAX_UPLOAD_SIZE: "5242880"
+  MIN_PASSWORD_LENGTH: "6"
+services:
+  db-old:
+    <<: *database
+    ports:
+      - "127.0.0.1:5435:5432"
+  db-new:
+    <<: *database
+    ports:
+      - "127.0.0.1:5436:5432"
+  old:
+    build: ../backend
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
+    ports:
+      - "127.0.0.1:8001:8000"
+    environment:
+      <<: *app-env
+      DATABASE_URL: postgresql://postgres:postgres@db-old:5432/macs_test
+      RUN_MIGRATIONS: "0"
+    tmpfs:
+      - /app/static/uploads:uid=10001,gid=10001,mode=0755
+    depends_on:
+      db-old:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+  new:
+    build: .
+    tmpfs:
+      - /app/static/uploads:uid=10001,gid=10001,mode=0755
+    ports:
+      - "127.0.0.1:8011:8000"
+    environment:
+      <<: *app-env
+      DATABASE_URL: postgresql://postgres:postgres@db-new:5432/macs_test
+      RUN_MIGRATIONS: "true"
+      RESPONSE_CACHE: "false"
+      NODE_ENV: test
+      PORT: "8000"
+    depends_on:
+      db-new:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "bun", "-e", "fetch('http://127.0.0.1:8000/health/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 2s
+      timeout: 2s
+      retries: 30

@@ -1,0 +1,36 @@
+Phase: after; EXPLAIN (ANALYZE, BUFFERS); enable_seqscan=on
+
+SQL: select "projects"."id", "projects"."title", "projects"."slug", "projects"."description", "projects"."content", "projects"."image_url", "projects"."technologies", "projects"."github_url", "projects"."live_url", "projects"."status"::text, "projects"."category_id", "projects"."created_by", "projects"."team_members", "projects"."is_active", "projects"."is_deleted", "projects"."is_featured", "projects"."created_at", "projects"."updated_at", "projects"."started_at", "projects"."completed_at", "projects"."project_type"::text, "project_categories"."id", "project_categories"."name", "project_categories"."description", "project_categories"."icon", "project_categories"."created_at", "project_categories"."updated_at", coalesce((SELECT json_agg(json_build_object(
+    'id', m.id, 'full_name', m.full_name, 'profile_image', m.profile_image, 'is_active', m.is_active,
+    'created_at', m.created_at, 'project_role', pm.role) ORDER BY pm.id)
+    FROM project_members pm JOIN members m ON m.id = pm.member_id WHERE pm.project_id = "projects"."id"), '[]'::json) from "projects" left join "project_categories" on "projects"."category_id" = "project_categories"."id" where ("projects"."slug" = $1 and ("projects"."is_deleted" = $2 and "projects"."is_active" = $3)) limit $4
+Bindings: ["endless-zombie","f","t","1"]
+Limit  (cost=0.00..8.11 rows=1 width=547) (actual time=0.011..0.012 rows=1 loops=1)
+  Buffers: shared hit=4
+  ->  Nested Loop Left Join  (cost=0.00..8.11 rows=1 width=547) (actual time=0.011..0.012 rows=1 loops=1)
+        Join Filter: (projects.category_id = project_categories.id)
+        Rows Removed by Join Filter: 3
+        Buffers: shared hit=4
+        ->  Seq Scan on projects  (cost=0.00..4.39 rows=1 width=343) (actual time=0.003..0.003 rows=1 loops=1)
+              Filter: ((NOT is_deleted) AND is_active AND ((slug)::text = 'endless-zombie'::text))
+              Rows Removed by Filter: 13
+              Buffers: shared hit=1
+        ->  Seq Scan on project_categories  (cost=0.00..1.05 rows=5 width=116) (actual time=0.001..0.001 rows=4 loops=1)
+              Buffers: shared hit=1
+        SubPlan 1
+          ->  Aggregate  (cost=2.58..2.59 rows=1 width=32) (actual time=0.005..0.005 rows=1 loops=1)
+                Buffers: shared hit=2
+                ->  Hash Join  (cost=1.38..2.58 rows=1 width=113) (actual time=0.003..0.003 rows=0 loops=1)
+                      Hash Cond: (m.id = pm.member_id)
+                      Buffers: shared hit=2
+                      ->  Seq Scan on members m  (cost=0.00..1.14 rows=14 width=77) (actual time=0.001..0.001 rows=1 loops=1)
+                            Buffers: shared hit=1
+                      ->  Hash  (cost=1.36..1.36 rows=1 width=40) (actual time=0.002..0.002 rows=0 loops=1)
+                            Buckets: 1024  Batches: 1  Memory Usage: 8kB
+                            Buffers: shared hit=1
+                            ->  Seq Scan on project_members pm  (cost=0.00..1.36 rows=1 width=40) (actual time=0.002..0.002 rows=0 loops=1)
+                                  Filter: (project_id = projects.id)
+                                  Rows Removed by Filter: 29
+                                  Buffers: shared hit=1
+Planning Time: 0.086 ms
+Execution Time: 0.025 ms

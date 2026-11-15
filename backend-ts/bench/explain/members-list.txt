@@ -1,0 +1,14 @@
+Phase: before; EXPLAIN (ANALYZE, BUFFERS); enable_seqscan=on
+
+SQL: select "id", "full_name", "profile_image", "is_active", "created_at" from "members" order by "members"."created_at" desc, "members"."id" desc limit $1
+Bindings: ["50"]
+Limit  (cost=1.41..1.44 rows=14 width=77) (actual time=0.006..0.007 rows=14 loops=1)
+  Buffers: shared hit=1
+  ->  Sort  (cost=1.41..1.44 rows=14 width=77) (actual time=0.005..0.006 rows=14 loops=1)
+        Sort Key: created_at DESC, id DESC
+        Sort Method: quicksort  Memory: 26kB
+        Buffers: shared hit=1
+        ->  Seq Scan on members  (cost=0.00..1.14 rows=14 width=77) (actual time=0.001..0.002 rows=14 loops=1)
+              Buffers: shared hit=1
+Planning Time: 0.011 ms
+Execution Time: 0.010 ms

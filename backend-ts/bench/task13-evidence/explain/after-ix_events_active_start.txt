@@ -1,0 +1,17 @@
+Phase: after; EXPLAIN (ANALYZE, BUFFERS); enable_seqscan=off (index eligibility only; not a production plan)
+
+SQL: SELECT start_time FROM events WHERE is_deleted = false AND is_active = true AND start_time >= (now() AT TIME ZONE 'UTC') ORDER BY start_time
+Bindings: []
+Sort  (cost=8.45..8.46 rows=3 width=8) (actual time=0.012..0.013 rows=0 loops=1)
+  Sort Key: start_time
+  Sort Method: quicksort  Memory: 25kB
+  Buffers: shared hit=1
+  ->  Bitmap Heap Scan on events  (cost=4.17..8.43 rows=3 width=8) (actual time=0.011..0.011 rows=0 loops=1)
+        Recheck Cond: ((start_time >= timezone('UTC'::text, now())) AND (NOT is_deleted))
+        Filter: is_active
+        Buffers: shared hit=1
+        ->  Bitmap Index Scan on ix_events_active_start  (cost=0.00..4.17 rows=3 width=0) (actual time=0.010..0.010 rows=0 loops=1)
+              Index Cond: ((is_active = true) AND (start_time >= timezone('UTC'::text, now())))
+              Buffers: shared hit=1
+Planning Time: 0.035 ms
+Execution Time: 0.019 ms

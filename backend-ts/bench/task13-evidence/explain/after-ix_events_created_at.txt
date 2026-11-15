@@ -1,0 +1,11 @@
+Phase: after; EXPLAIN (ANALYZE, BUFFERS); enable_seqscan=off (index eligibility only; not a production plan)
+
+SQL: SELECT created_at FROM events ORDER BY created_at
+Bindings: []
+Index Only Scan using ix_events_created_at on events  (cost=0.14..24.60 rows=31 width=8) (actual time=0.019..0.026 rows=31 loops=1)
+  Heap Fetches: 31
+  Buffers: shared hit=9
+Planning:
+  Buffers: shared hit=4
+Planning Time: 0.018 ms
+Execution Time: 0.029 ms

@@ -1,0 +1,15 @@
+Phase: before; EXPLAIN (ANALYZE, BUFFERS); enable_seqscan=on
+
+SQL: select distinct "category" from "sponsors" where "sponsors"."category" <> $1 order by "sponsors"."category" asc
+Bindings: [""]
+Unique  (cost=1.91..2.03 rows=25 width=218) (actual time=0.009..0.012 rows=5 loops=1)
+  Buffers: shared hit=1
+  ->  Sort  (cost=1.91..1.97 rows=25 width=218) (actual time=0.009..0.010 rows=28 loops=1)
+        Sort Key: category
+        Sort Method: quicksort  Memory: 26kB
+        Buffers: shared hit=1
+        ->  Seq Scan on sponsors  (cost=0.00..1.32 rows=25 width=218) (actual time=0.003..0.005 rows=28 loops=1)
+              Filter: ((category)::text <> ''::text)
+              Buffers: shared hit=1
+Planning Time: 0.026 ms
+Execution Time: 0.017 ms

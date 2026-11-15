@@ -1,0 +1,55 @@
+Phase: after; EXPLAIN (ANALYZE, BUFFERS); enable_seqscan=on
+
+SQL: SELECT coalesce(json_agg(q.row_json ORDER BY q.project_count DESC, q.total_contributions DESC, q.id ASC), '[]'::json)::text AS body
+    FROM (SELECT m.id, count(pm.id) AS project_count, coalesce(sum(pm.contribution_count), 0) AS total_contributions,
+      json_build_object('full_name', m.full_name, 'profile_image', m.profile_image,
+    'id', m.id, 'is_active', coalesce(m.is_active, false), 'created_at', CASE
+    WHEN m.created_at IS NULL THEN NULL
+    WHEN date_trunc('second', (m.created_at::timestamptz AT TIME ZONE 'UTC')) = (m.created_at::timestamptz AT TIME ZONE 'UTC')
+      THEN to_char((m.created_at::timestamptz AT TIME ZONE 'UTC'), 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+    ELSE to_char((m.created_at::timestamptz AT TIME ZONE 'UTC'), 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')
+  END
+    , 'project_count', count(pm.id)::int, 'total_contributions', coalesce(sum(pm.contribution_count), 0)::int) AS row_json FROM members m
+      LEFT JOIN project_members pm ON pm.member_id = m.id
+      LEFT JOIN projects p ON p.id = pm.project_id AND p.is_deleted = false AND p.is_active = true
+      WHERE m.is_active = true AND (pm.id IS NULL OR p.id IS NOT NULL)
+      GROUP BY m.id ORDER BY count(pm.id) DESC, coalesce(sum(pm.contribution_count), 0) DESC, m.id ASC LIMIT $1) q
+Bindings: ["10"]
+Aggregate  (cost=7.76..7.78 rows=1 width=32) (actual time=0.065..0.066 rows=1 loops=1)
+  Buffers: shared hit=6
+  ->  Limit  (cost=7.39..7.67 rows=7 width=52) (actual time=0.042..0.060 rows=10 loops=1)
+        Buffers: shared hit=6
+        ->  Result  (cost=7.39..7.67 rows=7 width=52) (actual time=0.042..0.060 rows=10 loops=1)
+              Buffers: shared hit=6
+              ->  Sort  (cost=7.39..7.41 rows=7 width=101) (actual time=0.036..0.037 rows=10 loops=1)
+                    Sort Key: (count(pm.id)) DESC, (COALESCE(sum(pm.contribution_count), '0'::bigint)) DESC, m.id
+                    Sort Method: quicksort  Memory: 26kB
+                    Buffers: shared hit=6
+                    ->  HashAggregate  (cost=7.23..7.30 rows=7 width=101) (actual time=0.030..0.032 rows=14 loops=1)
+                          Group Key: m.id
+                          Batches: 1  Memory Usage: 24kB
+                          Buffers: shared hit=6
+                          ->  Hash Left Join  (cost=5.64..7.05 rows=14 width=85) (actual time=0.016..0.025 rows=30 loops=1)
+                                Hash Cond: (pm.project_id = p.id)
+                                Filter: ((pm.id IS NULL) OR (p.id IS NOT NULL))
+                                Buffers: shared hit=6
+                                ->  Hash Right Join  (cost=1.23..2.60 rows=14 width=89) (actual time=0.008..0.014 rows=30 loops=1)
+                                      Hash Cond: (pm.member_id = m.id)
+                                      Buffers: shared hit=2
+                                      ->  Seq Scan on project_members pm  (cost=0.00..1.29 rows=29 width=16) (actual time=0.001..0.002 rows=29 loops=1)
+                                            Buffers: shared hit=1
+                                      ->  Hash  (cost=1.14..1.14 rows=7 width=77) (actual time=0.006..0.006 rows=14 loops=1)
+                                            Buckets: 1024  Batches: 1  Memory Usage: 10kB
+                                            Buffers: shared hit=1
+                                            ->  Seq Scan on members m  (cost=0.00..1.14 rows=7 width=77) (actual time=0.003..0.004 rows=14 loops=1)
+                                                  Filter: is_active
+                                                  Buffers: shared hit=1
+                                ->  Hash  (cost=4.31..4.31 rows=8 width=4) (actual time=0.007..0.007 rows=23 loops=1)
+                                      Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                      Buffers: shared hit=4
+                                      ->  Seq Scan on projects p  (cost=0.00..4.31 rows=8 width=4) (actual time=0.001..0.005 rows=23 loops=1)
+                                            Filter: ((NOT is_deleted) AND is_active)
+                                            Rows Removed by Filter: 8
+                                            Buffers: shared hit=4
+Planning Time: 0.083 ms
+Execution Time: 0.082 ms
