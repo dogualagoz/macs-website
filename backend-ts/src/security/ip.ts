@@ -10,6 +10,6 @@ function trustedSocket(ip: string): boolean {
 
 export function resolveClientIp(headers: Headers, socketIp: string | undefined): string {
   const real = headers.get("X-Real-IP");
-  if ((socketIp === undefined || trustedSocket(socketIp)) && real !== null && isIP(real) !== 0) return real;
+  if (real !== null && (socketIp === undefined || trustedSocket(socketIp)) && isIP(real) !== 0) return real;
   return socketIp !== undefined && isIP(socketIp) !== 0 ? socketIp : "unknown";
 }

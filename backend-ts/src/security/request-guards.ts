@@ -17,9 +17,8 @@ export function validateRequestHead(req: Request, rawTarget: string, config: Sec
     path = decoded;
   }
   let count = 0; let bytes = 0;
-  const encoder = new TextEncoder();
   for (const [name, value] of req.headers) {
-    count++; bytes += encoder.encode(name).byteLength + encoder.encode(value).byteLength + 4;
+    count++; bytes += Buffer.byteLength(name, "utf8") + Buffer.byteLength(value, "utf8") + 4;
     if (count > config.maxHeaderCount || bytes > config.maxHeaderBytes) throw new HttpError(431, "Request Header Fields Too Large");
   }
 }
