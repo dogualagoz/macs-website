@@ -155,7 +155,7 @@ test("sponsor update deviation l approves only PUT /sponsors/:id with old 500 an
   expect(approvedDeviation(put, old500, { status: 422, body: { detail: [{ type: "string_too_short", loc: ["body", "name"], msg: "String should have at least 2 characters", input: "A" }] } })).toBeNull();
 });
 
-test("shared compare module passes raw responses to approvedDeviation and validates record IDs", async () => {
+test("shared compare module aligns embedded members by id for deviation k and validates record IDs", async () => {
   const { compareResponses, records } = await import("../contract/compare");
   const { compareResponses: diffCompare, records: diffRecords } = await import("../contract/differential");
   expect(compareResponses).toBe(diffCompare);
@@ -163,20 +163,43 @@ test("shared compare module passes raw responses to approvedDeviation and valida
   expect(records({ projects: [{ id: 1, slug: "p" }] }, "projects")).toEqual([{ id: 1, slug: "p" }]);
   expect(() => records({ projects: "not-an-array" }, "projects")).toThrow("Catalogue discovery expected an array at projects");
   expect(() => records([{ id: "1" }])).toThrow("Catalogue discovery expected numeric IDs");
-  // Deviation k requires raw member array ordering to match before masking roles;
-  // normalized sorting of members must not allow k to waive a reordered member array with different roles.
+  // Deviation k aligns embedded members by member id before comparing roles so SQL join ordering
+  // differences do not hide role-only diffs, while any non-role difference remains unapproved.
   const identity = { method: "GET", path: "/projects/2", query: new URLSearchParams() };
   const old = {
     status: 200,
     headers: new Headers(),
-    body: { id: 2, members: [{ id: 2, project_role: "Lead" }, { id: 1, project_role: "Dev" }] },
+    body: { id: 2, members: [{ id: 2, full_name: "B", project_role: "Lead" }, { id: 1, full_name: "A", project_role: "Dev" }] },
   };
-  const next = {
+  const roleOnlyReordered = {
     status: 200,
     headers: new Headers(),
-    body: { id: 2, members: [{ id: 1, project_role: "Other" }, { id: 2, project_role: "Member" }] },
+    body: { id: 2, members: [{ id: 1, full_name: "A", project_role: "Other" }, { id: 2, full_name: "B", project_role: "Member" }] },
   };
-  expect(compareResponses(identity, old, next)).toMatchObject({ equal: false, deviation: null });
+  expect(compareResponses(identity, old, roleOnlyReordered)).toMatchObject({ equal: false, deviation: "k" });
+  expect(approvedDeviation(identity, old, roleOnlyReordered)).toBe("k");
+  // Identical roles in a different raw order normalize as equal (no spurious deviation k)
+  const sameRolesReordered = {
+    status: 200,
+    headers: new Headers(),
+    body: { id: 2, members: [{ id: 1, full_name: "A", project_role: "Dev" }, { id: 2, full_name: "B", project_role: "Lead" }] },
+  };
+  expect(compareResponses(identity, old, sameRolesReordered)).toMatchObject({ equal: true, deviation: null });
+  expect(approvedDeviation(identity, old, sameRolesReordered)).toBeNull();
+  // Non-role differences with reordered members must NOT be waived by deviation k
+  const nameChangedReordered = {
+    status: 200,
+    headers: new Headers(),
+    body: { id: 2, members: [{ id: 1, full_name: "A-changed", project_role: "Other" }, { id: 2, full_name: "B", project_role: "Member" }] },
+  };
+  const missingMember = {
+    status: 200,
+    headers: new Headers(),
+    body: { id: 2, members: [{ id: 1, full_name: "A", project_role: "Other" }] },
+  };
+  expect(compareResponses(identity, old, nameChangedReordered)).toMatchObject({ equal: false, deviation: null });
+  expect(approvedDeviation(identity, old, nameChangedReordered)).toBeNull();
+  expect(compareResponses(identity, old, missingMember)).toMatchObject({ equal: false, deviation: null });
 });
 
 test("deviation n matches only raw static traversal, with exact 404 to 400 envelopes", () => {

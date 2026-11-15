@@ -41,13 +41,26 @@ function validationAt(body: unknown, field: string, input: string, type: string,
   const item: unknown = body.detail[0];
   return item !== null && typeof item === "object" && "type" in item && item.type === type && "loc" in item && stableJson(item.loc) === stableJson(["query", field]) && "msg" in item && item.msg === msg && "input" in item && item.input === input;
 }
-// Mask existing role fields only; retain every other field and all array ordering.
-function maskProjectRoles(body: unknown): unknown {
-  if (body === null || typeof body !== "object" || Array.isArray(body)) return body;
-  if ("projects" in body && Array.isArray(body.projects)) return { ...body, projects: body.projects.map(maskProjectRoles) };
+function compareMemberId(a: unknown, b: unknown): number {
+  const idA = a !== null && typeof a === "object" && "id" in a ? a.id : undefined;
+  const idB = b !== null && typeof b === "object" && "id" in b ? b.id : undefined;
+  if (typeof idA === "number" && typeof idB === "number" && idA !== idB) return idA - idB;
+  if (typeof idA === "string" && typeof idB === "string") {
+    const cmp = idA.localeCompare(idB);
+    if (cmp !== 0) return cmp;
+  }
+  return stableJson(a).localeCompare(stableJson(b));
+}
+// Align embedded members by member id before comparing/masking roles so SQL join
+// order differences do not hide role-only diffs while keeping every other field strict.
+function alignProjectMembers(body: unknown, maskRoles: boolean): unknown {
+  if (body === null || typeof body !== "object") return body;
+  if (Array.isArray(body)) return body.map(item => alignProjectMembers(item, maskRoles));
+  if ("projects" in body && Array.isArray(body.projects)) return { ...body, projects: body.projects.map(item => alignProjectMembers(item, maskRoles)) };
   if (!("members" in body) || !Array.isArray(body.members)) return body;
-  return { ...body, members: body.members.map((member: unknown) => member !== null && typeof member === "object" && !Array.isArray(member) && Object.hasOwn(member, "project_role")
-    ? { ...member, project_role: "<project-role>" } : member) };
+  const mapped = body.members.map((member: unknown) => maskRoles && member !== null && typeof member === "object" && !Array.isArray(member) && Object.hasOwn(member, "project_role")
+    ? { ...member, project_role: "<project-role>" } : member);
+  return { ...body, members: [...mapped].sort(compareMemberId) };
 }
 function sponsorUpdateValidation(body: unknown): boolean {
   if (body === null || typeof body !== "object" || !("detail" in body) || !Array.isArray(body.detail) || body.detail.length === 0) return false;
@@ -86,8 +99,9 @@ export function approvedDeviation(r: RequestIdentity, old: ComparableResponse, n
     && old.status === 404 && stableJson(old.body) === stableJson({ detail: "Not Found" })
     && next.status === 400 && stableJson(next.body) === stableJson({ detail: "Bad Request" })) return "n";
   const projectRead = ["/projects", "/projects/admin", "/projects/featured"].includes(r.path) || /^\/projects\/(?:\d+|by-slug\/[^/]+)$/.test(r.path);
-  if (projectRead && old.status === next.status && stableJson(old.body) !== stableJson(next.body)
-    && stableJson(maskProjectRoles(old.body)) === stableJson(maskProjectRoles(next.body))) return "k";
+  if (projectRead && old.status === next.status
+    && stableJson(alignProjectMembers(old.body, false)) !== stableJson(alignProjectMembers(next.body, false))
+    && stableJson(alignProjectMembers(old.body, true)) === stableJson(alignProjectMembers(next.body, true))) return "k";
   const status = r.query.get("status");
   const enumMessage = "Input should be 'PLANNING', 'IN_PROGRESS', 'COMPLETED', 'ON_HOLD' or 'CANCELLED'";
   const projectFilter = ["/projects", "/projects/admin"].includes(r.path);
