@@ -184,6 +184,29 @@ describe("geocode with injected upstream (no real network)", () => {
     const r = await request(geocodeApp(() => failure === "network" ? Promise.reject(new TypeError("Network unreachable")) : Promise.resolve(new Response("Unavailable", { status: 503 })), { logger })).post("/sponsors/geocode").auth(await mod(), { type: "bearer" }).send({ address: "Kadıköy" });
     expect(r.status).toBe(500); expect(r.body).toEqual({ detail: "Geocoding servisine ulaşılamadı" }); expect(logs.join("")).toContain("Geocoding isteği başarısız");
   });
+  test("malformed upstream JSON returns the logged service error", async () => {
+    const logs: string[] = [];
+    const logger = pino({ level: "error" }, new Writable({ write(chunk: Buffer, _encoding, callback) { logs.push(chunk.toString()); callback(); } }));
+    const r = await request(geocodeApp(() => Promise.resolve(new Response("{broken", { headers: { "Content-Type": "application/json" } })), { logger }))
+      .post("/sponsors/geocode").auth(await mod(), { type: "bearer" }).send({ address: "Kadıköy" });
+    expect(r.status).toBe(500);
+    expect(r.body).toEqual({ detail: "Geocoding servisine ulaşılamadı" });
+    expect(logs.join("")).toContain("Geocoding isteği başarısız");
+  });
+  test.each([
+    { unexpected: true }, [null], ["bad"], [{}],
+    [{ lat: "invalid", lon: "29", display_name: "İstanbul" }],
+    [{ lat: "41", lon: "29" }],
+  ].map(payload => ({ payload })))("invalid geocode shape %j retains the legacy unhandled 500 behavior", async ({ payload }) => {
+    const logs: string[] = [];
+    const logger = pino({ level: "error" }, new Writable({ write(chunk: Buffer, _encoding, callback) { logs.push(chunk.toString()); callback(); } }));
+    const r = await request(geocodeApp(() => Promise.resolve(Response.json(payload)), { logger }))
+      .post("/sponsors/geocode").auth(await mod(), { type: "bearer" }).send({ address: "Kadıköy" });
+    expect(r.status).toBe(500);
+    expect(r.body).toEqual({ detail: "Internal Server Error" });
+    expect(logs.join("")).toContain("Unhandled request error");
+    expect(logs.join("")).not.toContain("Geocoding isteği başarısız");
+  });
   test("authentication and input validation happen before upstream fetch", async () => {
     const app = geocodeApp(noNetwork); const anonymous = await request(app).post("/sponsors/geocode").send({ address: "Kadıköy" }); expect(anonymous.status).toBe(401);
     const short = await request(app).post("/sponsors/geocode").auth(await mod(), { type: "bearer" }).send({ address: "ab" }); expect(short.status).toBe(422);
