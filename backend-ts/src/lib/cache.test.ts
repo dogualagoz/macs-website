@@ -611,3 +611,10 @@ test("warmup failures report only safe classifications (no PII/message/stack), w
 });
 
 
+
+test("empty invalidation targets do not even consult warmup clock", () => {
+  let calls = 0;
+  const cache = createResponseCache({ now: () => { calls++; return 0; } });
+  cache.invalidate("uploads"); cache.invalidate("system");
+  expect(calls).toBe(0); expect(cache.size()).toBe(0);
+});

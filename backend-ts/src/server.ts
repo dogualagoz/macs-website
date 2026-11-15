@@ -1,3 +1,4 @@
+import { registerBenchmarkWarmup } from "./lib/cache-warmup";
 import { DEFAULT_SECURITY_CONFIG } from "./security/config";
 import { localDiskStorage } from "./lib/storage";
 import { findUserByEmail, serializeUser } from "./modules/users/queries";
@@ -11,12 +12,15 @@ try {
   const env = parseEnv(process.env);
   const logger = createLogger(env.LOG_LEVEL);
   const database = createDb(env.DATABASE_URL);
-  const cache = createResponseCache({ max: 500, ttlMs: 60_000, now: Date.now, enabled: env.RESPONSE_CACHE });
-  const app = createApp({ cache, storage: localDiskStorage(env.UPLOAD_DIR), env, logger, routeRegistry: [], ...database,
-    loadUser: email => findUserByEmail(database.db, email).then(row => row ? serializeUser(row) : null) });
+  const cache = createResponseCache({ max: 500, ttlMs: 60_000, now: Date.now, enabled: env.RESPONSE_CACHE, logger });
+  const deps = { cache, storage: localDiskStorage(env.UPLOAD_DIR), env, logger, ...database,
+    loadUser: (email: string) => findUserByEmail(database.db, email).then(row => row ? serializeUser(row) : null) };
+  const app = createApp(deps);
+  registerBenchmarkWarmup(deps);
   const server = Bun.serve({ port: env.PORT, idleTimeout: DEFAULT_SECURITY_CONFIG.idleTimeoutSec,
     maxRequestBodySize: Math.max(env.MAX_UPLOAD_SIZE + DEFAULT_SECURITY_CONFIG.uploadOverheadBytes, DEFAULT_SECURITY_CONFIG.maxBodyBytes),
     fetch: (req, server) => app.fetch(req, { socketIp: server.requestIP(req)?.address }) });
+  void cache.warmupStartup();
   logger.info({ port: server.port }, "Server listening");
   let shuttingDown = false;
   const shutdown = (signal: string): void => {

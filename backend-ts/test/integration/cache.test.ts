@@ -212,3 +212,43 @@ test("cache HIT still applies query validation and rate limits", async () => {
   const invalid = await request(app).get("/cache-limited?q="); expect(invalid.status).toBe(422); noStore(invalid);
   const limited = await request(app).get("/cache-limited?q=yes"); expect(limited.status).toBe(429); noStore(limited);
 });
+
+test("v2 cached byte variants and uncached authorized compression", async () => {
+  const { brotliDecompressSync, gunzipSync } = await import("node:zlib");
+  const app = createApp(deps);
+  const raw = await request(app).get("/events?limit=100");
+  expect(raw.rawBytes.length).toBeGreaterThan(1024);
+  for (const [accept, encoding, decode] of [["br", "br", brotliDecompressSync], ["gzip", "gzip", gunzipSync], ["br;q=0, gzip", "gzip", gunzipSync]] as const) {
+    deps.counter.reset();
+    const cached = await request(app).get("/events?limit=100").set("Accept-Encoding", accept);
+    expect(cached.headers["content-encoding"]).toBe(encoding);
+    expect(cached.headers.vary).toBe("Accept-Encoding, Origin");
+    expect(decode(cached.rawBytes).toString()).toBe(raw.text); expect(deps.counter.count()).toBe(0);
+    const privateResponse = await request(app).get("/events?limit=100").auth(await mod(), { type: "bearer" }).set("Accept-Encoding", accept);
+    noStore(privateResponse); expect(privateResponse.headers["content-encoding"]).toBe(encoding);
+    expect(decode(privateResponse.rawBytes).toString()).toBe(raw.text);
+  }
+  expect((await request(app).get("/health").set("Accept-Encoding", "br")).headers["content-encoding"]).toBeUndefined();
+});
+test("20 concurrent project misses execute exactly one SQL query", async () => {
+  const app = createApp(deps); deps.counter.reset();
+  const responses = await Promise.all(Array.from({ length: 20 }, async () => app.request("/projects?limit=100")));
+  expect(responses.every(r => r.status === 200)).toBe(true); expect(deps.counter.count()).toBe(1);
+});
+test("unknown query spam shares one normalized cache key", async () => {
+  const app = createApp(deps); await app.request("/events?limit=10"); deps.counter.reset();
+  for (let i = 0; i < 50; i++) expect((await app.request(`/events?limit=10&utm_${String(i)}=a`)).headers.get("X-Cache")).toBe("HIT");
+  expect(deps.cache.size()).toBe(1); expect(deps.counter.count()).toBe(0);
+});
+test("seven startup benchmark keys match HTTP keys and invalidation rewarms sponsors", async () => {
+  const { registerBenchmarkWarmup } = await import("../../src/lib/cache-warmup");
+  registerBenchmarkWarmup(deps); await deps.cache.warmupStartup();
+  expect(deps.cache.size()).toBe(7);
+  const app = createApp(deps); deps.counter.reset();
+  for (const path of ["/events?limit=100", "/events/featured", "/projects?limit=100", "/projects/featured", "/members/leaderboard", "/members", "/sponsors/"]) expect((await app.request(path)).headers.get("X-Cache")).toBe("HIT");
+  expect(deps.counter.count()).toBe(0);
+  await deps.sql`UPDATE sponsors SET name = 'Warm changed' WHERE id = 1`;
+  deps.cache.invalidate("sponsors"); await deps.cache.drain(); deps.counter.reset();
+  const response = await request(app).get("/sponsors/"); expect(response.headers["x-cache"]).toBe("HIT");
+  expect(response.body).toContainEqual(expect.objectContaining({ name: "Warm changed" })); expect(deps.counter.count()).toBe(0);
+});

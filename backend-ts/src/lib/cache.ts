@@ -467,6 +467,7 @@ export function createResponseCache(o: ResponseCacheOptions = {}): ResponseCache
       return loadSingleFlight(key, domain, loader, true);
     },
     invalidate(domain) {
+      if (INVALIDATES[domain].length === 0) return;
       const targets = new Set(INVALIDATES[domain]);
       for (const target of targets) {
         generations.set(target, (generations.get(target) ?? 0) + 1);
