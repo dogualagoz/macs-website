@@ -65,7 +65,7 @@ export const fastApiDefaultHook: Hook<unknown, AppEnv, string, Promise<Response 
 export function isGlobalRateLimitExempt(path: string): boolean {
   return path === "/uploads" || path.startsWith("/uploads/")
     || path === "/static" || path.startsWith("/static/")
-    || path.startsWith("/health");
+    || path === "/health" || path === "/health/ready";
 }
 export function canonicalizeApiPath(req: Request): string {
   const path = new URL(req.url).pathname;
