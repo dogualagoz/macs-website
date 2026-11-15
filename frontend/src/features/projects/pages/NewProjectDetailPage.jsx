@@ -8,6 +8,7 @@ import ErrorMessage from '../../../shared/components/feedback/ErrorMessage';
 import { USE_MOCK_FALLBACK } from '../../../shared/utils/mockFallback';
 import { handleAvatarError, handleImageError } from '../../../utils/imageUtils';
 import SEO from '../../../shared/components/seo/SEO';
+import { responsiveImgProps, withVariantFallback } from '../../../shared/utils/responsiveImage';
 
 /**
  * New ProjectDetailPage Component
@@ -117,7 +118,7 @@ const NewProjectDetailPage = () => {
       {/* Hero Section with Blur Backdrop */}
       <div className="relative h-[60vh] w-full overflow-hidden">
         <div className="absolute inset-0 z-0" style={{ viewTransitionName: 'project-hero' }}>
-          <img fetchpriority="high" decoding="async" src={project.imageUrl} alt={project.title} className="w-full h-full object-cover opacity-40 blur-sm" onError={handleImageError} />
+          <img fetchpriority="high" decoding="async" src={project.imageUrl} {...responsiveImgProps(project.imageUrl, '100vw')} alt={project.title} className="w-full h-full object-cover opacity-40 blur-sm" onError={withVariantFallback(handleImageError)} />
           <div className="absolute inset-0 bg-gradient-to-t from-[#07132b] via-[#07132b]/80 to-transparent" />
         </div>
 

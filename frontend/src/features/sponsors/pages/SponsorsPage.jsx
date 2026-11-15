@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { mockSponsors } from '../data/mockSponsors';
 import { sponsorService } from '../../../shared/services/api';
 import { handleAvatarError } from '../../../utils/imageUtils';
+import { responsiveImgProps, withVariantFallback } from '../../../shared/utils/responsiveImage';
 import { GradientBackground } from '../../../shared/components/ui/GradientBackground';
 import { ChevronDown } from 'lucide-react';
 import '../../../styles/pages/sponsors.css';
@@ -316,9 +317,10 @@ function SponsorsGrid({ sponsors, onSponsorClick }) {
               {sponsor.imageUrl ? (
                 <img loading="lazy" decoding="async"
                   src={sponsor.imageUrl}
+                  {...responsiveImgProps(sponsor.imageUrl, '64px')}
                   alt={sponsor.name}
                   className="sponsor-card__avatar"
-                  onError={(e) => handleAvatarError(e, sponsor.name)}
+                  onError={withVariantFallback((e) => handleAvatarError(e, sponsor.name))}
                 />
               ) : (
                 <div className="sponsor-card__avatar sponsor-card__avatar--placeholder">
@@ -421,9 +423,10 @@ function FeaturedSplit({ sponsors }) {
               {sponsor.imageUrl ? (
                 <img fetchpriority="high" decoding="async"
                   src={sponsor.imageUrl}
+                  {...responsiveImgProps(sponsor.imageUrl, '(min-width: 768px) 448px, 82vw')}
                   alt={sponsor.name}
                   className="split-panel__logo"
-                  onError={(e) => handleAvatarError(e, sponsor.name)}
+                  onError={withVariantFallback((e) => handleAvatarError(e, sponsor.name))}
                 />
               ) : (
                 <span className="split-panel__logo split-panel__logo--placeholder">

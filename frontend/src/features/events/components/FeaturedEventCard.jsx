@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Calendar, MapPin, Star } from 'lucide-react';
 import { getImageUrl, handleImageError } from '../../../utils/imageUtils';
 import { parseApiDate, isPastApiDate, SITE_TIMEZONE } from '../../../shared/utils/apiDate';
+import { responsiveImgProps, withVariantFallback } from '../../../shared/utils/responsiveImage';
 
 /**
  * Featured Event Card Component
@@ -35,9 +36,9 @@ export default function FeaturedEventCard({ event }) {
           {/* Image Container - Left Side */}
           <div className="relative h-64 md:h-80 overflow-hidden bg-gray-100 col-span-1">
             <img fetchpriority="high" decoding="async"
-              src={getImageUrl(event.image_url)}
+              src={getImageUrl(event.image_url)} {...responsiveImgProps(getImageUrl(event.image_url), '(min-width: 768px) 600px, 100vw')}
               alt={event.title}
-              onError={handleImageError}
+              onError={withVariantFallback(handleImageError)}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             />
             {isPast && (

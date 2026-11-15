@@ -11,6 +11,7 @@ import { Calendar, MapPin, Clock, ChevronLeft, ChevronRight, Users } from 'lucid
 import { getImageUrl, handleImageError } from '../../../utils/imageUtils';
 import '../../../styles/components/slider.css';
 import { parseApiDate, isPastApiDate, SITE_TIMEZONE } from '../../utils/apiDate';
+import { responsiveImgProps, withVariantFallback } from '../../utils/responsiveImage';
 
 const EventSlider = ({ events = [] }) => {
     const allEvents = events;
@@ -90,9 +91,9 @@ const EventSlider = ({ events = [] }) => {
                                         {/* Image Section */}
                                         <div className="slider-card-image">
                                             <img loading="lazy" decoding="async"
-                                                src={getImageUrl(event.image_url || event.image)}
+                                                src={getImageUrl(event.image_url || event.image)} {...responsiveImgProps(getImageUrl(event.image_url || event.image), '(min-width: 768px) 600px, 100vw')}
                                                 alt={event.title}
-                                                onError={handleImageError}
+                                                onError={withVariantFallback(handleImageError)}
                                                 style={eventIsPast ? { filter: 'grayscale(100%)' } : {}}
                                             />
                                             {eventIsPast && <div className="slider-card-overlay" />}

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Calendar, MapPin } from 'lucide-react';
 import { getImageUrl, handleImageError } from '../../../utils/imageUtils';
 import { parseApiDate, isPastApiDate, SITE_TIMEZONE } from '../../../shared/utils/apiDate';
+import { responsiveImgProps, withVariantFallback } from '../../../shared/utils/responsiveImage';
 
 /**
  * Event Card Component
@@ -34,9 +35,9 @@ export default function EventCard({ event }) {
         {/* Image */}
         <div className="relative h-48 overflow-hidden">
           <img loading="lazy" decoding="async"
-            src={getImageUrl(event.image_url)}
+            src={getImageUrl(event.image_url)} {...responsiveImgProps(getImageUrl(event.image_url), '(min-width: 1024px) 384px, (min-width: 768px) 50vw, 100vw')}
             alt={event.title}
-            onError={handleImageError}
+            onError={withVariantFallback(handleImageError)}
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
           />
           <div className="absolute top-3 left-3">

@@ -10,6 +10,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Code2, Users, ChevronLeft, ChevronRight, Github, ExternalLink } from 'lucide-react';
 import { getImageUrl, handleImageError, handleAvatarError } from '../../../utils/imageUtils';
 import '../../../styles/components/slider.css';
+import { responsiveImgProps, withVariantFallback } from '../../utils/responsiveImage';
 
 const ProjectSlider = ({ projects = [] }) => {
     const allProjects = projects;
@@ -78,9 +79,9 @@ const ProjectSlider = ({ projects = [] }) => {
                                         {/* Image Section */}
                                         <div className="slider-card-image">
                                             <img
-                                                src={getImageUrl(project.image_url || project.image)}
+                                                src={getImageUrl(project.image_url || project.image)} {...responsiveImgProps(getImageUrl(project.image_url || project.image), '(min-width: 768px) 600px, 100vw')}
                                                 alt={project.title}
-                                                onError={(e) => handleImageError(e, '/assets/images/img_source_code.webp')}
+                                                onError={withVariantFallback((e) => handleImageError(e, '/assets/images/img_source_code.webp'))}
                                             loading="lazy" />
                                         </div>
 

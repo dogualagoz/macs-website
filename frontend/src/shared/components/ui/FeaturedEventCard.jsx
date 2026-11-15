@@ -9,6 +9,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Calendar, MapPin, Star } from 'lucide-react';
 import { getImageUrl, handleImageError } from '../../../utils/imageUtils';
 import { parseApiDate, isPastApiDate, SITE_TIMEZONE } from '../../utils/apiDate';
+import { responsiveImgProps, withVariantFallback } from '../../utils/responsiveImage';
 
 const FeaturedEventCard = ({ title, date, location, description, image, startTime, endTime, maxParticipants, slug }) => {
   const getDateObject = (dateStr) => parseApiDate(dateStr) || new Date(NaN);
@@ -53,9 +54,9 @@ const FeaturedEventCard = ({ title, date, location, description, image, startTim
         {/* Image Container - Left Side */}
         <div className="featured-event-card-image relative overflow-hidden bg-gray-100">
           <img loading="lazy" decoding="async"
-            src={getImageUrl(image)}
+            src={getImageUrl(image)} {...responsiveImgProps(getImageUrl(image), '(min-width: 768px) 600px, 100vw')}
             alt={title}
-            onError={handleImageError}
+            onError={withVariantFallback(handleImageError)}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             style={isPast ? { filter: 'grayscale(100%)' } : {}}
           />
