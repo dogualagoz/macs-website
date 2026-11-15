@@ -111,7 +111,7 @@ const FeaturedEventCard = ({ title, date, location, description, image, startTim
           <div className="flex gap-3 pt-4 border-t border-gray-200" onClick={handleButtonClick}>
             <Link 
               to={`/etkinlikler/${slug || ''}`} 
-              className="flex-1 px-6 py-3 bg-gray-900 text-white rounded-lg font-semibold hover:bg-gray-800 transition text-center"
+              className="flex-1 px-6 py-3 bg-macs-navy text-white rounded-full font-semibold hover:bg-macs-navy-800 transition text-center"
               style={{ textDecoration: 'none' }}
             >
               Detayları Gör

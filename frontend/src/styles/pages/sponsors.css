@@ -1094,10 +1094,11 @@
 
 .sponsors-cta__btn {
   display: inline-block;
-  padding: 0.75rem 2rem;
-  background: #07132b;
+  padding: 0.75rem 1.5rem;
+  background: var(--brand);
   color: #ffffff;
-  font-weight: 500;
+  font-size: 0.95rem;
+  font-weight: 600;
   border-radius: 9999px;
   text-decoration: none;
   transition: all 0.2s;
@@ -1106,7 +1107,7 @@
 }
 
 .sponsors-cta__btn:hover {
-  background: #0a1a3a;
+  background: var(--navy-800);
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 }
 
