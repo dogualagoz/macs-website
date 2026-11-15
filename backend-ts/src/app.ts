@@ -115,7 +115,7 @@ export function createApp(deps: AppDeps, registerRoutes?: (router: AppRouter, de
     catch (error) { throw error instanceof Error ? error : new Error("Non-error request failure", { cause: error }); }
   });
   for (const [prefix, root] of [["/uploads", deps.env.UPLOAD_DIR], ["/static", deps.env.STATIC_DIR]] as const) {
-    app.get(`${prefix}/*`, async c => {
+    app.on(["GET", "HEAD"], `${prefix}/*`, async c => {
       const relative = decodeURIComponent(c.req.path.slice(prefix.length));
       if (relative === "" || relative === "/") throw new HttpError(404, "Not Found");
       if (relative.split("/").some(part => part.startsWith("."))) throw new HttpError(404, "Not Found");
@@ -125,11 +125,12 @@ export function createApp(deps: AppDeps, registerRoutes?: (router: AppRouter, de
       const info = await stat(path).catch(() => null);
       if (!info?.isFile()) throw new HttpError(404, "Not Found");
       c.header("Cache-Control", "public, max-age=0");
-      const bytes = await readFile(path);
+      c.header("Content-Length", String(info.size));
       const extension = path.split(".").pop()?.toLowerCase();
       const types: Record<string, string> = { png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif", webp: "image/webp", css: "text/css", js: "application/javascript" };
       c.header("Content-Type", types[extension ?? ""] ?? "application/octet-stream");
-      return c.body(bytes);
+      if (c.req.method === "HEAD") return c.body(null, 200);
+      return c.body(await readFile(path));
     });
   }
   registerSystemRoutes(app, deps);

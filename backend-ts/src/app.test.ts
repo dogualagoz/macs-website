@@ -334,3 +334,44 @@ test("E2: /uploads, /static, and /health* bypass global limiter, preserve guards
     await defaultDeps.sql.end();
   }
 });
+
+test("D1: HEAD parity on /uploads/* and /static/* via Bun.serve matches GET headers without body or full read", async () => {
+  const root = mkdtempSync(join(tmpdir(), "macs-d1-"));
+  const uploadDir = join(root, "uploads");
+  const staticDir = join(root, "static");
+  mkdirSync(uploadDir, { recursive: true });
+  mkdirSync(staticDir, { recursive: true });
+  const pngBytes = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10, 1, 2, 3, 4]);
+  const cssBytes = Buffer.from("body { color: red; }\n");
+  writeFileSync(join(uploadDir, "logo.png"), pngBytes);
+  writeFileSync(join(staticDir, "site.css"), cssBytes);
+  const deps = testDeps({ env: { ...env, UPLOAD_DIR: uploadDir, STATIC_DIR: staticDir } });
+  const testApp = createApp(deps);
+  const server = Bun.serve({ port: 0, fetch: req => testApp.fetch(req) });
+  try {
+    for (const [path, expectedBytes, expectedType] of [
+      ["/uploads/logo.png", pngBytes, "image/png"],
+      ["/static/site.css", cssBytes, "text/css"],
+    ] as const) {
+      const getRes = await fetch(`${server.url}${path.slice(1)}`);
+      const headRes = await fetch(`${server.url}${path.slice(1)}`, { method: "HEAD" });
+      const getBody = Buffer.from(await getRes.arrayBuffer());
+      const headBody = Buffer.from(await headRes.arrayBuffer());
+      expect(getRes.status).toBe(200);
+      expect(headRes.status).toBe(200);
+      expect(getBody).toEqual(expectedBytes);
+      expect(headBody.byteLength).toBe(0);
+      expect(headRes.headers.get("Content-Type")).toBe(expectedType);
+      expect(headRes.headers.get("Content-Type")).toBe(getRes.headers.get("Content-Type"));
+      expect(headRes.headers.get("Content-Length")).toBe(String(expectedBytes.byteLength));
+      expect(headRes.headers.get("Content-Length")).toBe(getRes.headers.get("Content-Length"));
+      expect(headRes.headers.get("Cache-Control")).toBe(getRes.headers.get("Cache-Control"));
+    }
+    expect((await fetch(`${server.url}uploads/missing.png`, { method: "HEAD" })).status).toBe(404);
+    expect((await fetch(`${server.url}static/.secret`, { method: "HEAD" })).status).toBe(404);
+  } finally {
+    await server.stop(true);
+    rmSync(root, { recursive: true, force: true });
+    await deps.sql.end();
+  }
+});
