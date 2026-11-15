@@ -491,9 +491,9 @@ test("warmupRegistry is bounded by maxEntries/LRU and prunes expired/evicted reg
   expect(freshCalls).toBe(2);
 });
 
-test("warmup failures report only safe classifications (no PII/message/stack), walk error cause codes, fall back to logger.error, keep peers warming, and retry on next trigger", async () => {
-  const errors: Array<{ key: string; domain: string; errorName: string; errorKind: string; code?: string }> = [];
-  const onErrorEvents: Array<{ key: string; domain: string; errorName: string; errorKind: string; code?: string }> = [];
+test("warmup failures report only safe classifications (keyHash + path, no query/PII/message/stack), walk error cause codes, fall back to logger.error, keep peers warming, and retry on next trigger", async () => {
+  const errors: Array<{ keyHash: string; path: string; domain: string; errorName: string; errorKind: string; code?: string }> = [];
+  const onErrorEvents: Array<{ keyHash: string; path: string; domain: string; errorName: string; errorKind: string; code?: string }> = [];
   const logWarnings: Array<{ obj: Record<string, unknown>; msg?: string }> = [];
 
   const c = createResponseCache({
@@ -515,10 +515,12 @@ test("warmup failures report only safe classifications (no PII/message/stack), w
   });
 
   let flakyAttempts = 0;
+  const flakyKey = cacheKey("/events", { k: "flaky", search: "person@example.com" });
+  const errOnlyKey = "/events?k=err-only&token=secret-query-token";
   c.registerWarmup("/events?k=1", "events", () =>
     Promise.resolve({ status: 200, bodyText: '{"k":1}', cacheable: true }),
   );
-  c.registerWarmup("/events?k=flaky", "events", () => {
+  c.registerWarmup(flakyKey, "events", () => {
     flakyAttempts += 1;
     if (flakyAttempts === 1) {
       const pgCause = Object.assign(new Error("canceling statement due to statement timeout for secret.user@example.com"), {
@@ -540,7 +542,8 @@ test("warmup failures report only safe classifications (no PII/message/stack), w
   expect(drainSummary).toEqual({ warmed: 2, failed: 1 });
   expect(errors).toEqual([
     {
-      key: "/events?k=flaky",
+      keyHash: Bun.hash(flakyKey).toString(36),
+      path: "/events",
       domain: "events",
       errorName: "TypeError",
       errorKind: "57014",
@@ -552,7 +555,8 @@ test("warmup failures report only safe classifications (no PII/message/stack), w
     {
       obj: {
         event: "cache_warmup_failed",
-        key: "/events?k=flaky",
+        keyHash: Bun.hash(flakyKey).toString(36),
+        path: "/events",
         domain: "events",
         errorName: "TypeError",
         errorKind: "57014",
@@ -561,21 +565,44 @@ test("warmup failures report only safe classifications (no PII/message/stack), w
       msg: "Cache warmup failed",
     },
   ]);
-  // Verify PII in Error.message never reaches callbacks or logger
-  expect(JSON.stringify(errors)).not.toContain("secret.user@example.com");
-  expect(JSON.stringify(onErrorEvents)).not.toContain("secret.user@example.com");
-  expect(JSON.stringify(logWarnings)).not.toContain("secret.user@example.com");
+  // Verify PII in Error.message AND sensitive query values in the KEY never reach callbacks or logger
+  for (const sensitive of ["secret.user@example.com", "person@example.com", "person%40example.com", "search="]) {
+    expect(JSON.stringify(errors)).not.toContain(sensitive);
+    expect(JSON.stringify(onErrorEvents)).not.toContain(sensitive);
+    expect(JSON.stringify(logWarnings)).not.toContain(sensitive);
+  }
 
   expect(c.get("/events?k=1")).toBeDefined();
   expect(c.get("/events?k=3")).toBeDefined();
-  expect(c.get("/events?k=flaky")).toBeUndefined();
+  expect(c.get(flakyKey)).toBeUndefined();
 
-  // Next trigger (invalidate) retries "/events?k=flaky" and succeeds
+  // Next trigger (invalidate) retries flakyKey and succeeds
   c.invalidate("events");
   const retrySummary = await c.drain();
   expect(retrySummary).toEqual({ warmed: 3, failed: 0 });
   expect(flakyAttempts).toBe(2);
-  expect(Buffer.from(c.get("/events?k=flaky")?.raw ?? []).toString("utf8")).toBe('{"k":"recovered"}');
+  expect(Buffer.from(c.get(flakyKey)?.raw ?? []).toString("utf8")).toBe('{"k":"recovered"}');
+
+  // Verify recently-seen query key via getOrLoad also omits query values on later invalidation failure
+  let searchCalls = 0;
+  const searchKey = cacheKey("/events", { search: "person@example.com" });
+  await c.getOrLoad(searchKey, "events", () => {
+    searchCalls += 1;
+    if (searchCalls === 1) {
+      return Promise.resolve({ status: 200, bodyText: "[]", cacheable: true });
+    }
+    return Promise.reject(new Error("boom"));
+  });
+  c.invalidate("events");
+  await c.drain();
+  expect(JSON.stringify(logWarnings)).not.toContain("person");
+  expect(JSON.stringify(logWarnings)).not.toContain("search=");
+  expect(logWarnings.at(-1)?.obj).toMatchObject({
+    event: "cache_warmup_failed",
+    keyHash: Bun.hash(searchKey).toString(36),
+    path: "/events",
+    domain: "events",
+  });
 
   // Verify error-only logger fallback when logger.warn is absent
   const errorOnlyLogs: Array<{ obj: Record<string, unknown>; msg?: string }> = [];
@@ -590,7 +617,7 @@ test("warmup failures report only safe classifications (no PII/message/stack), w
       },
     },
   });
-  cErrorLogger.registerWarmup("/events?k=err-only", "events", () =>
+  cErrorLogger.registerWarmup(errOnlyKey, "events", () =>
     Promise.reject(new RangeError("sensitive user2@example.com failure")),
   );
   const errOnlySummary = await cErrorLogger.warmupStartup();
@@ -599,7 +626,8 @@ test("warmup failures report only safe classifications (no PII/message/stack), w
     {
       obj: {
         event: "cache_warmup_failed",
-        key: "/events?k=err-only",
+        keyHash: Bun.hash(errOnlyKey).toString(36),
+        path: "/events",
         domain: "events",
         errorName: "RangeError",
         errorKind: "RangeError",
@@ -608,6 +636,7 @@ test("warmup failures report only safe classifications (no PII/message/stack), w
     },
   ]);
   expect(JSON.stringify(errorOnlyLogs)).not.toContain("user2@example.com");
+  expect(JSON.stringify(errorOnlyLogs)).not.toContain("secret-query-token");
 });
 
 

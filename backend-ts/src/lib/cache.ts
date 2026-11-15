@@ -41,11 +41,25 @@ export interface WarmupRegistration {
 }
 
 export interface WarmupErrorEvent {
-  key: string;
+  keyHash: string;
+  path: string;
   domain: Domain;
   errorName: string;
   errorKind: string;
   code?: string;
+}
+
+function classifyWarmupKey(key: string): { keyHash: string; path: string } {
+  const queryIndex = key.indexOf("?");
+  const hashIndex = key.indexOf("#");
+  const end =
+    queryIndex >= 0 && hashIndex >= 0
+      ? Math.min(queryIndex, hashIndex)
+      : Math.max(queryIndex, hashIndex);
+  return {
+    keyHash: Bun.hash(key).toString(36),
+    path: end >= 0 ? key.slice(0, end) : key,
+  };
 }
 
 export interface WarmupSummary {
@@ -248,19 +262,20 @@ export function createResponseCache(o: ResponseCacheOptions = {}): ResponseCache
   const drainWaiters: Array<(summary: WarmupSummary) => void> = [];
 
   function reportWarmupError(key: string, domain: Domain, err: unknown): void {
+    const { keyHash, path } = classifyWarmupKey(key);
     const errorName = err instanceof Error && err.name ? err.name : "UnknownError";
     const code = readErrorCode(err);
     const errorKind = code ?? errorName;
     const event: WarmupErrorEvent =
       code !== undefined
-        ? { key, domain, errorName, errorKind, code }
-        : { key, domain, errorName, errorKind };
+        ? { keyHash, path, domain, errorName, errorKind, code }
+        : { keyHash, path, domain, errorName, errorKind };
     o.onWarmupError?.(event);
     o.onError?.(event);
     const logPayload: Record<string, unknown> =
       code !== undefined
-        ? { event: "cache_warmup_failed", key, domain, errorName, errorKind, code }
-        : { event: "cache_warmup_failed", key, domain, errorName, errorKind };
+        ? { event: "cache_warmup_failed", keyHash, path, domain, errorName, errorKind, code }
+        : { event: "cache_warmup_failed", keyHash, path, domain, errorName, errorKind };
     if (o.logger?.warn) {
       o.logger.warn(logPayload, "Cache warmup failed");
     } else if (o.logger?.error) {
