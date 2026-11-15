@@ -57,6 +57,8 @@ Additional test & contract scripts:
 | `LOCKOUT_DURATION` | `15` | Lockout duration in minutes |
 | `MIN_PASSWORD_LENGTH` | `6` | Minimum password length |
 | `MAX_UPLOAD_SIZE` | `5242880` | Max file size in bytes (5 MiB) |
+| `IMAGE_OPTIMIZE` | `true` | Shrink uploaded images on save (see *Image optimization*) |
+| `IMAGE_MAX_DIMENSION` | `1920` | Longest edge in px after resize (`320`–`8192`) |
 | `UPLOAD_DIR` | `static/uploads` | Upload directory (`/app/static/uploads` in Docker) |
 | `STATIC_DIR` | `static` | Static directory (`/app/static` in Docker) |
 | `CORS_ORIGINS` | merged with `DEFAULT_ORIGINS` | Comma-separated extra allowed origins |
@@ -89,6 +91,7 @@ bun scripts/set-user-access.ts --email user@macsclub.com.tr --status approved --
 
 - **Global rate limiter**: `1200/min` (burst `200`) per client IP (`src/security/config.ts`). `/uploads/*`, `/static/*`, and the exact paths `/health` and `/health/ready` bypass the global IP bucket while still running header/URL guards and security headers.
 - **Write & route limits**: global write bucket `60/min`, plus strict per-route limits (login IP shield `20` failures / `15 min`, auth routes, upload `20/min`, ZIP export `3/hr`).
+- **Image optimization** (`src/modules/uploads/optimize.ts`, `sharp`): after the extension/signature checks, JPEG/PNG/WebP uploads larger than 256 KiB or wider/taller than `IMAGE_MAX_DIMENSION` are resized to fit that box (never enlarged), EXIF orientation is applied, and all metadata (EXIF/GPS) is stripped. The format and extension never change (PNG uses palette quantisation, JPEG mozjpeg q82, WebP q82), so URLs keep their shape. GIFs, animated WebP, images over 50 MP and undecodable files are stored byte-for-byte, and a result that is not smaller is discarded. Each upload logs `Image stored` with `bytesIn`/`bytesOut`/`optimization`. Set `IMAGE_OPTIMIZE=false` to store originals.
 - **Timeouts & uploads**: generic handler timeout is `15s`; `POST /api/upload/` has a dedicated `120s` handler timeout with `MAX_UPLOAD_SIZE + 262144` streaming byte enforcement (behind nginx, `proxy_read_timeout`/`proxy_send_timeout` of `15s` also bound slow uploads).
 - **Static / Upload serving**: `GET` and `HEAD` share prefix containment validation and return matching `Content-Length`, `Content-Type`, and `Cache-Control` headers (`HEAD` uses `stat()` without reading file contents).
 - **Safe logging & shutdown**: errors are logged via classified fields (`reqId`, `errorName`, SQLSTATE `code`, sanitized `path`) without raw error messages or secrets; `SIGTERM`/`SIGINT` stops cache warmup before draining (`cache.stop()` -> `server.stop(false)` -> `cache.drain()` -> `sql.end()`) and flushes Pino buffers even on forced-exit timeout.
