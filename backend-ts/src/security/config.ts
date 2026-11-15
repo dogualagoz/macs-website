@@ -10,6 +10,7 @@ export interface SecurityConfig {
   uploadOverheadBytes: number;
   idleTimeoutSec: number;
   handlerTimeoutMs: number;
+  uploadHandlerTimeoutMs: number;
 }
 export const MAX_JSON_BODY_BYTES = 2 * 1024 * 1024;
 export const DEFAULT_SECURITY_CONFIG: SecurityConfig = {
@@ -19,5 +20,5 @@ export const DEFAULT_SECURITY_CONFIG: SecurityConfig = {
   loginIpLimit: { maxAttempts: 20, windowMs: 900_000 },
   maxUrlLength: 2048, maxHeaderCount: 100, maxHeaderBytes: 16_384,
   maxBodyBytes: MAX_JSON_BODY_BYTES, uploadOverheadBytes: 262_144,
-  idleTimeoutSec: 10, handlerTimeoutMs: 15_000,
+  idleTimeoutSec: 10, handlerTimeoutMs: 15_000, uploadHandlerTimeoutMs: 120_000,
 };

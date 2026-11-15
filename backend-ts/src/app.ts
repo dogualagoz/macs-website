@@ -102,16 +102,25 @@ export function createApp(deps: AppDeps, registerRoutes?: (router: AppRouter, de
     if (contentType) {
       const separator = contentType.indexOf(";");
       const mediaType = separator < 0 ? contentType : contentType.slice(0, separator);
-      const headers = new Headers(c.req.raw.headers);
-      headers.set("Content-Type", mediaType.toLowerCase() + (separator < 0 ? "" : contentType.slice(separator)));
-      c.req.raw = new Request(c.req.raw, { headers });
+      const lower = mediaType.toLowerCase();
+      if (lower !== mediaType) {
+        const headers = new Headers(c.req.raw.headers);
+        headers.set("Content-Type", lower + (separator < 0 ? "" : contentType.slice(separator)));
+        const hasBody = c.req.raw.method !== "GET" && c.req.raw.method !== "HEAD" && c.req.raw.body !== null;
+        c.req.raw = new Request(c.req.raw.url, {
+          method: c.req.raw.method,
+          headers,
+          ...(hasBody ? { body: c.req.raw.body, duplex: "half" } : {}),
+        });
+      }
     }
     validateRequestHead(c.req.raw, c.req.raw.url.replace(/^[^:]+:\/\/[^/]+/, ""), security);
   }));
   app.use("*", async (c, next) => {
     if (deps.env.RATELIMIT_ENABLED && !["GET", "HEAD", "OPTIONS"].includes(c.req.method)) writes.consume(c.get("clientIp") ?? "unknown");
     // next() resolves when the response is ready; ZIP streaming itself is unbounded.
-    try { await withHandlerTimeout(security.handlerTimeoutMs, next); }
+    const timeoutMs = c.req.method === "POST" && c.req.path === "/api/upload" ? security.uploadHandlerTimeoutMs : security.handlerTimeoutMs;
+    try { await withHandlerTimeout(timeoutMs, next); }
     catch (error) { throw error instanceof Error ? error : new Error("Non-error request failure", { cause: error }); }
   });
   for (const [prefix, root] of [["/uploads", deps.env.UPLOAD_DIR], ["/static", deps.env.STATIC_DIR]] as const) {

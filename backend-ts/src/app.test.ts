@@ -375,3 +375,69 @@ test("D1: HEAD parity on /uploads/* and /static/* via Bun.serve matches GET head
     await deps.sql.end();
   }
 });
+
+test("D4: slow streamed upload body succeeds beyond handlerTimeoutMs while enforcing size caps and generic timeout", async () => {
+  const { signAccessToken } = await import("./lib/jwt");
+  const root = mkdtempSync(join(tmpdir(), "macs-d4-"));
+  const admin = { id: 1, email: "upload@example.com", full_name: "Admin", role: "admin", status: "approved", is_active: true, last_login: null, failed_login_attempts: 0, password_changed_at: null };
+  const deps = testDeps({
+    env: { ...env, UPLOAD_DIR: root, MAX_UPLOAD_SIZE: 64 },
+    security: { handlerTimeoutMs: 15 },
+    loadUser: () => Promise.resolve(admin),
+  });
+  const testApp = createApp(deps, app => {
+    app.post("/slow-non-upload", async c => {
+      await new Promise(resolve => setTimeout(resolve, 45));
+      return c.json({ ok: true });
+    });
+  });
+  const boundary = "----SlowUploadBoundary";
+  const buildMultipart = (payload: Uint8Array) => Buffer.concat([
+    Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="slow.png"\r\nContent-Type: image/png\r\n\r\n`),
+    Buffer.from(payload),
+    Buffer.from(`\r\n--${boundary}--\r\n`),
+  ]);
+  const slowStream = (data: Buffer) => new ReadableStream<Uint8Array>({
+    async start(controller) {
+      const mid = Math.floor(data.length / 2);
+      controller.enqueue(data.subarray(0, mid));
+      await new Promise(resolve => setTimeout(resolve, 45));
+      controller.enqueue(data.subarray(mid));
+      controller.close();
+    },
+  });
+  try {
+    const token = await signAccessToken({ sub: admin.email, role: "admin" }, env.JWT_SECRET_KEY, 60, new Date());
+    const validBody = buildMultipart(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1, 2, 3]));
+    const uploadRes = await testApp.request("/api/upload/", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": `multipart/form-data; boundary=${boundary}`,
+      },
+      body: slowStream(validBody),
+      duplex: "half",
+    } as RequestInit);
+    expect(uploadRes.status).toBe(200);
+
+    // Body size limit remains enforced on slow/streamed upload payloads
+    const oversized = buildMultipart(Buffer.alloc(128, 1));
+    const tooLargeRes = await testApp.request("/api/upload/", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": `multipart/form-data; boundary=${boundary}`,
+      },
+      body: slowStream(oversized),
+      duplex: "half",
+    } as RequestInit);
+    expect(tooLargeRes.status).toBe(413);
+
+    // Non-upload routes still time out at handlerTimeoutMs
+    const nonUpload = await testApp.request("/slow-non-upload", { method: "POST" });
+    expect(nonUpload.status).toBe(503);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+    await deps.sql.end();
+  }
+});
