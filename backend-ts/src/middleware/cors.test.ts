@@ -4,7 +4,7 @@ import { createCors } from "./cors";
 import { parseEnv } from "../config/env";
 test("CORS retains Vary, allowlist and credentials on cached and other responses", async () => {
   const env = parseEnv({ DATABASE_URL: "postgresql://localhost/test", JWT_SECRET_KEY: "test-only-secret-at-least-32-characters" });
-  for (const vary of ["Accept-Encoding, Origin", "Origin", "Accept-Encoding", "Custom, Custom"]) {
+  for (const vary of ["Origin, Accept-Encoding", "Accept-Encoding, Origin", "Origin", "Accept-Encoding", "Custom, Custom"]) {
     const app = new Hono();
     app.use("*", createCors(env));
     app.get("/", c => { c.header("Vary", vary); return c.text("cached"); });
