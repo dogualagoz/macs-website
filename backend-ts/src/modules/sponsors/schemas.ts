@@ -9,7 +9,7 @@ const sponsorFields = {
 };
 export const sponsorCreateSchema = z.object(sponsorFields);
 export const sponsorUpdateSchema = z.object({ ...sponsorFields, name: sponsorFields.name.nullable(), category: sponsorFields.category.nullable(),
-  discount_info: z.string().min(2).nullish(), is_active: bodyBool().nullable(), is_featured: bodyBool().nullable(),
+  is_active: bodyBool(), is_featured: bodyBool(),
 }).partial();
 export const sponsorResponseSchema = z.object({
   name: z.string().min(2).max(255), description: z.string().nullable(), image_url: z.string().max(500).nullable(),

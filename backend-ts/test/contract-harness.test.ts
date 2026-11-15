@@ -16,9 +16,10 @@ test("normalization changes volatile values and unordered lists only", () => {
   expect(stableJson({ b: 1, a: { d: 2, c: 3 } })).toBe('{"a":{"c":3,"d":2},"b":1}');
 });
 test("deviation IDs are registered and unknown IDs fail closed", () => {
-  expect(knownDeviations.map(d => d.id)).toEqual(["a", "b", "c", "d", "e", "f", "g", "h", "j", "k", "P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8"]);
+  expect(knownDeviations.map(d => d.id)).toEqual(["a", "b", "c", "d", "e", "f", "g", "h", "j", "k", "l", "P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8"]);
   expect(selectDeviation("old", "a", { old: 500, new: 401 })).toBe(500);
   expect(selectDeviation("new", "a", { old: 500, new: 401 })).toBe(401);
+  expect(selectDeviation("new", "l", { old: 500, new: 422 })).toBe(422);
   expect(() => selectDeviation("old", "unapproved", { old: 1, new: 2 })).toThrow("Unknown deviation");
 });
 const old500 = { status: 500, body: "Internal Server Error" };
@@ -130,6 +131,28 @@ test("project role deviation k approves only role values on project GET response
   for (const path of ["/events/2", "/projects/categories", "/projects/2/members", "/members/1/projects", "/projects/admin/other"]) expect(approvedDeviation({ method: "GET", path, query: new URLSearchParams() }, old, next)).toBeNull();
   expect(approvedDeviation({ method: "GET", path: "/projects/2", query: new URLSearchParams() }, old, { status: 200, body: { ...newProject, members: [{ id: 1, full_name: "Ayşe" }] } })).toBeNull();
   expect(oldProject.members[0]?.project_role).toBe("Lead");
+});
+
+test("sponsor update deviation l approves only PUT /sponsors/:id with old 500 and new 422", () => {
+  const put = { method: "PUT", path: "/sponsors/1", query: new URLSearchParams() };
+  const newLong = { status: 422, body: { detail: [{ type: "string_too_long", loc: ["body", "discount_info"], msg: "String should have at most 500 characters", input: "x".repeat(501) }] } };
+  const newNullActive = { status: 422, body: { detail: [{ type: "bool_type", loc: ["body", "is_active"], msg: "Input should be a valid boolean", input: null }] } };
+  const newNullFeatured = { status: 422, body: { detail: [{ type: "bool_type", loc: ["body", "is_featured"], msg: "Input should be a valid boolean", input: null }] } };
+  expect(approvedDeviation(put, old500, newLong)).toBe("l");
+  expect(approvedDeviation({ ...put, path: "/sponsors/42" }, old500, newNullActive)).toBe("l");
+  expect(approvedDeviation(put, old500, newNullFeatured)).toBe("l");
+  for (const method of ["GET", "POST", "DELETE", "PATCH"]) expect(approvedDeviation({ ...put, method }, old500, newLong)).toBeNull();
+  for (const path of ["/sponsors", "/sponsors/", "/sponsors/abc", "/sponsors/1/extra", "/events/1", "/projects/1"]) {
+    expect(approvedDeviation({ ...put, path }, old500, newLong)).toBeNull();
+  }
+  expect(approvedDeviation({ ...put, query: new URLSearchParams("x=1") }, old500, newLong)).toBeNull();
+  expect(approvedDeviation(put, { status: 200, body: {} }, newLong)).toBeNull();
+  expect(approvedDeviation(put, { status: 404, body: {} }, newLong)).toBeNull();
+  expect(approvedDeviation(put, { status: 500, body: { detail: "Other" } }, newLong)).toBeNull();
+  expect(approvedDeviation(put, old500, { status: 500, body: { detail: "Internal Server Error" } })).toBeNull();
+  expect(approvedDeviation(put, old500, { status: 200, body: {} })).toBeNull();
+  expect(approvedDeviation(put, old500, { status: 404, body: {} })).toBeNull();
+  expect(approvedDeviation(put, old500, { status: 422, body: { detail: [{ type: "string_too_short", loc: ["body", "name"], msg: "String should have at least 2 characters", input: "A" }] } })).toBeNull();
 });
 
 test("shared compare module passes raw responses to approvedDeviation and validates record IDs", async () => {

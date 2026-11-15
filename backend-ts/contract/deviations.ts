@@ -13,6 +13,7 @@ export const knownDeviations: readonly Deviation[] = [
   { id: "h", summary: "Users pagination: skip >= 0, limit 1..100, default 10" },
   { id: "j", summary: "Public event creator retained on both targets until Task 19" },
   { id: "k", summary: "Embedded project_role reflects its own project membership; old shared Member instances leak roles across projects" },
+  { id: "l", summary: "invalid sponsor update rejected with 422 instead of committing a row that then fails response validation" },
   { id: "P1", summary: "Slash redirect: old 307, new accepts both forms directly" },
   { id: "P2", summary: "Rate limits count before auth/validation in one process" },
   { id: "P3", summary: "Non-Latin slug letters removed; empty base uses UTC timestamp" },
@@ -46,9 +47,25 @@ function maskProjectRoles(body: unknown): unknown {
   return { ...body, members: body.members.map((member: unknown) => member !== null && typeof member === "object" && !Array.isArray(member) && Object.hasOwn(member, "project_role")
     ? { ...member, project_role: "<project-role>" } : member) };
 }
-// GET exceptions are deliberately narrow. Write-only deviations are registered
-// for contract tests, but never authorize unrelated catalogue GET differences.
+function sponsorUpdateValidation(body: unknown): boolean {
+  if (body === null || typeof body !== "object" || !("detail" in body) || !Array.isArray(body.detail) || body.detail.length === 0) return false;
+  return body.detail.every((item: unknown) => {
+    if (item === null || typeof item !== "object" || !("type" in item) || !("loc" in item) || !("msg" in item) || !("input" in item)) return false;
+    if (stableJson(item.loc) === stableJson(["body", "discount_info"])) {
+      return item.type === "string_too_long" && item.msg === "String should have at most 500 characters" && typeof item.input === "string" && item.input.length > 500;
+    }
+    if (stableJson(item.loc) === stableJson(["body", "is_active"]) || stableJson(item.loc) === stableJson(["body", "is_featured"])) {
+      return item.type === "bool_type" && item.msg === "Input should be a valid boolean" && item.input === null;
+    }
+    return false;
+  });
+}
+// Exceptions are deliberately narrow. Only explicitly matched GETs and PUT /sponsors/:id (l)
+// are approved; other write-only deviations never authorize unrelated catalogue differences.
 export function approvedDeviation(r: RequestIdentity, old: ComparableResponse, next: ComparableResponse): string | null {
+  if (r.method === "PUT" && /^\/sponsors\/\d+$/.test(r.path) && !r.query.size
+    && old.status === 500 && old.body === "Internal Server Error" && next.status === 422
+    && sponsorUpdateValidation(next.body)) return "l";
   if (r.method !== "GET") return null;
   const projectRead = ["/projects", "/projects/admin", "/projects/featured"].includes(r.path) || /^\/projects\/(?:\d+|by-slug\/[^/]+)$/.test(r.path);
   if (projectRead && old.status === next.status && stableJson(old.body) !== stableJson(next.body)

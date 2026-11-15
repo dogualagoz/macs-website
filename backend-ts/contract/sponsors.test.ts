@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 import { api, resetState, SEED, signedToken, TARGET_KIND } from "./client";
+import { deviation } from "./deviations";
 
 const keys = ["name", "description", "image_url", "category", "discount_info", "latitude", "longitude", "address", "is_active", "is_featured", "id", "created_at", "updated_at"].sort();
 const ids = (body: unknown) => (body as { id: number }[]).map(row => row.id);
@@ -58,14 +59,29 @@ describe("sponsors contract", () => {
     const short = await api("PUT", "/sponsors/1", { token, json: { discount_info: "x" } }); expect(short.status).toBe(422); expect(short.body).toMatchObject({ detail: [{ type: "string_too_short", loc: ["body", "discount_info"] }] });
     const cleared = await api("PUT", "/sponsors/1", { token, json: { discount_info: null, is_featured: true } }); expect(cleared.status).toBe(200); expect(cleared.body).toMatchObject({ discount_info: null, is_featured: true });
   });
-  test("update accepts long discount input but fails response validation after persisting it", async () => {
-    const token = await mod(); const r = await api("PUT", "/sponsors/1", { token, json: { discount_info: "x".repeat(501) } }); expect(r.status).toBe(500);
-    const persisted = await api("GET", "/sponsors/1"); expect(persisted.status).toBe(500);
-    const fixed = await api("PUT", "/sponsors/1", { token, json: { discount_info: "valid" } }); expect(fixed.status).toBe(200); expect(fixed.body).toMatchObject({ discount_info: "valid" });
+  test("long discount_info on update applies deviation l (old 500 after commit, new 422 without write)", async () => {
+    const token = await mod(); const before = await api("GET", "/sponsors/1"); expect(before.status).toBe(200);
+    const r = await api("PUT", "/sponsors/1", { token, json: { discount_info: "x".repeat(501) } });
+    expect(r.status).toBe(deviation("l", { old: 500, new: 422 }));
+    if (TARGET_KIND === "old") {
+      const persisted = await api("GET", "/sponsors/1"); expect(persisted.status).toBe(500);
+      const fixed = await api("PUT", "/sponsors/1", { token, json: { discount_info: "valid" } }); expect(fixed.status).toBe(200); expect(fixed.body).toMatchObject({ discount_info: "valid" });
+    } else {
+      expect(r.body).toMatchObject({ detail: [{ type: "string_too_long", loc: ["body", "discount_info"], msg: "String should have at most 500 characters", input: "x".repeat(501) }] });
+      const after = await api("GET", "/sponsors/1"); expect(after.status).toBe(200); expect(after.body).toEqual(before.body);
+    }
   });
-  test.each(["is_active", "is_featured"])("explicit null %s persists but fails non-null response validation", async field => {
-    const token = await mod(); const r = await api("PUT", "/sponsors/1", { token, json: { [field]: null } }); expect(r.status).toBe(500);
-    const repaired = await api("PUT", "/sponsors/1", { token, json: { [field]: true } }); expect(repaired.status).toBe(200); expect(repaired.body).toMatchObject({ [field]: true });
+  test.each(["is_active", "is_featured"] as const)("explicit null %s on update applies deviation l (old 500 after commit, new 422 without write)", async field => {
+    const token = await mod(); const before = await api("GET", "/sponsors/1"); expect(before.status).toBe(200);
+    const r = await api("PUT", "/sponsors/1", { token, json: { [field]: null } });
+    expect(r.status).toBe(deviation("l", { old: 500, new: 422 }));
+    if (TARGET_KIND === "old") {
+      const persisted = await api("GET", "/sponsors/1"); expect(persisted.status).toBe(500);
+      const repaired = await api("PUT", "/sponsors/1", { token, json: { [field]: true } }); expect(repaired.status).toBe(200); expect(repaired.body).toMatchObject({ [field]: true });
+    } else {
+      expect(r.body).toMatchObject({ detail: [{ type: "bool_type", loc: ["body", field], msg: "Input should be a valid boolean", input: null }] });
+      const after = await api("GET", "/sponsors/1"); expect(after.status).toBe(200); expect(after.body).toEqual(before.body);
+    }
   });
   test("delete returns empty 204 and repeat or update missing returns exact 404", async () => {
     const token = await mod(); const r = await api("DELETE", "/sponsors/1", { token }); expect(r.status).toBe(204); expect(r.text).toBe("");

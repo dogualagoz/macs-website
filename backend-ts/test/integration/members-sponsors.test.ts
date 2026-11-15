@@ -72,11 +72,31 @@ describe("members and sponsors database integration", () => {
     await deps.sql`UPDATE sponsors SET category = 'Teknoloji' WHERE id = 5`;
     const slash = await request(app).get("/sponsors/"); const noSlash = await request(app).get("/sponsors"); expect(slash.status).toBe(200); expect(noSlash.status).toBe(200); expect(noSlash.body).toEqual(slash.body);
   });
-  test("sponsor long discount update persists before response validation fails", async () => {
+  test("invalid sponsor update is rejected with 422 before writing and preserves cached GET /sponsors/:id", async () => {
     const logger = pino({ level: "silent" });
-    const r = await request(createApp({ ...deps, logger })).put("/sponsors/1").auth(await mod(), { type: "bearer" }).send({ discount_info: "x".repeat(501) });
-    expect(r.status).toBe(500); expect(r.body).toEqual({ detail: "Internal Server Error" });
-    const [row] = await deps.sql<{ discount_info: string }[]>`SELECT discount_info FROM sponsors WHERE id = 1`; expect(row?.discount_info).toBe("x".repeat(501));
+    const cachedDeps = testDeps({ db: deps.db, sql: deps.sql, counter: deps.counter, logger, env: { ...deps.env, RESPONSE_CACHE: true, RATELIMIT_ENABLED: false } });
+    const app = createApp(cachedDeps);
+    const token = await mod();
+    const warm = await request(app).get("/sponsors/1");
+    expect(warm.status).toBe(200); expect(warm.headers["x-cache"]).toBe("MISS");
+    expect(warm.body).toMatchObject({ id: 1, name: "Kahve Durağı", discount_info: null, is_active: true, is_featured: true });
+    for (const [payload, expectedItem] of [
+      [{ discount_info: "x".repeat(501) }, { type: "string_too_long", loc: ["body", "discount_info"], msg: "String should have at most 500 characters", input: "x".repeat(501) }],
+      [{ is_active: null }, { type: "bool_type", loc: ["body", "is_active"], msg: "Input should be a valid boolean", input: null }],
+      [{ is_featured: null }, { type: "bool_type", loc: ["body", "is_featured"], msg: "Input should be a valid boolean", input: null }],
+    ] as const) {
+      deps.counter.reset();
+      const r = await request(app).put("/sponsors/1").auth(token, { type: "bearer" }).send(payload);
+      expect(r.status).toBe(422); expect(r.body).toEqual({ detail: [expectedItem] });
+      expect(deps.counter.queries().some(q => /\bupdate\b/i.test(q))).toBe(false);
+      const [row] = await deps.sql<{ discount_info: string | null; is_active: boolean; is_featured: boolean }[]>`SELECT discount_info, is_active, is_featured FROM sponsors WHERE id = 1`;
+      expect(row).toEqual({ discount_info: null, is_active: true, is_featured: true });
+      deps.counter.reset();
+      const cached = await request(app).get("/sponsors/1");
+      expect(cached.status).toBe(200); expect(cached.headers["x-cache"]).toBe("HIT"); expect(cached.body).toEqual(warm.body); expect(deps.counter.count()).toBe(0);
+      const uncached = await request(app).get("/sponsors/1").auth("garbage", { type: "bearer" });
+      expect(uncached.status).toBe(200); expect(uncached.body).toEqual(warm.body);
+    }
   });
 });
 
