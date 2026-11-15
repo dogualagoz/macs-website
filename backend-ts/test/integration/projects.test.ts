@@ -13,14 +13,14 @@ beforeEach(async () => { await seedDb(deps.sql, seed); });
 const mod = () => tokenFor("mod@example.com", "moderator");
 
 describe("projects database integration", () => {
-  test("list embeds members in exactly 2 SQL independent of five projects and membership count", async () => {
+  test("list embeds members in exactly 1 CTE SQL independent of five projects and membership count", async () => {
     const app = createApp(deps); deps.counter.reset();
-    const baseline = await request(app).get("/projects?limit=100"); expect(baseline.status).toBe(200); expect(baseline.body).toMatchObject({ total: 3 }); expect(deps.counter.count()).toBe(2);
+    const baseline = await request(app).get("/projects?limit=100"); expect(baseline.status).toBe(200); expect(baseline.body).toMatchObject({ total: 3 }); expect(deps.counter.count()).toBe(1);
     await deps.sql`UPDATE projects SET is_active = true, is_deleted = false`;
     await deps.sql`INSERT INTO project_members (project_id, member_id, role, contribution_count) SELECT p.id, m.id, 'Extra', 1 FROM projects p CROSS JOIN members m`;
     deps.counter.reset(); const r = await request(app).get("/projects?limit=100").auth("garbage", { type: "bearer" });
     expect(r.status).toBe(200); expect(r.body).toMatchObject({ total: 5 }); const rows = (r.body as { projects: { members: object[] }[] }).projects;
-    expect(rows).toHaveLength(5); expect(rows.every(row => row.members.length >= 5)).toBe(true); expect(deps.counter.count()).toBe(2);
+    expect(rows).toHaveLength(5); expect(rows.every(row => row.members.length >= 5)).toBe(true); expect(deps.counter.count()).toBe(1);
     expect(deps.counter.queries().some(query => query.includes("json_agg"))).toBe(true); expect(deps.counter.queries().every(query => !query.includes("hashed_password") && !query.includes('"users"'))).toBe(true);
   });
   test("featured, detail, slug and project members use at most 2 SQL", async () => {
@@ -53,7 +53,7 @@ describe("projects database integration", () => {
     expect([...(await deps.sql`SELECT category_id, updated_at FROM projects WHERE id = 2`)]).toEqual([{ category_id: 2, updated_at: null }]);
   });
   test("category delete rollback preserves project categories and timestamps if delete fails", async () => {
-    const repo = await import("../../src/modules/projects/repo"); const service = await import("../../src/modules/projects/service");
+    const repo = await import("../../src/modules/projects/queries"); const service = await import("../../src/modules/projects/service");
     const remove = spyOn(repo, "deleteCategoryRow").mockImplementation(() => { throw new Error("injected category delete failure"); });
     try {
       let failure: unknown;
@@ -65,18 +65,39 @@ describe("projects database integration", () => {
     expect([...rows]).toEqual([{ id: 1, category_id: 1, updated_at: null }, { id: 3, category_id: 1, updated_at: null }, { id: 4, category_id: 1, updated_at: null }]);
     expect(await deps.sql`SELECT id FROM project_categories WHERE id = 1`).toHaveLength(1);
   });
-  test("admin domain list also uses exactly two SQL and preserves inactive projects", async () => {
-    const { listProjects } = await import("../../src/modules/projects/service"); const { adminProjectQuerySchema } = await import("../../src/modules/projects/schemas");
-    deps.counter.reset(); const r = await listProjects(deps.db, adminProjectQuerySchema.parse({}), true);
-    expect(r.projects.map(row => row.id)).toEqual([5, 3, 2, 1]); expect(r.total).toBe(4); expect(deps.counter.count()).toBe(2);
+  test("admin domain list also uses exactly one CTE SQL and preserves inactive projects", async () => {
+    const { listProjectsJson } = await import("../../src/modules/projects/queries"); const { adminProjectQuerySchema } = await import("../../src/modules/projects/schemas");
+    deps.counter.reset(); const r = JSON.parse(await listProjectsJson(deps.db, adminProjectQuerySchema.parse({}), true)) as { projects: { id: number }[]; total: number };
+    expect(r.projects.map(row => row.id)).toEqual([5, 3, 2, 1]); expect(r.total).toBe(4); expect(deps.counter.count()).toBe(1);
   });
-  test("serializer coerces NULL project booleans and json_agg member timestamps retain UTC microseconds", async () => {
+  test("admin HTTP list counts auth plus one CTE", async () => {
+    const token = await mod(); deps.counter.reset();
+    const r = await request(createApp(deps)).get("/projects/admin").auth(token, { type: "bearer" });
+    expect(r.status).toBe(200); expect(r.body).toMatchObject({ total: 4 }); expect(deps.counter.count()).toBe(2);
+  });
+  test("missing and deleted project members return null and HTTP 404 (F15)", async () => {
+    const { listProjectMembersJson } = await import("../../src/modules/projects/queries");
+    for (const id of [4, 999999]) {
+      expect(await listProjectMembersJson(deps.db, id)).toBeNull();
+      const r = await request(createApp(deps)).get(`/projects/${String(id)}/members`);
+      expect(r.status).toBe(404); expect(r.body).toEqual({ detail: "Proje bulunamadı" });
+    }
+  });
+  test("every required body rejects missing JSON after authentication", async () => {
+    const token = await mod(); const app = createApp(deps);
+    for (const [method, path] of [["post", "/projects"], ["put", "/projects/1"], ["post", "/projects/categories"], ["put", "/projects/categories/1"], ["post", "/projects/1/members"], ["put", "/projects/1/members/1"]] as const) {
+      const r = await request(app)[method](path).auth(token, { type: "bearer" });
+      expect(r.status).toBe(422); expect(r.body).toMatchObject({ detail: [{ loc: ["body"], type: "missing" }] });
+    }
+  });
+  test("PG JSON coerces NULL project booleans and json_agg member timestamps retain UTC microseconds", async () => {
     await deps.sql`UPDATE projects SET is_active = NULL, is_featured = NULL WHERE id = 1`;
     const app = createApp(deps); const r = await request(app).put("/projects/1").auth(await mod(), { type: "bearer" }).send({}); expect(r.status).toBe(200); expect(r.body).toMatchObject({ is_active: false, is_featured: false, is_deleted: false });
-    const { findProjectRow } = await import("../../src/modules/projects/repo"); const { serializeProject } = await import("../../src/modules/projects/serializer");
+    const { getProjectJson } = await import("../../src/modules/projects/queries");
     await deps.sql`UPDATE projects SET is_deleted = NULL WHERE id = 1`;
-    const row = await findProjectRow(deps.db, 1, "all"); if (!row) throw new Error("Missing seed project");
-    expect(serializeProject(row, { members: "embed" })).toMatchObject({ is_active: false, is_featured: false, is_deleted: false });
+    const json = await getProjectJson(deps.db, 1, { scope: "all", members: "embed" });
+    expect(JSON.parse(json ?? "null")).toMatchObject({ is_active: false, is_featured: false, is_deleted: false,
+      members: [{ created_at: "2026-01-01T12:00:00.123456Z" }, { created_at: "2026-01-02T12:00:00.123456Z" }] });
     await deps.sql`UPDATE projects SET is_active = true, is_deleted = false WHERE id = 1`;
     const detail = await request(app).get("/projects/1"); expect(detail.status).toBe(200); expect(detail.body).toMatchObject({ members: [{ created_at: "2026-01-01T12:00:00.123456Z" }, { created_at: "2026-01-02T12:00:00.123456Z" }] });
   });
@@ -89,6 +110,11 @@ describe("projects database integration", () => {
     for (const [path, json, loc, type] of [["/projects", { title: "bad", category_id: 1.2 }, ["body", "category_id"], "int_from_float"], ["/projects", { title: "bad", member_ids: [{ member_id: "bad" }] }, ["body", "member_ids", 0, "member_id"], "int_parsing"], ["/projects/1/members", { member_id: 1.2 }, ["body", "member_id"], "int_from_float"]] as const) {
       const bad = await request(app).post(path).auth(token, { type: "bearer" }).send(json); expect(bad.status).toBe(422); expect(bad.body).toMatchObject({ detail: [{ loc: [...loc], type }] });
     }
+  });
+  test("null status update preserves serialization failure and rollback", async () => {
+    const r = await request(createApp(deps)).put("/projects/1").auth(await mod(), { type: "bearer" }).send({ status: null });
+    expect(r.status).toBe(500);
+    expect([...(await deps.sql`SELECT status::text, updated_at FROM projects WHERE id = 1`)]).toEqual([{ status: "COMPLETED", updated_at: null }]);
   });
   test("tied timestamps order by descending id; empty page preserves total", async () => {
     await deps.sql`UPDATE projects SET created_at = '2026-01-01 00:00:00+00'`;

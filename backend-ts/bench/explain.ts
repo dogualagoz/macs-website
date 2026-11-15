@@ -74,7 +74,8 @@ async function main(): Promise<void> {
       if (queries.length > 2) throw new Error(`${name}: ${queries.length.toString()} queries exceeds the N+1 gate`);
       if (name === "projects-list") {
         await explain(name, queries.filter(query => !query.text.startsWith("select count(")));
-        await explain("projects-count", queries.filter(query => query.text.startsWith("select count(")));
+        const countQueries = queries.filter(query => query.text.startsWith("select count("));
+        if (countQueries.length > 0) await explain("projects-count", countQueries);
       } else await explain(name, queries);
     }
     // A synthetic missing value retains the exact lookup SQL/bindings without persisting a real email.
