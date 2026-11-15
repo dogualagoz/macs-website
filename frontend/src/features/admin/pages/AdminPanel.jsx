@@ -8,9 +8,7 @@ import Content from './Content';
 import Users from './Users';
 import Members from './Members';
 
-// CSS stilleri
-import '../../../styles/admin.css';
-import '../../../styles/admin-reset.css';
+// Admin CSS'i App.js'te statik import ediliyor (bkz. oradaki not).
 
 /**
  * Admin Panel router'ı.

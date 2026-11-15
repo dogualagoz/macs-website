@@ -2,7 +2,7 @@
  * Main App component that serves as the root of the application.
  * Handles the overall layout and navigation state.
  */
-import React, { useState, useEffect, useRef} from 'react';
+import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
 import { Header, Footer } from './shared/components/layout';
 import { HomePage } from './features/home';
 import { EventsPage, EventDetailPage } from './features/events';
@@ -11,12 +11,21 @@ import { SponsorsPage } from './features/sponsors';
 import { AboutPage } from './features/about';
 import { TeamPage } from './features/team';
 import { LoginPage, ProtectedRoute, AuthProvider } from './features/auth';
-import { AdminPanel } from './features/admin';
+import Loading from './shared/components/feedback/Loading';
+// Admin CSS bilerek statik: admin-reset.css bugün tüm siteye uygulanıyor
+// (sayfa <body>'de kayıyor). Panel JS'i lazy yüklenirken CSS de chunk'a
+// taşınsaydı public sayfaların görünümü ve scroll davranışı değişirdi.
+// Scope'lamak ayrı bir iş; görsel karşılaştırmayla yapılmalı.
+import './styles/admin.css';
+import './styles/admin-reset.css';
 import Page404 from './shared/components/Page404';
 import ErrorBoundary from './shared/components/feedback/ErrorBoundary';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import './styles/App.css';
 import ScrollToTop from './shared/components/navigation/ScrollToTop';
+
+// Panel kodu ziyaretçilere gönderilmesin: yalnızca /admin açılınca yüklenir.
+const AdminPanel = lazy(() => import('./features/admin/pages/AdminPanel'));
 
 function App() {
   // State to track whether the page has been scrolled
@@ -112,7 +121,14 @@ function App() {
             
             {/* Protected routes */}
             <Route element={<ProtectedRoute />}>
-              <Route path="/admin/*" element={<AdminPanel />} />
+              <Route
+                path="/admin/*"
+                element={(
+                  <Suspense fallback={<Loading />}>
+                    <AdminPanel />
+                  </Suspense>
+                )}
+              />
             </Route>
             
             {/* 404 page */}
