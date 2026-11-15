@@ -7,6 +7,7 @@ import EventCard from '../components/EventCard';
 import { PageHeaderSkeleton, EventGridSkeleton } from '../../../shared/components/feedback/Skeleton';
 import ErrorMessage from '../../../shared/components/feedback/ErrorMessage';
 import SEO from '../../../shared/components/seo/SEO';
+import { parseApiDate, isPastApiDate, SITE_TIMEZONE } from '../../../shared/utils/apiDate';
 
 export default function Events() {
   // Custom hooks for data fetching and filtering
@@ -127,7 +128,7 @@ function CategoryFilters({ categories, activeFilter, onFilterChange }) {
 function EventsGrid({ events, featuredEventId }) {
   const now = new Date();
   const isPastEvent = (event) =>
-    new Date(event.end_time || event.start_time) < now;
+    isPastApiDate(event.end_time || event.start_time, now);
 
   const visible = events.filter((event) => event.id !== featuredEventId);
   const upcoming = visible.filter((event) => !isPastEvent(event));
@@ -136,10 +137,10 @@ function EventsGrid({ events, featuredEventId }) {
   // Gecmisi aya gore grupla (timeline arsivi icin)
   const months = new Map();
   past.forEach((event) => {
-    const d = new Date(event.end_time || event.start_time);
-    const key = isNaN(d)
+    const d = parseApiDate(event.end_time || event.start_time);
+    const key = d === null
       ? 'Tarihsiz'
-      : new Intl.DateTimeFormat('tr-TR', { month: 'long', year: 'numeric' }).format(d);
+      : new Intl.DateTimeFormat('tr-TR', { month: 'long', year: 'numeric', timeZone: SITE_TIMEZONE }).format(d);
     if (!months.has(key)) months.set(key, []);
     months.get(key).push(event);
   });
@@ -176,7 +177,7 @@ function EventsGrid({ events, featuredEventId }) {
                 </h3>
                 <ul className="space-y-1">
                   {items.map((event) => {
-                    const d = new Date(event.end_time || event.start_time);
+                    const d = parseApiDate(event.end_time || event.start_time);
                     return (
                       <li key={event.id}>
                         <Link
@@ -185,9 +186,9 @@ function EventsGrid({ events, featuredEventId }) {
                         >
                           <time
                             className="font-mono text-sm text-gray-500 w-20 shrink-0"
-                            dateTime={isNaN(d) ? undefined : d.toISOString()}
+                            dateTime={d === null ? undefined : d.toISOString()}
                           >
-                            {isNaN(d) ? '—' : `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`}
+                            {d === null ? '—' : new Intl.DateTimeFormat('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: SITE_TIMEZONE }).format(d)}
                           </time>
                           <span className="font-medium text-[#07132b]">{event.title}</span>
                           <span className="text-sm text-gray-500 sm:ml-auto">

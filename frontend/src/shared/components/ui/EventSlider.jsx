@@ -10,6 +10,7 @@ import { Link } from 'react-router-dom';
 import { Calendar, MapPin, Clock, ChevronLeft, ChevronRight, Users } from 'lucide-react';
 import { getImageUrl, handleImageError } from '../../../utils/imageUtils';
 import '../../../styles/components/slider.css';
+import { parseApiDate, isPastApiDate, SITE_TIMEZONE } from '../../utils/apiDate';
 
 const EventSlider = ({ events = [] }) => {
     const allEvents = events;
@@ -33,12 +34,13 @@ const EventSlider = ({ events = [] }) => {
     // Format date
     const formatDate = (dateStr) => {
         try {
-            const dateObj = new Date(dateStr?.endsWith?.('Z') ? dateStr : dateStr + 'Z');
-            if (isNaN(dateObj.getTime())) return 'Tarih Yok';
+            const dateObj = parseApiDate(dateStr);
+            if (!dateObj) return 'Tarih Yok';
             return new Intl.DateTimeFormat('tr-TR', {
                 day: 'numeric',
                 month: 'long',
-                year: 'numeric'
+                year: 'numeric',
+                timeZone: SITE_TIMEZONE
             }).format(dateObj);
         } catch {
             return 'Tarih Yok';
@@ -48,11 +50,13 @@ const EventSlider = ({ events = [] }) => {
     // Format time
     const formatTime = (startTime, endTime) => {
         try {
-            const start = new Date(startTime);
-            const end = endTime ? new Date(endTime) : null;
-            const startStr = start.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+            const start = parseApiDate(startTime);
+            if (!start) return '';
+            const end = parseApiDate(endTime);
+            const timeOptions = { hour: '2-digit', minute: '2-digit', timeZone: SITE_TIMEZONE };
+            const startStr = start.toLocaleTimeString('tr-TR', timeOptions);
             if (end) {
-                const endStr = end.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+                const endStr = end.toLocaleTimeString('tr-TR', timeOptions);
                 return `${startStr} - ${endStr}`;
             }
             return startStr;
@@ -63,8 +67,7 @@ const EventSlider = ({ events = [] }) => {
 
     // Check if event is past
     const isPast = (event) => {
-        const endDate = new Date(event.end_time || event.start_time || event.date);
-        return endDate < new Date();
+        return isPastApiDate(event.end_time || event.start_time || event.date);
     };
 
 

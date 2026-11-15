@@ -2,21 +2,16 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, MapPin } from 'lucide-react';
 import { getImageUrl, handleImageError } from '../../../utils/imageUtils';
+import { parseApiDate, isPastApiDate, SITE_TIMEZONE } from '../../../shared/utils/apiDate';
 
 /**
  * Event Card Component
  * Displays a compact card for regular events in the grid
  */
 export default function EventCard({ event }) {
-  const getDateObject = (dateStr) => {
-    if (!dateStr) return new Date();
-    if (typeof dateStr === 'string') {
-      return new Date(dateStr.endsWith('Z') ? dateStr : dateStr + 'Z');
-    }
-    return new Date(dateStr);
-  };
+  const getDateObject = (dateStr) => parseApiDate(dateStr) || new Date(NaN);
 
-  const isPast = getDateObject(event.end_time || event.start_time) < new Date();
+  const isPast = isPastApiDate(event.end_time || event.start_time);
   
   const formatDate = (date) => {
     try {
@@ -26,6 +21,7 @@ export default function EventCard({ event }) {
         day: 'numeric',
         month: 'short',
         year: 'numeric',
+        timeZone: SITE_TIMEZONE,
       }).format(dateObj);
     } catch (e) {
       return 'Tarih Yok';

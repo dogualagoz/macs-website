@@ -20,6 +20,7 @@ import { getImageUrl } from '../../../utils/imageUtils';
 import { markdownishToHtml } from '../../../shared/utils/richText';
 import '../../../styles/pages/events2.css'
 import SEO from '../../../shared/components/seo/SEO';
+import { parseApiDate, isPastApiDate } from '../../../shared/utils/apiDate';
 
 /**
  * MACS Etkinlik Sayfası – Plan A (arka plan beyaz, hero lacivert overlay, kartlar beyaz)
@@ -33,9 +34,8 @@ import SEO from '../../../shared/components/seo/SEO';
 
 function formatDateOnly(dt) {
   try {
-    const dateStr = dt && !dt.endsWith('Z') ? dt + 'Z' : dt;
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return dt;
+    const d = parseApiDate(dt);
+    if (!d) return dt || '';
     return new Intl.DateTimeFormat("tr-TR", {
       weekday: "long",
       year: "numeric",
@@ -50,9 +50,8 @@ function formatDateOnly(dt) {
 
 function formatTimeOnly(dt) {
   try {
-    const dateStr = dt && !dt.endsWith('Z') ? dt + 'Z' : dt;
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return '';
+    const d = parseApiDate(dt);
+    if (!d) return '';
     return new Intl.DateTimeFormat("tr-TR", {
       hour: "2-digit",
       minute: "2-digit",
@@ -126,7 +125,7 @@ function combineDateTime(date, hhmm) {
 }
 
 function EventPageView({ event }) {
-  const isPast = new Date(event.end_time || event.start_time) < new Date();
+  const isPast = isPastApiDate(event.end_time || event.start_time);
   const { aboutHtml, programLines } = splitContent(event.content);
 
   return (
@@ -485,7 +484,7 @@ function Accordion({ items = [] }) {
 }
 
 function Timeline({ start, end, contentProgramLines }) {
-  const startDate = new Date(start);
+  const startDate = parseApiDate(start);
   const items = contentProgramLines && contentProgramLines.length
     ? parseProgram(contentProgramLines, startDate)
     : [];

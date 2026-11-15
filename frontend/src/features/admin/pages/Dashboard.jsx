@@ -4,6 +4,7 @@ import Sidebar from '../components/Sidebar';
 import { eventService, projectService, sponsorService } from '../../../shared/services/api';
 import env from '../../../shared/config/env';
 import { handleImageError, handleAvatarError } from '../../../utils/imageUtils';
+import { formatShortDate } from '../../../shared/utils/dateHelpers';
 
 // Backend URL'den /api kısmını çıkar ve image URL ile birleştir
 const getImageUrl = (imageUrl) => {
@@ -345,7 +346,7 @@ const Dashboard = () => {
                             </div>
                             <div className="dashboard-table-cell">{event.title}</div>
                             <div className="dashboard-table-cell">
-                              {new Date(event.start_time).toLocaleDateString('tr-TR')}
+                              {formatShortDate(event.start_time) || '-'}
                             </div>
                             <div className="dashboard-table-cell">{event.location}</div>
                             <div className="dashboard-table-cell">

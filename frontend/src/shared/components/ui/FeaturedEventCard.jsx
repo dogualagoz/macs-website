@@ -8,15 +8,10 @@ import PropTypes from 'prop-types';
 import { Link, useNavigate } from 'react-router-dom';
 import { Calendar, MapPin, Star } from 'lucide-react';
 import { getImageUrl, handleImageError } from '../../../utils/imageUtils';
+import { parseApiDate, isPastApiDate, SITE_TIMEZONE } from '../../utils/apiDate';
 
 const FeaturedEventCard = ({ title, date, location, description, image, startTime, endTime, maxParticipants, slug }) => {
-  const getDateObject = (dateStr) => {
-    if (!dateStr) return new Date();
-    if (typeof dateStr === 'string') {
-      return new Date(dateStr.endsWith('Z') ? dateStr : dateStr + 'Z');
-    }
-    return new Date(dateStr);
-  };
+  const getDateObject = (dateStr) => parseApiDate(dateStr) || new Date(NaN);
 
   // Tarihi formatla
   const formatDate = (dateStr) => {
@@ -26,7 +21,8 @@ const FeaturedEventCard = ({ title, date, location, description, image, startTim
       return new Intl.DateTimeFormat('tr-TR', {
         day: 'numeric',
         month: 'short',
-        year: 'numeric'
+        year: 'numeric',
+        timeZone: SITE_TIMEZONE
       }).format(dateObj);
     } catch (e) {
       return 'Tarih Yok';
@@ -34,7 +30,7 @@ const FeaturedEventCard = ({ title, date, location, description, image, startTim
   };
 
   // Tarihi geçmiş mi kontrol et
-  const isPast = getDateObject(endTime || startTime) < new Date();
+  const isPast = isPastApiDate(endTime || startTime);
 
   const navigate = useNavigate();
 

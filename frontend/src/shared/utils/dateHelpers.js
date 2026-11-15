@@ -3,7 +3,9 @@
  * Provides consistent date and time formatting across the application
  */
 
-const TIMEZONE = 'Europe/Istanbul';
+import { parseApiDate, apiDateValue, SITE_TIMEZONE } from './apiDate';
+
+const TIMEZONE = SITE_TIMEZONE;
 const LOCALE = 'tr-TR';
 
 /**
@@ -15,9 +17,8 @@ export const formatDate = (date) => {
   if (!date) return '';
   
   try {
-    const dateObj = typeof date === 'string' 
-      ? new Date(date.includes('Z') ? date : date + 'Z') 
-      : date;
+    const dateObj = parseApiDate(date);
+    if (!dateObj) return '';
     
     return new Intl.DateTimeFormat(LOCALE, { 
       dateStyle: 'long',
@@ -38,9 +39,8 @@ export const formatTime = (time) => {
   if (!time) return '';
   
   try {
-    const dateObj = typeof time === 'string' 
-      ? new Date(time.includes('Z') ? time : time + 'Z') 
-      : time;
+    const dateObj = parseApiDate(time);
+    if (!dateObj) return '';
     
     return dateObj.toLocaleTimeString(LOCALE, { 
       hour: '2-digit', 
@@ -62,8 +62,9 @@ export const formatShortDate = (date) => {
   if (!date) return '';
   
   try {
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
-    
+    const dateObj = parseApiDate(date);
+    if (!dateObj) return '';
+
     return new Intl.DateTimeFormat(LOCALE, {
       day: '2-digit',
       month: '2-digit',
@@ -85,8 +86,8 @@ export const isPastDate = (date) => {
   if (!date) return false;
   
   try {
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
-    return dateObj < new Date();
+    const dateObj = parseApiDate(date);
+    return dateObj !== null && dateObj < new Date();
   } catch (error) {
     console.error('Error checking past date:', error);
     return false;
@@ -102,7 +103,7 @@ export const sortEventsByDate = (events) => {
   if (!Array.isArray(events)) return [];
   
   return [...events].sort((a, b) => 
-    new Date(a.start_time) - new Date(b.start_time)
+    apiDateValue(a.start_time) - apiDateValue(b.start_time)
   );
 };
 
@@ -115,7 +116,8 @@ export const getRelativeTime = (date) => {
   if (!date) return '';
   
   try {
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    const dateObj = parseApiDate(date);
+    if (!dateObj) return '';
     const now = new Date();
     const diffMs = dateObj - now;
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
