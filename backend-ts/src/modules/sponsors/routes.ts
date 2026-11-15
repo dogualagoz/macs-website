@@ -24,7 +24,6 @@ export function registerSponsorRoutes(app: AppRouter, deps: AppDeps): void {
     const query = c.req.valid("query");
     return publicCachedJson(c, deps, { domain: "sponsors", canonicalPath: "/sponsors/", query, load: () => queries.listSponsorsJson(deps.db, query) });
   });
-  deps.routeRegistry.push({ method: "get", path: "/sponsors/", domain: "sponsors", tag: "sponsors", summary: "Sponsor listesi", public: true, response: z.array(schema.sponsorResponseSchema), query: schema.sponsorQuerySchema });
   const categories = createRoute({ method: "get", path: "/sponsors/categories", tags: ["sponsors"], summary: "Sponsor kategorileri",
     request: {},
     responses: { 422: { $ref: "#/components/responses/HTTPValidationError" }, 200: { description: "Success", content: { "application/json": { schema: z.array(z.string()) } } } },
@@ -32,7 +31,6 @@ export function registerSponsorRoutes(app: AppRouter, deps: AppDeps): void {
   app.openapi(categories, async c => {
     return publicCachedJson(c, deps, { domain: "sponsors", canonicalPath: "/sponsors/categories", query: {}, load: () => queries.listSponsorCategoriesJson(deps.db) });
   });
-  deps.routeRegistry.push({ method: "get", path: "/sponsors/categories", domain: "sponsors", tag: "sponsors", summary: "Sponsor kategorileri", public: true, response: z.array(z.string()) });
   const geocode = createRoute({ method: "post", path: "/sponsors/geocode", tags: ["sponsors"], summary: "Adres koordinatları",
     security: [{ OAuth2PasswordBearer: [] }], middleware: [routeRateLimit(deps, perMinute(10)), staff, limitBodySize(deps.security?.maxBodyBytes), requireJsonBody],
     request: { body: { required: true, content: { "application/json": { schema: schema.geocodeRequestSchema } } } },
@@ -41,7 +39,6 @@ export function registerSponsorRoutes(app: AppRouter, deps: AppDeps): void {
   app.openapi(geocode, async c => {
     return sendJsonResponse(c, JSON.stringify(await geocodeAddress(c.req.valid("json").address, deps.fetchImpl ?? fetch, deps.env.NOMINATIM_USER_AGENT, deps.logger)));
   });
-  deps.routeRegistry.push({ method: "post", path: "/sponsors/geocode", domain: "sponsors", tag: "sponsors", summary: "Adres koordinatları", auth: ["admin", "moderator"], response: schema.geocodeResponseSchema, body: schema.geocodeRequestSchema });
   const detail = createRoute({ method: "get", path: "/sponsors/{sponsor_id}", tags: ["sponsors"], summary: "Sponsor detayı",
     request: { params: schema.sponsorParamsSchema },
     responses: { 422: { $ref: "#/components/responses/HTTPValidationError" }, 200: { description: "Success", content: { "application/json": { schema: schema.sponsorResponseSchema } } } },
@@ -50,7 +47,6 @@ export function registerSponsorRoutes(app: AppRouter, deps: AppDeps): void {
     const id = c.req.valid("param").sponsor_id;
     return publicCachedJson(c, deps, { domain: "sponsors", canonicalPath: `/sponsors/${String(id)}`, query: {}, load: async () => requiredSponsorJson(await queries.getSponsorJson(deps.db, id), id) });
   });
-  deps.routeRegistry.push({ method: "get", path: "/sponsors/:sponsor_id", domain: "sponsors", tag: "sponsors", summary: "Sponsor detayı", public: true, response: schema.sponsorResponseSchema, params: schema.sponsorParamsSchema });
   const create = createRoute({ method: "post", path: "/sponsors/", tags: ["sponsors"], summary: "Sponsor oluştur",
     security: [{ OAuth2PasswordBearer: [] }], middleware: [staff, limitBodySize(deps.security?.maxBodyBytes), requireJsonBody],
     request: { body: { required: true, content: { "application/json": { schema: schema.sponsorCreateSchema } } } },
@@ -61,7 +57,6 @@ export function registerSponsorRoutes(app: AppRouter, deps: AppDeps): void {
     deps.cache.invalidate("sponsors");
     return sendJsonResponse(c, result, { status: 201 });
   });
-  deps.routeRegistry.push({ method: "post", path: "/sponsors/", domain: "sponsors", tag: "sponsors", summary: "Sponsor oluştur", auth: ["admin", "moderator"], response: schema.sponsorResponseSchema, body: schema.sponsorCreateSchema, status: 201 });
   const update = createRoute({ method: "put", path: "/sponsors/{sponsor_id}", tags: ["sponsors"], summary: "Sponsor güncelle",
     security: [{ OAuth2PasswordBearer: [] }], middleware: [staff, limitBodySize(deps.security?.maxBodyBytes), requireJsonBody],
     request: { params: schema.sponsorParamsSchema, body: { required: true, content: { "application/json": { schema: schema.sponsorUpdateSchema } } } },
@@ -72,7 +67,6 @@ export function registerSponsorRoutes(app: AppRouter, deps: AppDeps): void {
     deps.cache.invalidate("sponsors");
     return sendJsonResponse(c, result);
   });
-  deps.routeRegistry.push({ method: "put", path: "/sponsors/:sponsor_id", domain: "sponsors", tag: "sponsors", summary: "Sponsor güncelle", auth: ["admin", "moderator"], response: schema.sponsorResponseSchema, params: schema.sponsorParamsSchema, body: schema.sponsorUpdateSchema });
   const remove = createRoute({ method: "delete", path: "/sponsors/{sponsor_id}", tags: ["sponsors"], summary: "Sponsor sil",
     security: [{ OAuth2PasswordBearer: [] }], middleware: [staff, limitBodySize(deps.security?.maxBodyBytes)],
     request: { params: schema.sponsorParamsSchema },
@@ -83,5 +77,4 @@ export function registerSponsorRoutes(app: AppRouter, deps: AppDeps): void {
     deps.cache.invalidate("sponsors");
     return c.body(null, 204);
   });
-  deps.routeRegistry.push({ method: "delete", path: "/sponsors/:sponsor_id", domain: "sponsors", tag: "sponsors", summary: "Sponsor sil", auth: ["admin", "moderator"], params: schema.sponsorParamsSchema, status: 204 });
 }

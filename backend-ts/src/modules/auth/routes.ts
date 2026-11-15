@@ -56,8 +56,4 @@ export function registerAuthRoutes(app: AppRouter, deps: AppDeps): void {
       throw error;
     }
   });
-  // Transitional metadata is removed with the legacy bridge in Task 11.
-  for (const [definition, body, response] of [[registration, registerSchema, userResponseSchema], [admin, adminRegisterSchema, userResponseSchema], [signin, loginSchema, tokenSchema]] as const) {
-    deps.routeRegistry.push({ method: "post", path: definition.path, domain: "auth", tag: "authentication", summary: definition.summary, body, response, ...(definition === signin ? { bodyKind: "form" as const } : {}) });
-  }
 }

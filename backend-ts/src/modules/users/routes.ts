@@ -31,7 +31,6 @@ export function registerUserRoutes(app: AppRouter, deps: AppDeps): void {
   app.openapi(profile, c => {
     return sendJsonResponse(c, JSON.stringify(current(c.get("user"))));
   });
-  deps.routeRegistry.push({ method: "get", path: "/users/me", domain: "users", tag: "users", summary: "Profil", auth: "user", response: userResponseSchema });
   const updateProfile = createRoute({ method: "put", path: "/users/me", tags: ["users"], summary: "Profil güncelle",
     security: [{ OAuth2PasswordBearer: [] }], middleware: [routeRateLimit(deps, perMinute(5)), auth(false), limitBodySize(deps.security?.maxBodyBytes)],
     request: { query: profileQuerySchema },
@@ -42,7 +41,6 @@ export function registerUserRoutes(app: AppRouter, deps: AppDeps): void {
     deps.cache.invalidate("users");
     return sendJsonResponse(c, JSON.stringify(result));
   });
-  deps.routeRegistry.push({ method: "put", path: "/users/me", domain: "users", tag: "users", summary: "Profil güncelle", auth: "user", response: userResponseSchema, query: profileQuerySchema });
   const changePassword = createRoute({ method: "post", path: "/users/me/change-password", tags: ["users"], summary: "Şifre değiştir",
     security: [{ OAuth2PasswordBearer: [] }], middleware: [routeRateLimit(deps, perMinute(3)), auth(false), limitBodySize(deps.security?.maxBodyBytes), requireJsonBody],
     request: { body: { required: true, content: { "application/json": { schema: passwordChangeSchema } } } },
@@ -54,7 +52,6 @@ export function registerUserRoutes(app: AppRouter, deps: AppDeps): void {
     deps.cache.invalidate("users");
     return sendJsonResponse(c, JSON.stringify(result));
   });
-  deps.routeRegistry.push({ method: "post", path: "/users/me/change-password", domain: "users", tag: "users", summary: "Şifre değiştir", auth: "user", response: userResponseSchema, body: passwordChangeSchema });
   const deleteProfile = createRoute({ method: "delete", path: "/users/me", tags: ["users"], summary: "Hesabımı sil",
     security: [{ OAuth2PasswordBearer: [] }], middleware: [routeRateLimit(deps, perMinute(3)), auth(false), limitBodySize(deps.security?.maxBodyBytes)],
     request: {},
@@ -66,7 +63,6 @@ export function registerUserRoutes(app: AppRouter, deps: AppDeps): void {
     deps.cache.invalidate("users");
     return sendJsonResponse(c, JSON.stringify(result));
   });
-  deps.routeRegistry.push({ method: "delete", path: "/users/me", domain: "users", tag: "users", summary: "Hesabımı sil", auth: "user", response: message });
   const list = createRoute({ method: "get", path: "/users", tags: ["users"], summary: "Kullanıcı listesi",
     security: [{ OAuth2PasswordBearer: [] }], middleware: [routeRateLimit(deps, perMinute(30)), auth(true)],
     request: { query: listQuerySchema },
@@ -76,7 +72,6 @@ export function registerUserRoutes(app: AppRouter, deps: AppDeps): void {
     const query = c.req.valid("query");
     return sendJsonResponse(c, await listUsersJson(deps.db, query.skip ?? 0, query.limit ?? 10), { status: 200, isPublic: false });
   });
-  deps.routeRegistry.push({ method: "get", path: "/users", domain: "users", tag: "users", summary: "Kullanıcı listesi", auth: ["admin"], response: z.object({ users: z.array(userResponseSchema), total: z.number().int() }), query: listQuerySchema });
   const detail = createRoute({ method: "get", path: "/users/{user_id}", tags: ["users"], summary: "Kullanıcı detayı",
     security: [{ OAuth2PasswordBearer: [] }], middleware: [routeRateLimit(deps, perMinute(30)), auth(true)],
     request: { params: userParamsSchema },
@@ -87,7 +82,6 @@ export function registerUserRoutes(app: AppRouter, deps: AppDeps): void {
     if (json === null) throw new HttpError(404, "Kullanıcı bulunamadı");
     return sendJsonResponse(c, json, { status: 200, isPublic: false });
   });
-  deps.routeRegistry.push({ method: "get", path: "/users/:user_id", domain: "users", tag: "users", summary: "Kullanıcı detayı", auth: ["admin"], response: userResponseSchema, params: userParamsSchema });
   const setAccess = createRoute({ method: "patch", path: "/users/{user_id}/access", tags: ["users"], summary: "Erişim ayarları",
     security: [{ OAuth2PasswordBearer: [] }], middleware: [routeRateLimit(deps, perMinute(20)), auth(true), limitBodySize(deps.security?.maxBodyBytes), requireJsonBody],
     request: { params: userParamsSchema, body: { required: true, content: { "application/json": { schema: accessSchema } } } },
@@ -100,7 +94,6 @@ export function registerUserRoutes(app: AppRouter, deps: AppDeps): void {
     deps.cache.invalidate("users");
     return sendJsonResponse(c, JSON.stringify(result));
   });
-  deps.routeRegistry.push({ method: "patch", path: "/users/:user_id/access", domain: "users", tag: "users", summary: "Erişim ayarları", auth: ["admin"], response: userResponseSchema, params: userParamsSchema, body: accessSchema });
   const remove = createRoute({ method: "delete", path: "/users/{user_id}", tags: ["users"], summary: "Kullanıcı sil",
     security: [{ OAuth2PasswordBearer: [] }], middleware: [routeRateLimit(deps, perMinute(10)), auth(true), limitBodySize(deps.security?.maxBodyBytes)],
     request: { params: userParamsSchema },
@@ -114,5 +107,4 @@ export function registerUserRoutes(app: AppRouter, deps: AppDeps): void {
     deps.cache.invalidate("users");
     return sendJsonResponse(c, JSON.stringify(result));
   });
-  deps.routeRegistry.push({ method: "delete", path: "/users/:user_id", domain: "users", tag: "users", summary: "Kullanıcı sil", auth: ["admin"], response: message, params: userParamsSchema });
 }

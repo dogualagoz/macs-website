@@ -3,7 +3,6 @@ import type { Hook } from "@hono/zod-openapi";
 import type { Logger } from "pino";
 import type { Db, Sql, QueryCounter } from "./db/client";
 import type { Env } from "./config/env";
-import type { RouteMeta } from "./lib/route";
 import type { ResponseCache } from "./lib/cache";
 import type { Storage } from "./lib/storage";
 import type { AuthUser, LoadUserByEmail } from "./middleware/auth";
@@ -44,7 +43,6 @@ export interface AppDeps {
   sql: Sql;
   counter: QueryCounter;
   logger: Logger;
-  routeRegistry: RouteMeta[];
   loadUser: LoadUserByEmail;
   now?: () => Date;
   fetchImpl?: FetchImpl;

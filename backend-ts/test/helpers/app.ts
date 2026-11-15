@@ -15,5 +15,5 @@ export function testDeps(overrides: Partial<AppDeps> = {}): AppDeps {
     ? { db: overrides.db, sql: overrides.sql, counter: overrides.counter }
     : createDb(env.DATABASE_URL);
   const cache = createResponseCache({ max: 500, ttlMs: 60_000, now: () => overrides.now?.().getTime() ?? Date.now(), enabled: env.RESPONSE_CACHE });
-  return { ...database, cache, storage: overrides.storage ?? localDiskStorage(env.UPLOAD_DIR), env, logger: createLogger("error"), routeRegistry: [], loadUser: email => findUserByEmail(database.db, email).then(row => row ? serializeUser(row) : null), ...overrides };
+  return { ...database, cache, storage: overrides.storage ?? localDiskStorage(env.UPLOAD_DIR), env, logger: createLogger("error"), loadUser: email => findUserByEmail(database.db, email).then(row => row ? serializeUser(row) : null), ...overrides };
 }

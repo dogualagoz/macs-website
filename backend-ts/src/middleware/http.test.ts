@@ -8,10 +8,10 @@ import type { AppDeps } from "../app";
 import { parseEnv } from "../config/env";
 import { HttpError } from "../lib/http-error";
 import { signAccessToken } from "../lib/jwt";
-import { route } from "../lib/route";
+import { route } from "../../test/helpers/native-route";
 import type { AuthUser } from "./auth";
 import { testDeps } from "../../test/helpers/app";
-import { perHour, perMinute } from "./rate-limit";
+import { perHour, perMinute } from "../security/rate-limit";
 
 const now = new Date("2026-11-14T00:00:00Z");
 const env = parseEnv({ DATABASE_URL: "postgresql://u:p@db/x", JWT_SECRET_KEY: "x".repeat(32), NODE_ENV: "test" });
@@ -19,7 +19,7 @@ const user: AuthUser = { id: 1, email: "admin@example.com", full_name: "Admin", 
 function setup(options: { user?: AuthUser | null; enabled?: boolean; error?: object } = {}) {
   const logs: Record<string, unknown>[] = [];
   const logger = pino({ level: "info" }, new Writable({ write(chunk: Buffer, _encoding, done) { logs.push(JSON.parse(chunk.toString()) as Record<string, unknown>); done(); } }));
-  const deps: AppDeps = testDeps({ env: { ...env, RATELIMIT_ENABLED: options.enabled ?? true }, logger, routeRegistry: [], now: () => now,
+  const deps: AppDeps = testDeps({ env: { ...env, RATELIMIT_ENABLED: options.enabled ?? true }, logger, now: () => now,
     loadUser: (email) => { expect(email).toBe(user.email); return Promise.resolve(options.user === undefined ? user : options.user); } });
   const app = createApp(deps, (router, d) => {
     const base = { domain: "system", tag: "System", summary: "Test" } as const;

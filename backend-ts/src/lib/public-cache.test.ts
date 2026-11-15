@@ -3,7 +3,7 @@ import { brotliDecompressSync, gunzipSync } from "node:zlib";
 import { createApp } from "../app";
 import { testDeps } from "../../test/helpers/app";
 import request from "../../test/helpers/http";
-import { route } from "./route";
+import { route } from "../../test/helpers/native-route";
 import { createResponseCache } from "./cache";
 test("public cache negotiates compressed variants and consistent conditional responses", async () => {
   const deps = testDeps({ cache: createResponseCache({ enabled: true }) });

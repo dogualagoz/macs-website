@@ -32,7 +32,7 @@ async function main(): Promise<void> {
   const out = resolve(import.meta.dirname, "explain");
   await mkdir(out, { recursive: true });
   const prefix = values.phase === "after" ? "after-" : "";
-  const app = createApp({ ...database, env, logger: createLogger("warn"), routeRegistry: [], storage: localDiskStorage(env.UPLOAD_DIR),
+  const app = createApp({ ...database, env, logger: createLogger("warn"), storage: localDiskStorage(env.UPLOAD_DIR),
     cache: createResponseCache({ max: 500, ttlMs: 60_000, now: Date.now, enabled: false }),
     loadUser: email => findUserByEmail(database.db, email).then(row => row ? serializeUser(row) : null) });
   const server = Bun.serve({ port: 0, hostname: "127.0.0.1", fetch: (req, server) => app.fetch(req, { socketIp: server.requestIP(req)?.address }) });

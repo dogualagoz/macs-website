@@ -36,7 +36,6 @@ export function registerEventRoutes(app: AppRouter, deps: AppDeps): void {
     const query = c.req.valid("query");
     return publicCachedJson(c, deps, { domain: "events", canonicalPath: `/events/categories`, query: query, load: async () => queries.listEventCategoriesJson(deps.db, query.skip ?? 0, query.limit ?? 10) });
   });
-  deps.routeRegistry.push({ method: "get", path: "/events/categories", domain: "events", tag: "events", summary: "Etkinlik kategorileri", public: true, response: z.array(schema.categoryResponseSchema), query: schema.categoryQuerySchema });
   const createCategory = createRoute({ method: "post", path: "/events/categories", tags: ["events"], summary: "Kategori oluştur",
     security: [{ OAuth2PasswordBearer: [] }], middleware: [staff, limitBodySize(deps.security?.maxBodyBytes), requireJsonBody],
     request: { body: { required: true, content: { "application/json": { schema: schema.categoryCreateSchema } } } },
@@ -47,7 +46,6 @@ export function registerEventRoutes(app: AppRouter, deps: AppDeps): void {
     deps.cache.invalidate("events");
     return sendJsonResponse(c, result, { status: 201 });
   });
-  deps.routeRegistry.push({ method: "post", path: "/events/categories", domain: "events", tag: "events", summary: "Kategori oluştur", auth: ["admin", "moderator"], response: schema.categoryResponseSchema, body: schema.categoryCreateSchema, status: 201 });
   const category = createRoute({ method: "get", path: "/events/categories/{category_id}", tags: ["events"], summary: "Kategori detayı",
     request: { params: schema.categoryParamsSchema },
     responses: { 422: { $ref: "#/components/responses/HTTPValidationError" }, 200: { description: "Success", content: { "application/json": { schema: schema.categoryResponseSchema } } } },
@@ -56,7 +54,6 @@ export function registerEventRoutes(app: AppRouter, deps: AppDeps): void {
     const id = c.req.valid("param").category_id;
     return publicCachedJson(c, deps, { domain: "events", canonicalPath: `/events/categories/${String(id)}`, query: {}, load: async () => service.requiredCategory(await queries.getEventCategoryJson(deps.db, id)) });
   });
-  deps.routeRegistry.push({ method: "get", path: "/events/categories/:category_id", domain: "events", tag: "events", summary: "Kategori detayı", public: true, response: schema.categoryResponseSchema, params: schema.categoryParamsSchema });
   const updateCategory = createRoute({ method: "put", path: "/events/categories/{category_id}", tags: ["events"], summary: "Kategori güncelle",
     security: [{ OAuth2PasswordBearer: [] }], middleware: [staff, limitBodySize(deps.security?.maxBodyBytes), requireJsonBody],
     request: { params: schema.categoryParamsSchema, body: { required: true, content: { "application/json": { schema: schema.categoryCreateSchema } } } },
@@ -68,7 +65,6 @@ export function registerEventRoutes(app: AppRouter, deps: AppDeps): void {
     deps.cache.invalidate("events");
     return sendJsonResponse(c, result, { status: 200 });
   });
-  deps.routeRegistry.push({ method: "put", path: "/events/categories/:category_id", domain: "events", tag: "events", summary: "Kategori güncelle", auth: ["admin", "moderator"], response: schema.categoryResponseSchema, params: schema.categoryParamsSchema, body: schema.categoryCreateSchema });
   const deleteCategory = createRoute({ method: "delete", path: "/events/categories/{category_id}", tags: ["events"], summary: "Kategori sil",
     security: [{ OAuth2PasswordBearer: [] }], middleware: [staff, limitBodySize(deps.security?.maxBodyBytes)],
     request: { params: schema.categoryParamsSchema },
@@ -81,7 +77,6 @@ export function registerEventRoutes(app: AppRouter, deps: AppDeps): void {
     c.header("Cache-Control", "no-store");
     return c.body(null, 204);
   });
-  deps.routeRegistry.push({ method: "delete", path: "/events/categories/:category_id", domain: "events", tag: "events", summary: "Kategori sil", auth: ["admin", "moderator"], params: schema.categoryParamsSchema, status: 204 });
   const list = createRoute({ method: "get", path: "/events", tags: ["events"], summary: "Etkinlik listesi",
     request: { query: schema.eventQuerySchema },
     responses: { 422: { $ref: "#/components/responses/HTTPValidationError" }, 200: { description: "Success", content: { "application/json": { schema: z.array(schema.eventResponseSchema) } } } },
@@ -91,7 +86,6 @@ export function registerEventRoutes(app: AppRouter, deps: AppDeps): void {
     checkSort(query);
     return publicCachedJson(c, deps, { domain: "events", canonicalPath: `/events`, query: query, load: async () => queries.listEventsJson(deps.db, query, false) });
   });
-  deps.routeRegistry.push({ method: "get", path: "/events", domain: "events", tag: "events", summary: "Etkinlik listesi", public: true, response: z.array(schema.eventResponseSchema), query: schema.eventQuerySchema });
   const adminList = createRoute({ method: "get", path: "/events/admin", tags: ["events"], summary: "Yönetici etkinlik listesi",
     security: [{ OAuth2PasswordBearer: [] }], middleware: [staff, limitBodySize(deps.security?.maxBodyBytes)],
     request: { query: schema.adminEventQuerySchema },
@@ -102,7 +96,6 @@ export function registerEventRoutes(app: AppRouter, deps: AppDeps): void {
     checkSort(query);
     return sendJsonResponse(c, await queries.listEventsJson(deps.db, query, true), { status: 200, isPublic: false });
   });
-  deps.routeRegistry.push({ method: "get", path: "/events/admin", domain: "events", tag: "events", summary: "Yönetici etkinlik listesi", auth: ["admin", "moderator"], response: z.array(schema.eventResponseSchema), query: schema.adminEventQuerySchema });
   const featured = createRoute({ method: "get", path: "/events/featured", tags: ["events"], summary: "Öne çıkan etkinlik",
     request: {  },
     responses: { 422: { $ref: "#/components/responses/HTTPValidationError" }, 200: { description: "Success", content: { "application/json": { schema: schema.eventResponseSchema.nullable() } } } },
@@ -110,7 +103,6 @@ export function registerEventRoutes(app: AppRouter, deps: AppDeps): void {
   app.openapi(featured, async c => {
     return publicCachedJson(c, deps, { domain: "events", canonicalPath: `/events/featured`, query: {}, load: async () => queries.getFeaturedEventJson(deps.db) });
   });
-  deps.routeRegistry.push({ method: "get", path: "/events/featured", domain: "events", tag: "events", summary: "Öne çıkan etkinlik", public: true, response: schema.eventResponseSchema.nullable() });
   const bySlug = createRoute({ method: "get", path: "/events/by-slug/{slug}", tags: ["events"], summary: "Slug ile etkinlik",
     request: { params: schema.slugParamsSchema },
     responses: { 422: { $ref: "#/components/responses/HTTPValidationError" }, 200: { description: "Success", content: { "application/json": { schema: schema.eventResponseSchema } } } },
@@ -119,7 +111,6 @@ export function registerEventRoutes(app: AppRouter, deps: AppDeps): void {
     const id = c.req.valid("param").slug;
     return publicCachedJson(c, deps, { domain: "events", canonicalPath: `/events/by-slug/${id}`, query: {}, load: async () => service.requiredEvent(await queries.getEventBySlugJson(deps.db, id)) });
   });
-  deps.routeRegistry.push({ method: "get", path: "/events/by-slug/:slug", domain: "events", tag: "events", summary: "Slug ile etkinlik", public: true, response: schema.eventResponseSchema, params: schema.slugParamsSchema });
   const create = createRoute({ method: "post", path: "/events", tags: ["events"], summary: "Etkinlik oluştur",
     security: [{ OAuth2PasswordBearer: [] }], middleware: [staff, bodyInvalid, limitBodySize(deps.security?.maxBodyBytes), requireJsonBody],
     request: { body: { required: true, content: { "application/json": { schema: schema.eventCreateSchema } } } },
@@ -134,7 +125,6 @@ export function registerEventRoutes(app: AppRouter, deps: AppDeps): void {
   }, result => {
     if (!result.success && result.target === "json") throw new HttpError(400, "Geçersiz istek gövdesi");
   });
-  deps.routeRegistry.push({ method: "post", path: "/events", domain: "events", tag: "events", summary: "Etkinlik oluştur", auth: ["admin", "moderator"], response: schema.eventResponseSchema, body: schema.eventCreateSchema, status: 201 });
   const detail = createRoute({ method: "get", path: "/events/{event_id}", tags: ["events"], summary: "Etkinlik detayı",
     request: { params: schema.eventParamsSchema },
     responses: { 422: { $ref: "#/components/responses/HTTPValidationError" }, 200: { description: "Success", content: { "application/json": { schema: schema.eventResponseSchema } } } },
@@ -143,7 +133,6 @@ export function registerEventRoutes(app: AppRouter, deps: AppDeps): void {
     const id = c.req.valid("param").event_id;
     return publicCachedJson(c, deps, { domain: "events", canonicalPath: `/events/${String(id)}`, query: {}, load: async () => service.requiredEvent(await queries.getEventJson(deps.db, id)) });
   });
-  deps.routeRegistry.push({ method: "get", path: "/events/:event_id", domain: "events", tag: "events", summary: "Etkinlik detayı", public: true, response: schema.eventResponseSchema, params: schema.eventParamsSchema });
   const update = createRoute({ method: "put", path: "/events/{event_id}", tags: ["events"], summary: "Etkinlik güncelle",
     security: [{ OAuth2PasswordBearer: [] }], middleware: [staff, limitBodySize(deps.security?.maxBodyBytes), requireJsonBody],
     request: { params: schema.eventParamsSchema, body: { required: true, content: { "application/json": { schema: schema.eventUpdateSchema } } } },
@@ -155,7 +144,6 @@ export function registerEventRoutes(app: AppRouter, deps: AppDeps): void {
     deps.cache.invalidate("events");
     return sendJsonResponse(c, result, { status: 200 });
   });
-  deps.routeRegistry.push({ method: "put", path: "/events/:event_id", domain: "events", tag: "events", summary: "Etkinlik güncelle", auth: ["admin", "moderator"], response: schema.eventResponseSchema, params: schema.eventParamsSchema, body: schema.eventUpdateSchema });
   const remove = createRoute({ method: "delete", path: "/events/{event_id}", tags: ["events"], summary: "Etkinliği arşivle",
     security: [{ OAuth2PasswordBearer: [] }], middleware: [staff, limitBodySize(deps.security?.maxBodyBytes)],
     request: { params: schema.eventParamsSchema },
@@ -167,7 +155,6 @@ export function registerEventRoutes(app: AppRouter, deps: AppDeps): void {
     deps.cache.invalidate("events");
     return sendJsonResponse(c, result, { status: 200 });
   });
-  deps.routeRegistry.push({ method: "delete", path: "/events/:event_id", domain: "events", tag: "events", summary: "Etkinliği arşivle", auth: ["admin", "moderator"], response: z.object({ message: z.string() }), params: schema.eventParamsSchema });
   const hardRemove = createRoute({ method: "delete", path: "/events/{event_id}/hard", tags: ["events"], summary: "Etkinliği kalıcı sil",
     security: [{ OAuth2PasswordBearer: [] }], middleware: [admin, limitBodySize(deps.security?.maxBodyBytes)],
     request: { params: schema.eventParamsSchema },
@@ -180,5 +167,4 @@ export function registerEventRoutes(app: AppRouter, deps: AppDeps): void {
     c.header("Cache-Control", "no-store");
     return c.body(null, 204);
   });
-  deps.routeRegistry.push({ method: "delete", path: "/events/:event_id/hard", domain: "events", tag: "events", summary: "Etkinliği kalıcı sil", auth: ["admin"], params: schema.eventParamsSchema, status: 204 });
 }

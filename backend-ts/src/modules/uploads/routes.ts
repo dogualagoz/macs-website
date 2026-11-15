@@ -5,7 +5,7 @@ import { PassThrough } from "node:stream";
 import { z } from "zod";
 import type { AppDeps, AppRouter } from "../../app";
 import { HttpError } from "../../lib/http-error";
-import { registerRouteMetadata } from "../../lib/route";
+import { registerRouteMetadata } from "../../lib/route-metadata";
 import { authenticate, requireRoles } from "../../middleware/auth";
 import { perHour, perMinute, routeRateLimit } from "../../security/rate-limit";
 import { limitBodySize } from "../../security/request-guards";

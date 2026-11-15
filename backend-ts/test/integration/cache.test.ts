@@ -5,7 +5,7 @@ import { z } from "zod";
 import { sql } from "drizzle-orm";
 import { createApp } from "../../src/app";
 import type { AppDeps } from "../../src/app";
-import { route } from "../../src/lib/route";
+import { route } from "../helpers/native-route";
 import type { EventResponse } from "../../src/modules/events/schemas";
 import type { ProjectResponse } from "../../src/modules/projects/schemas";
 import type { SponsorResponse } from "../../src/modules/sponsors/schemas";

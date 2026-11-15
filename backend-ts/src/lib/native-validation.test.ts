@@ -1,6 +1,5 @@
 import { expect, test } from "bun:test";
-import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
-import type { AppEnv } from "../app";
+import { createRoute } from "@hono/zod-openapi";
 import request from "../../test/helpers/http";
 import { z } from "zod";
 import { createApp } from "../app";
@@ -12,7 +11,7 @@ import { HttpError } from "./http-error";
 import { signAccessToken } from "./jwt";
 import { testDeps } from "../../test/helpers/app";
 import { limitBodySize } from "../security/request-guards";
-import { route } from "./route";
+import { route } from "../../test/helpers/native-route";
 
 const now = new Date("2026-11-14T00:00:00Z");
 const env = parseEnv({ DATABASE_URL: "postgresql://u:p@db/x", JWT_SECRET_KEY: "x".repeat(32), NODE_ENV: "test" });
@@ -65,6 +64,7 @@ test("status 204 skips serialization and sends empty body", async () => {
   const r = await request(app).post("/test");
   expect(r.status).toBe(204);
   expect(r.text).toBe("");
+  expect(r.headers["content-type"]).toBeUndefined(); expect(r.headers["content-length"]).toBeUndefined();
 });
 test("handler returning null sends JSON null", async () => {
   const app = createApp(deps(), (router, d) => { route(router, d, { ...base, handler: () => Promise.resolve(null) }); });
@@ -93,26 +93,6 @@ test("form bodies are parsed before validation", async () => {
   expect(r.status).toBe(200);
   expect(r.body).toEqual({ username: "mod@example.com" });
 });
-test("per-app registry includes metadata and remains independent", () => {
-  const first = deps(); const second = deps();
-  createApp(first, (router, d) => {
-    route(router, d, { ...base, auth: "user", bodyKind: "form", handler: () => Promise.resolve(null) });
-    route(router, d, { ...base, path: "/upload", upload: { field: "file", maxBytes: 1024 }, handler: () => Promise.resolve(null) });
-  });
-  createApp(second);
-  const login = first.routeRegistry.find((r) => r.path === "/test");
-  expect(login?.method).toBe("post");
-  expect(login?.domain).toBe("events");
-  expect(login?.auth).toBe("user");
-  expect(login?.bodyKind).toBe("form");
-  expect(first.routeRegistry.find((r) => r.path === "/upload")?.upload).toEqual({ field: "file", maxBytes: 1024 });
-  expect(second.routeRegistry.some((r) => r.path === "/test" || r.path === "/upload")).toBe(false);
-  const router = new OpenAPIHono<AppEnv>();
-  route(router, second, { ...base, path: "/second", handler: () => Promise.resolve(null) });
-  expect(first.routeRegistry.some((r) => r.path === "/second")).toBe(false);
-});
-
-
 test("missing body field retains parent input in the entire 422 envelope", async () => {
   const app = createApp(deps(), (router, d) => {
     route(router, d, { ...base, body: z.object({ email: z.string() }), handler: () => Promise.resolve(null) });
@@ -158,7 +138,7 @@ test("rate limit precedes auth and params/query/body validation", async () => {
   expect(limited.status).toBe(429);
   expect(limited.body).toEqual({ error: "Rate limit exceeded: 1 per 1 minute" });
   const authorized = await signAccessToken({ sub: user.email, role: "moderator" }, env.JWT_SECRET_KEY, 60, now);
-  const path = await request(app).post("/order/bad").set("X-Real-IP", "192.0.2.21").auth(authorized, { type: "bearer" }).send({});
+  const path = await request(app).post("/order/bad?q=valid").set("X-Real-IP", "192.0.2.21").auth(authorized, { type: "bearer" }).send({});
   expect(path.status).toBe(422); expect((path.body as { detail: FastApiErrorItem[] }).detail[0]?.loc).toEqual(["path", "id"]);
   const query = await request(app).post("/order/1").set("X-Real-IP", "192.0.2.22").auth(authorized, { type: "bearer" }).send({});
   expect(query.status).toBe(422); expect((query.body as { detail: FastApiErrorItem[] }).detail[0]?.loc).toEqual(["query", "q"]);

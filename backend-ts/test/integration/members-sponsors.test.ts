@@ -17,7 +17,7 @@ beforeEach(async () => { await seedDb(deps.sql, seed); });
 const mod = () => tokenFor("mod@example.com", "moderator");
 const noNetwork = (): Promise<Response> => Promise.reject(new Error("Unexpected upstream fetch"));
 function geocodeApp(fetchImpl: NonNullable<AppDeps["fetchImpl"]>, extra: Partial<AppDeps> = {}) {
-  return createApp({ ...deps, routeRegistry: [], fetchImpl, ...extra });
+  return createApp({ ...deps, fetchImpl, ...extra });
 }
 
 describe("members and sponsors database integration", () => {

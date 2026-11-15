@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { AppRouter, AppDeps } from "../../app";
-import { registerRouteMetadata } from "../../lib/route";
+import { registerRouteMetadata } from "../../lib/route-metadata";
 import { sendJsonResponse } from "../../lib/public-cache";
 export function registerSystemRoutes(app: AppRouter, deps: AppDeps): void {
   for (const [path, summary, body] of [["/", "Welcome", { message: "MACS Kulubu Web Sitesine hosgeldiniz!" }], ["/health", "Liveness", { status: "ok" }]] as const) {
