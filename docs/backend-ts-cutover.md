@@ -98,8 +98,8 @@ OLD_URL=http://127.0.0.1:8000 NEW_URL=http://127.0.0.1:8010 \
 ## 5. nginx Geçişi: Önce Salt-GET Doğrulaması, Sonra Tam Geçiş
 
 nginx kurulum dosyaları [`deploy/nginx/`](../deploy/nginx/README.md) içindedir:
-- [`deploy/nginx/api.macsclub-http.conf`](../deploy/nginx/api.macsclub-http.conf): `macs_api_limit` (`50r/s`), `macs_login_limit` (`5r/m`), `macs_conn_limit`, `upstream macs_backend_ts` (`127.0.0.1:8010`, `keepalive 32`).
-- [`deploy/nginx/api.macsclub-server.conf`](../deploy/nginx/api.macsclub-server.conf): `server_tokens off`, `location ^~ /auth/login` (`burst=10 nodelay`, `limit_conn 60`), `location ^~ /uploads/` (`limit_req` muaf, `limit_conn 60`, `1y immutable` cache), `location /` (`burst=100 nodelay`, `limit_conn 60`), `TRACE`/`CONNECT` `405` koruması.
+- [`deploy/nginx/api.macsclub-http.conf`](../deploy/nginx/api.macsclub-http.conf): `macs_api_limit` (`50r/s`), `macs_upload_limit` (`200r/s`), `macs_login_limit` (`5r/m`), `macs_conn_limit`, `upstream macs_backend_ts` (`127.0.0.1:8010`, `keepalive 32`).
+- [`deploy/nginx/api.macsclub-server.conf`](../deploy/nginx/api.macsclub-server.conf): `server_tokens off`, `location ^~ /auth/login` (`burst=10 nodelay`, `limit_conn 100`), `location ^~ /uploads/` (`macs_upload_limit` `burst=400 nodelay`, `limit_conn 100`, `1y immutable` cache), `location /` (`burst=100 nodelay`, `limit_conn 100`), `TRACE`/`CONNECT` `405` koruması.
 
 Detaylı yedekleme ve Plesk adımları için [`deploy/nginx/README.md`](../deploy/nginx/README.md) kılavuzunu izle.
 
@@ -152,7 +152,7 @@ docker compose logs --since=15m backend-ts | grep -E '"status":5[0-9]{2}|"kind":
 sudo grep -E 'limiting (requests|connections)|HTTP/[0-9.]+" (429|5[0-9]{2})' /var/www/vhosts/system/api.macsclub.com.tr/logs/proxy_error_log /var/www/vhosts/system/api.macsclub.com.tr/logs/proxy_access_ssl_log | tail -n 50
 ```
 
-- **Beklenen limit davranışları**: Kampüs NAT tek IP'sinden gelen sayfa yüklemelerinde `/uploads/`, `/static/` ve `/health*` uygulama global limitinden muaftır; nginx `/uploads/` üzerinde `limit_req` uygulamaz (yalnız `limit_conn 60`). Beklenmedik `429` görülürse hangi `kind` / nginx zone tetiklendiğini logdan kontrol et.
+- **Beklenen limit davranışları**: Kampüs NAT tek IP'sinden gelen sayfa yüklemelerinde `/uploads/`, `/static/` ve tam `/health` / `/health/ready` yolları uygulama global limitinden muaftır; nginx `/uploads/` için ayrı yüksek tavanlı `macs_upload_limit` (`200r/s`, burst `400`) ve `limit_conn 100` uygular. Beklenmedik `429` görülürse hangi `kind` / nginx zone tetiklendiğini logdan kontrol et.
 - **5xx**: Sıfır beklenir; 5xx görülürse `reqId`, `errorName`, `code` ve sanitized `path` alanlarını incele.
 
 ---
