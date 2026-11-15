@@ -13,5 +13,7 @@ export const createCors = (env: Env): MiddlewareHandler => async (c, next) => {
   }
   await next();
   const vary = c.res.headers.get("Vary");
-  c.res.headers.set("Vary", [...new Set([...(vary?.split(/,\s*/) ?? []), "Origin"])].join(", "));
+  if (vary !== "Accept-Encoding, Origin" && vary !== "Origin") {
+    c.res.headers.set("Vary", [...new Set([...(vary?.split(/,\s*/) ?? []), "Origin"])].join(", "));
+  }
 };
