@@ -33,7 +33,7 @@ export default function EventCard({ event }) {
       <div className="group relative overflow-hidden rounded-xl bg-white shadow-md hover:shadow-xl transition-all duration-300 h-full flex flex-col">
         {/* Image */}
         <div className="relative h-48 overflow-hidden">
-          <img
+          <img loading="lazy" decoding="async"
             src={getImageUrl(event.image_url)}
             alt={event.title}
             onError={handleImageError}

@@ -117,7 +117,7 @@ const NewProjectDetailPage = () => {
       {/* Hero Section with Blur Backdrop */}
       <div className="relative h-[60vh] w-full overflow-hidden">
         <div className="absolute inset-0 z-0" style={{ viewTransitionName: 'project-hero' }}>
-          <img src={project.imageUrl} alt={project.title} className="w-full h-full object-cover opacity-40 blur-sm" onError={handleImageError} />
+          <img fetchpriority="high" decoding="async" src={project.imageUrl} alt={project.title} className="w-full h-full object-cover opacity-40 blur-sm" onError={handleImageError} />
           <div className="absolute inset-0 bg-gradient-to-t from-[#07132b] via-[#07132b]/80 to-transparent" />
         </div>
 
@@ -258,7 +258,7 @@ const NewProjectDetailPage = () => {
             <div className="space-y-4">
               {project.team.map((member, idx) => (
                 <div key={idx} className="flex items-center gap-3">
-                  <img src={member.avatar} alt={member.name} className="w-12 h-12 rounded-full border border-white/10" onError={(e) => handleAvatarError(e, member.name)} />
+                  <img loading="lazy" decoding="async" src={member.avatar} alt={member.name} className="w-12 h-12 rounded-full border border-white/10" onError={(e) => handleAvatarError(e, member.name)} />
                   <div>
                     <p className="text-white font-semibold">{member.name}</p>
                     <p className="text-xs text-macs-accent-300">{member.role}</p>

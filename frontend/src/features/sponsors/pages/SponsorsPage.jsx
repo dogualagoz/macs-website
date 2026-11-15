@@ -314,7 +314,7 @@ function SponsorsGrid({ sponsors, onSponsorClick }) {
 
             <div className="sponsor-card__avatar-wrapper">
               {sponsor.imageUrl ? (
-                <img
+                <img loading="lazy" decoding="async"
                   src={sponsor.imageUrl}
                   alt={sponsor.name}
                   className="sponsor-card__avatar"
@@ -419,7 +419,7 @@ function FeaturedSplit({ sponsors }) {
           >
             <span className="split-panel__plate">
               {sponsor.imageUrl ? (
-                <img
+                <img fetchpriority="high" decoding="async"
                   src={sponsor.imageUrl}
                   alt={sponsor.name}
                   className="split-panel__logo"

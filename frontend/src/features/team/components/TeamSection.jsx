@@ -190,7 +190,7 @@ const TeamSection = ({ intro = true }) => {
         {entries.map(([key, href, label]) => (
           <a key={key} href={href} className="social-link" aria-label={label}
             target={key === 'email' ? undefined : '_blank'} rel="noreferrer">
-            <img src={`/assets/images/img_${key === 'email' ? 'email' : key}.png`} alt="" />
+            <img loading="lazy" decoding="async" src={`/assets/images/img_${key === 'email' ? 'email' : key}.png`} alt="" />
           </a>
         ))}
       </div>

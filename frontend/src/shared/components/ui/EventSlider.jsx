@@ -89,7 +89,7 @@ const EventSlider = ({ events = [] }) => {
                                     <div className={`slider-card slider-card-compact event-card-slide ${eventIsPast ? 'past' : ''}`}>
                                         {/* Image Section */}
                                         <div className="slider-card-image">
-                                            <img
+                                            <img loading="lazy" decoding="async"
                                                 src={getImageUrl(event.image_url || event.image)}
                                                 alt={event.title}
                                                 onError={handleImageError}

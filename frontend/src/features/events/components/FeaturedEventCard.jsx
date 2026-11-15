@@ -34,7 +34,7 @@ export default function FeaturedEventCard({ event }) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-0 h-full">
           {/* Image Container - Left Side */}
           <div className="relative h-64 md:h-80 overflow-hidden bg-gray-100 col-span-1">
-            <img
+            <img fetchpriority="high" decoding="async"
               src={getImageUrl(event.image_url)}
               alt={event.title}
               onError={handleImageError}

@@ -128,7 +128,7 @@ export default function SponsorsMap({ sponsors }) {
                 onKeyDown={(e) => e.key === 'Enter' && handleMarkerClick(sponsor, e)}
               >
                 {sponsor.imageUrl ? (
-                  <img
+                  <img loading="lazy" decoding="async"
                     src={sponsor.imageUrl}
                     alt={sponsor.name}
                     className="sponsors-map__marker-image"
@@ -156,7 +156,7 @@ export default function SponsorsMap({ sponsors }) {
               <div className="sponsor-popup__content">
                   <div className="sponsor-popup__header">
                     {popupInfo.imageUrl ? (
-                      <img
+                      <img loading="lazy" decoding="async"
                         src={popupInfo.imageUrl}
                         alt={popupInfo.name}
                         className="sponsor-popup__avatar"
@@ -227,7 +227,7 @@ export default function SponsorsMap({ sponsors }) {
               <div className="sponsors-sidebar__item-content">
                 <div className={`sponsors-sidebar__item-avatar ${popupInfo?.id === sponsor.id ? 'sponsors-sidebar__item-avatar--active' : ''}`}>
                   {sponsor.imageUrl ? (
-                    <img
+                    <img loading="lazy" decoding="async"
                       src={sponsor.imageUrl}
                       alt={sponsor.name}
                       className="sponsors-sidebar__item-avatar-image"

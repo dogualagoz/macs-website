@@ -52,7 +52,7 @@ const FeaturedEventCard = ({ title, date, location, description, image, startTim
       <div className="featured-event-card-grid">
         {/* Image Container - Left Side */}
         <div className="featured-event-card-image relative overflow-hidden bg-gray-100">
-          <img
+          <img loading="lazy" decoding="async"
             src={getImageUrl(image)}
             alt={title}
             onError={handleImageError}
