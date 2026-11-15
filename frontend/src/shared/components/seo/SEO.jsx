@@ -1,6 +1,18 @@
 import { Helmet } from 'react-helmet-async';
 import PropTypes from 'prop-types';
 
+const SITE_URL = 'https://macsclub.com.tr';
+
+/**
+ * og:image / twitter:image mutlak URL ister; göreli yol verilirse
+ * paylaşım botları görseli bulamıyor.
+ */
+export const toAbsoluteUrl = (value) => {
+  if (!value) return `${SITE_URL}/assets/images/og-image.jpg`;
+  if (/^https?:\/\//i.test(value)) return value;
+  return `${SITE_URL}${value.startsWith('/') ? '' : '/'}${value}`;
+};
+
 /**
  * SEO Component
  * Provides dynamic meta tags for each page
@@ -14,6 +26,7 @@ const SEO = ({
   type = 'website'
 }) => {
   const siteTitle = title.includes('MACS') ? title : `${title} | MACS`;
+  const imageUrl = toAbsoluteUrl(image);
   
   return (
     <Helmet>
@@ -26,7 +39,7 @@ const SEO = ({
       <meta property="og:type" content={type} />
       <meta property="og:title" content={siteTitle} />
       <meta property="og:description" content={description} />
-      <meta property="og:image" content={image} />
+      <meta property="og:image" content={imageUrl} />
       <meta property="og:url" content={url} />
       <meta property="og:locale" content="tr_TR" />
       <meta property="og:site_name" content="MACS - Matematik ve Bilgisayar Bilimleri Topluluğu" />
@@ -36,7 +49,7 @@ const SEO = ({
       <meta name="twitter:site" content="@esogumacs" />
       <meta name="twitter:title" content={siteTitle} />
       <meta name="twitter:description" content={description} />
-      <meta name="twitter:image" content={image} />
+      <meta name="twitter:image" content={imageUrl} />
       
       {/* Canonical URL */}
       <link rel="canonical" href={url} />
