@@ -73,3 +73,6 @@ macs_db.sql
 # frontend/public/assets/images/profiles/ altinda tutuluyor)
 photos/
 fotolar/
+
+# Local agent scratch
+.superpowers/
