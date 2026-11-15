@@ -10,6 +10,7 @@ export const WARMUP_CONCURRENCY = 2;
 export const MAX_STARTUP_WARMUP_KEYS = 7;
 
 export type ContentEncoding = "br" | "gzip" | "identity";
+export type NegotiatedEncoding = ContentEncoding | null;
 
 export interface CachedResponse {
   status: number;
@@ -80,8 +81,8 @@ export const INVALIDATES: Record<Domain, readonly Domain[]> = {
   system: [],
 };
 
-export function selectEncoding(acceptEncoding: string | undefined): ContentEncoding {
-  if (!acceptEncoding) return "identity";
+export function selectEncoding(acceptEncoding: string | undefined): ContentEncoding | null {
+  if (!acceptEncoding || acceptEncoding.trim() === "") return "identity";
   let brQ: number | undefined;
   let gzipQ: number | undefined;
   let identityQ: number | undefined;
@@ -114,10 +115,16 @@ export function selectEncoding(acceptEncoding: string | undefined): ContentEncod
 
   const effectiveBr = brQ ?? 0;
   const effectiveGzip = gzipQ ?? (starQ ?? 0);
-  const effectiveIdentity = identityQ ?? 0;
+  const identityAllowed =
+    identityQ !== undefined ? identityQ > 0 : starQ !== undefined ? starQ > 0 : true;
+  const effectiveIdentity = identityQ ?? (starQ ?? 0);
 
-  if (effectiveBr <= 0 && effectiveGzip <= 0) return "identity";
-  if (effectiveIdentity > effectiveBr && effectiveIdentity > effectiveGzip) return "identity";
+  if (effectiveBr <= 0 && effectiveGzip <= 0) {
+    return identityAllowed ? "identity" : null;
+  }
+  if (identityAllowed && effectiveIdentity > effectiveBr && effectiveIdentity > effectiveGzip) {
+    return "identity";
+  }
   if (effectiveBr >= effectiveGzip && effectiveBr > 0) return "br";
   return "gzip";
 }

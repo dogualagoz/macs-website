@@ -43,7 +43,7 @@ test("cacheKey sorts query, ignores undefined values, and encodes separators wit
   expect(cacheKey("/events", { "a=b": "c" })).not.toBe(cacheKey("/events", { a: "b=c" }));
 });
 
-test("selectEncoding respects q=0 exclusions, quality weights, and priority", () => {
+test("selectEncoding respects q=0 exclusions, quality weights, priority, and explicit identity exclusion", () => {
   expect(selectEncoding(undefined)).toBe("identity");
   expect(selectEncoding("")).toBe("identity");
   expect(selectEncoding("deflate")).toBe("identity");
@@ -53,9 +53,15 @@ test("selectEncoding respects q=0 exclusions, quality weights, and priority", ()
   expect(selectEncoding("br;q=0, gzip")).toBe("gzip");
   expect(selectEncoding("br;q=0, gzip;q=0")).toBe("identity");
   expect(selectEncoding("br;q=0.5, identity;q=0.9")).toBe("identity");
-  expect(["gzip", "identity"]).toContain(selectEncoding("*"));
-  expect(selectEncoding("*;q=0")).toBe("identity");
+  expect(["gzip", "identity"]).toContain(selectEncoding("*") ?? "");
   expect(selectEncoding("*;q=0.5, gzip;q=0")).toBe("identity");
+  expect(selectEncoding("*;q=0, identity;q=0.5")).toBe("identity");
+  expect(selectEncoding("*;q=0, gzip;q=0.8")).toBe("gzip");
+  expect(selectEncoding("br;q=0, gzip;q=0, identity;q=0")).toBeNull();
+  expect(selectEncoding("identity;q=0")).toBeNull();
+  expect(selectEncoding("deflate, identity;q=0")).toBeNull();
+  expect(selectEncoding("*;q=0")).toBeNull();
+  expect(selectEncoding("br;q=0, *;q=0")).toBeNull();
 });
 
 test("compressBytes skips payloads < 1024 bytes and precompresses >= 1024 bytes with lossless round-trip", () => {
