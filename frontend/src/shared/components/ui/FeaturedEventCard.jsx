@@ -99,10 +99,12 @@ const FeaturedEventCard = ({ title, date, location, description, image, startTim
               </div>
             </div>
 
-            {/* Participants - Sabit değer */}
-            <div className="text-sm text-gray-600 mb-6">
-              Kapasite: <span className="font-semibold text-gray-700">100 Katılımcı</span>
-            </div>
+            {/* Kapasite yalnızca veri varsa: backend şu an bu alanı döndürmüyor. */}
+            {typeof maxParticipants === 'number' && maxParticipants > 0 && (
+              <div className="text-sm text-gray-600 mb-6">
+                Kapasite: <span className="font-semibold text-gray-700">{maxParticipants} Katılımcı</span>
+              </div>
+            )}
           </div>
 
           {/* Action Buttons */}
