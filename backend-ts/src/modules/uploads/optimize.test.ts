@@ -1,6 +1,10 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, setDefaultTimeout, test } from "bun:test";
 import sharp from "sharp";
 import { optimizeImage } from "./optimize";
+
+// Megapiksel boyutunda gurultulu goruntu kodlamak paylasimli CI runner'inda 5 sn'lik
+// varsayilan limiti asiyor (iki test 5000 ms'de dustu); yerelde ~1 sn.
+setDefaultTimeout(30_000);
 
 const opts = { maxDimension: 1920, minBytes: 256 * 1024 };
 
