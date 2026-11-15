@@ -131,6 +131,10 @@ ignoreregex =
 
 ## 6. Kesin geri alma sırası
 
+Yeni shell açıldıysa önce `sudo ls -ld /root/macs-nginx-*` ile yedekleri incele,
+sonra bu uygulamaya ait doğrulanmış yolu `backup_dir=/root/macs-nginx-YYYYMMDD-HHMMSS`
+olarak yeniden ayarla. `sudo test -d "$backup_dir/conf.d"` ile kontrol et.
+
 1. Plesk'te **önce** Additional nginx directives metnini ve kaydettiğin HTTP/2/proxy/statik seçeneklerini eski haline getir; Kaydet/Uygula. Yeni server bloğunun `macs_backend_ts` ve zone referanslarını kaldırmadan http dosyasını silme. Plesk kaydı reddederse http dosyasını yerinde tutup önce domain metnini düzelt.
 2. Başlangıçta dosya yoksa `sudo rm /etc/nginx/conf.d/api.macsclub-http.conf`; varsa `sudo cp -a "$backup_dir/conf.d/api.macsclub-http.conf" /etc/nginx/conf.d/api.macsclub-http.conf` ile yalnız o dosyayı geri yükle. Bütün conf.d dizinini silme/üzerine yazma. Değiştirilmiş custom template varsa onun da önceki sürümünü geri yükle ve Plesk ile vhost'u yeniden üret.
 3. `sudo nginx -t && sudo systemctl reload nginx`; hata varsa reload etme, çıktıya göre yedek domain ayarlarını ve http dosyasını geri getir. Diskteki bozuk ayar nedeniyle çalışan eski worker'ı durdurma.
@@ -151,3 +155,16 @@ docker run --rm \
 ```
 
 Beklenen: `syntax is ok`, `test is successful`, çıkış kodu 0. Bu kontrol TLS/HTTP/2 müzakeresini veya gerçek Plesk birleşimini sınamaz. Yerel işlevsel probun komutları ve çıktıları Task 12 raporundadır.
+
+
+## Upload HEAD cache kontrolleri
+
+Mevcut dosya adını gerçek upload envanterinden seçerek nginx üzerinden denetle:
+
+```sh
+curl -I https://api.macsclub.com.tr/uploads/MEVCUT-DOSYA.webp
+curl -I https://api.macsclub.com.tr/uploads/missing-cache-probe.webp
+```
+
+İlk yanıt 200, uzun süreli `max-age` ve `immutable` içermeli; `max-age=0` içermemeli.
+İkinci yanıt 404 olmalı ve `immutable` içermemeli.
