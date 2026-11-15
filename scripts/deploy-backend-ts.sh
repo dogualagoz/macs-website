@@ -4,6 +4,17 @@
 #
 # Usage (first deploy & upgrades — fetches script from origin/main before running):
 #   set -euo pipefail
+
+LOCK_FILE="${LOCK_FILE:-/tmp/macs-backend-ts-deploy.lock}"
+if ! command -v flock >/dev/null 2>&1; then
+  echo "flock is required for deploy concurrency lock but was not found in PATH" >&2
+  exit 1
+fi
+exec 9>"$LOCK_FILE"
+flock -n 9 || {
+  echo "deploy already in progress" >&2
+  exit 1
+}
 #   cd /opt/macs-website && git fetch origin main && git show origin/main:scripts/deploy-backend-ts.sh | bash -s
 #
 # Usage (once script is present in /opt/macs-website):
