@@ -5,12 +5,8 @@
 import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
 import { Header, Footer } from './shared/components/layout';
 import { HomePage } from './features/home';
-import { EventsPage, EventDetailPage } from './features/events';
-import { ProjectsPage, ProjectDetailPage } from './features/projects';
-import { SponsorsPage } from './features/sponsors';
-import { AboutPage } from './features/about';
-import { TeamPage } from './features/team';
-import { LoginPage, ProtectedRoute, AuthProvider } from './features/auth';
+import ProtectedRoute from './features/auth/components/ProtectedRoute';
+import { AuthProvider } from './features/auth/context/AuthContext';
 import Loading from './shared/components/feedback/Loading';
 // Admin CSS bilerek statik: admin-reset.css bugün tüm siteye uygulanıyor
 // (sayfa <body>'de kayıyor). Panel JS'i lazy yüklenirken CSS de chunk'a
@@ -24,8 +20,24 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import './styles/App.css';
 import ScrollToTop from './shared/components/navigation/ScrollToTop';
 
+// Ana sayfa dışındaki sayfalar ayrı chunk: ziyaretçi yalnızca açtığı sayfanın
+// kodunu indirir. Özellikle Sponsorluk: react-map-gl modül yüklenirken
+// import('mapbox-gl') başlatıyor (~270 KB gzip); statik import'ta bu her
+// sayfada iniyordu. Barrel (features/x/index.js) yerine doğrudan dosya
+// import ediliyor, yoksa barrel'daki diğer export'lar ana bundle'a çekilir.
+const EventsPage = lazy(() => import('./features/events/pages/EventsPage'));
+const EventDetailPage = lazy(() => import('./features/events/pages/EventDetailPage'));
+const ProjectsPage = lazy(() => import('./features/projects/pages/NewProjectsPage'));
+const ProjectDetailPage = lazy(() => import('./features/projects/pages/NewProjectDetailPage'));
+const SponsorsPage = lazy(() => import('./features/sponsors/pages/SponsorsPage'));
+const AboutPage = lazy(() => import('./features/about/pages/AboutPage'));
+const TeamPage = lazy(() => import('./features/team/pages/TeamPage'));
+const LoginPage = lazy(() => import('./features/auth/pages/LoginPage'));
 // Panel kodu ziyaretçilere gönderilmesin: yalnızca /admin açılınca yüklenir.
 const AdminPanel = lazy(() => import('./features/admin/pages/AdminPanel'));
+
+// Sayfa chunk'ı inerken footer yukarı zıplamasın diye ekran yüksekliği tutulur.
+const PageFallback = () => <div style={{ minHeight: '100vh' }} aria-busy="true" />;
 
 function App() {
   // State to track whether the page has been scrolled
@@ -105,6 +117,7 @@ function App() {
           {/* key={pathname}: bir sayfa çökerse başka bir sayfaya gidildiğinde
               boundary sıfırlansın, kullanıcı hata ekranında sıkışmasın. */}
           <ErrorBoundary key={pathname}>
+          <Suspense fallback={<PageFallback />}>
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<HomePage />} />
@@ -133,6 +146,7 @@ function App() {
             {/* 404 page */}
             <Route path="*" element={<Page404 />} />
           </Routes>
+          </Suspense>
           </ErrorBoundary>
         </main>
 
