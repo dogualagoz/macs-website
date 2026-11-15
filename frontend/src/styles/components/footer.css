@@ -1,6 +1,6 @@
 /* Footer */
 .footer {
-  background-color: #101827;
+  background-color: var(--navy-900);
   color: #ffffff;
   padding: 50px 0 36px;
 }
@@ -87,7 +87,7 @@
 
 .footer-divider {
   height: 1px;
-  background-color: #1a2333;
+  background-color: var(--navy-700);
   margin-bottom: 27px;
 }
 

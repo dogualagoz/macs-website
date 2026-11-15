@@ -1,12 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { useEventsData, useEventFilters } from '../hooks';
 import FeaturedEventCard from '../components/FeaturedEventCard';
 import EventCard from '../components/EventCard';
 import { PageHeaderSkeleton, EventGridSkeleton } from '../../../shared/components/feedback/Skeleton';
 import ErrorMessage from '../../../shared/components/feedback/ErrorMessage';
 import SEO from '../../../shared/components/seo/SEO';
+import PageHero from '../../../shared/components/ui/PageHero';
 import { parseApiDate, isPastApiDate, SITE_TIMEZONE } from '../../../shared/utils/apiDate';
 
 export default function Events() {
@@ -19,7 +20,7 @@ export default function Events() {
     return (
       <div className="min-h-screen bg-white pt-20">
         <PageHeaderSkeleton />
-        <div className="mx-auto max-w-7xl px-4 py-12">
+        <div className="mx-auto max-w-container px-5 py-12">
           <EventGridSkeleton count={6} />
         </div>
       </div>
@@ -36,23 +37,13 @@ export default function Events() {
         keywords="MACS etkinlikleri, yazılım atölyesi, hackathon, seminer, ESOGÜ etkinlik"
         url="https://macsclub.com.tr/etkinlikler"
       />
-      <div className="min-h-screen bg-white pt-20">
-      {/* Header Section */}
-      <section className="bg-gradient-to-br from-[#07132b] to-[#0a1a3a] text-white py-20">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="mx-auto max-w-7xl px-4"
-        >
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Etkinlikler</h1>
-          <p className="text-lg text-white/80 max-w-2xl">
-            Matematik ve bilgisayar bilimleri alanında düzenlediğimiz etkinlikler, workshoplar ve seminerler
-          </p>
-        </motion.div>
-      </section>
+      <div className="min-h-screen bg-white">
+      <PageHero
+        title="Etkinlikler"
+        description="Matematik ve bilgisayar bilimleri alanında düzenlediğimiz etkinlikler, workshoplar ve seminerler"
+      />
 
-      <div className="mx-auto max-w-7xl px-4 py-12">
+      <div className="mx-auto max-w-container px-5 py-12">
         {/* Category Filters */}
         <CategoryFilters 
           categories={categories}
@@ -62,14 +53,14 @@ export default function Events() {
 
         {/* Featured Event */}
         {featuredEvent && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
             className="mb-16"
           >
             <FeaturedEventCard event={featuredEvent} />
-          </motion.div>
+          </m.div>
         )}
 
         {/* Events Grid */}
@@ -89,7 +80,7 @@ export default function Events() {
 // Category Filters Component
 function CategoryFilters({ categories, activeFilter, onFilterChange }) {
   return (
-    <motion.div 
+    <m.div 
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: 0.2 }}
@@ -120,7 +111,7 @@ function CategoryFilters({ categories, activeFilter, onFilterChange }) {
           </button>
         ))}
       </div>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -150,14 +141,14 @@ function EventsGrid({ events, featuredEventId }) {
       {upcoming.length > 0 && (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {upcoming.map((event, index) => (
-            <motion.div
+            <m.div
               key={event.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: Math.min(index, 6) * 0.06 }}
             >
               <EventCard event={event} />
-            </motion.div>
+            </m.div>
           ))}
         </div>
       )}
@@ -211,12 +202,12 @@ function EventsGrid({ events, featuredEventId }) {
 // Empty State Component
 function EmptyState() {
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="text-center py-20"
     >
       <p className="text-gray-500 text-lg">Bu kategoride etkinlik bulunamadı.</p>
-    </motion.div>
+    </m.div>
   );
 }

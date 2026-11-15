@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Calendar, MapPin, Star } from 'lucide-react';
 import { getImageUrl, handleImageError } from '../../../utils/imageUtils';
 import { parseApiDate, isPastApiDate, SITE_TIMEZONE } from '../../../shared/utils/apiDate';
+import { responsiveImgProps, withVariantFallback } from '../../../shared/utils/responsiveImage';
 
 /**
  * Featured Event Card Component
@@ -34,10 +35,10 @@ export default function FeaturedEventCard({ event }) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-0 h-full">
           {/* Image Container - Left Side */}
           <div className="relative h-64 md:h-80 overflow-hidden bg-gray-100 col-span-1">
-            <img
-              src={getImageUrl(event.image_url)}
+            <img fetchpriority="high" decoding="async"
+              src={getImageUrl(event.image_url)} {...responsiveImgProps(getImageUrl(event.image_url), '(min-width: 768px) 600px, 100vw')}
               alt={event.title}
-              onError={handleImageError}
+              onError={withVariantFallback(handleImageError)}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             />
             {isPast && (
@@ -50,14 +51,14 @@ export default function FeaturedEventCard({ event }) {
             {/* Featured Badge */}
             <div>
               <div className="mb-4">
-                <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold bg-blue-600 text-white">
+                <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold bg-macs-navy text-white">
                   <Star className="h-4 w-4 fill-white" />
                   ÖNE ÇIKAN
                 </span>
               </div>
 
               {/* Title */}
-              <h3 className="text-3xl font-bold text-gray-900 mb-4 line-clamp-2 group-hover:text-blue-700 transition">
+              <h3 className="text-3xl font-bold text-gray-900 mb-4 line-clamp-2 group-hover:text-macs-navy-800 transition">
                 {event.title}
               </h3>
 
@@ -69,11 +70,11 @@ export default function FeaturedEventCard({ event }) {
               {/* Date and Location */}
               <div className="flex flex-wrap gap-6 text-sm text-gray-600 mb-6">
                 <div className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5 text-blue-600" />
+                  <Calendar className="h-5 w-5 text-macs-navy" />
                   <span className="font-medium">{formatDate(event.start_time)}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <MapPin className="h-5 w-5 text-blue-600" />
+                  <MapPin className="h-5 w-5 text-macs-navy" />
                   <span className="font-medium">{event.location}</span>
                 </div>
               </div>
@@ -92,7 +93,7 @@ export default function FeaturedEventCard({ event }) {
 
             {/* Action Buttons */}
             <div className="flex gap-3 pt-4 border-t border-gray-200">
-              <button className="flex-1 px-6 py-3 bg-gray-900 text-white rounded-lg font-semibold hover:bg-gray-800 transition text-center">
+              <button className="flex-1 px-6 py-3 bg-macs-navy text-white rounded-full font-semibold hover:bg-macs-navy-800 transition text-center">
                 Detayları Gör
               </button>
               {event.registration_link && (
@@ -100,7 +101,7 @@ export default function FeaturedEventCard({ event }) {
                   href={event.registration_link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 px-6 py-3 bg-blue-50 text-blue-700 rounded-lg font-semibold hover:bg-blue-100 transition text-center border border-blue-200"
+                  className="flex-1 px-6 py-3 bg-white text-macs-navy rounded-full font-semibold hover:bg-gray-50 transition text-center border border-macs-navy"
                 >
                   Kayıt Ol
                 </a>

@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { motion, useReducedMotion } from 'framer-motion';
+import { LazyMotion, domMax, m, useReducedMotion } from 'framer-motion';
 import { Search } from 'lucide-react';
 
 /**
@@ -15,6 +15,9 @@ const ProjectsToolbar = ({
   const reduced = useReducedMotion();
 
   return (
+    // layoutId (sekme hapi) domMax ister; kokteki LazyMotion yalnizca domAnimation
+    // veriyor. Bu ek ozellikler Projeler chunk'inda kalir, ana pakete girmez.
+    <LazyMotion features={domMax}>
     <div className="border-b border-white/10 pb-5">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div
@@ -36,7 +39,7 @@ const ProjectsToolbar = ({
                 }`}
               >
                 {active && (
-                  <motion.span
+                  <m.span
                     layoutId="projects-tab-pill"
                     className="absolute inset-0 rounded-full bg-macs-accent-500 shadow-[0_0_20px_rgba(242,49,124,0.45)]"
                     transition={reduced ? { duration: 0 } : { type: 'spring', stiffness: 420, damping: 34 }}
@@ -79,7 +82,7 @@ const ProjectsToolbar = ({
                 type="button"
                 aria-pressed={selected}
                 onClick={() => onCategoryChange(category)}
-                className={`shrink-0 cursor-pointer whitespace-nowrap rounded-lg border px-4 py-1.5 text-sm transition-colors ${
+                className={`shrink-0 cursor-pointer whitespace-nowrap rounded-full border px-4 py-1.5 text-sm transition-colors ${
                   selected
                     ? 'border-macs-accent/40 bg-macs-accent-500/20 text-macs-accent-300'
                     : 'border-transparent bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
@@ -93,6 +96,7 @@ const ProjectsToolbar = ({
         <p className="hidden shrink-0 text-sm text-gray-400 sm:block" aria-live="polite">{resultCount} proje</p>
       </div>
     </div>
+    </LazyMotion>
   );
 };
 

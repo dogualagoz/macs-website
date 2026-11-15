@@ -14,6 +14,12 @@
     <!-- Temel Meta Etiketleri -->
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- API sunucusuna baglantiyi (DNS + TLS) JS inmeden baslat. Iki tane:
+         axios istekleri CORS (anonim) havuzunu, <img> istekleri ise
+         kimlikli havuzu kullaniyor; tarayici bunlari ayri baglanti sayar. -->
+    <link rel="preconnect" href="%REACT_APP_API_URL%" crossorigin />
+    <link rel="preconnect" href="%REACT_APP_API_URL%" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 
     <!-- SEO Meta Etiketleri -->
@@ -40,7 +46,8 @@
 
     <!-- Tema ve Favicon -->
     <meta name="theme-color" content="#07132b" />
-    <link rel="icon" href="%PUBLIC_URL%/assets/images/img_exclude.png" />
+    <!-- 64px favicon (4 KB); 170px logo (33 KB) her sayfada iniyordu -->
+    <link rel="icon" type="image/png" sizes="64x64" href="%PUBLIC_URL%/assets/images/favicon-64.png" />
     <link
       rel="apple-touch-icon"
       href="%PUBLIC_URL%/assets/images/img_exclude.png"

@@ -21,25 +21,6 @@
   margin: 0 auto;
 }
 
-.section-title {
-  text-align: center;
-  font-size: 2rem;
-  color: #000000;
-  margin-bottom: 0.75rem;
-  font-weight: 600;
-  font-family: var(--font-sans);
-}
-
-.section-description {
-  text-align: center;
-  color: #464d6d;
-  font-size: 1rem;
-  margin-bottom: 2.5rem;
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
 /* Featured project card container */
 .First-2 {
   display: flex;
@@ -103,7 +84,7 @@
 }
 
 .First-come-span {
-  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+  background: linear-gradient(135deg, var(--navy-900) 0%, var(--navy-800) 100%);
   color: #ffffff;
   padding: 8px 16px;
   font-weight: 600;
@@ -299,34 +280,6 @@
   display: flex;
   justify-content: center;
   align-items: center;
-}
-
-.Buttons {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
-  padding: 0.2rem 0.2rem;
-  gap: 0.3rem;
-  background-color: #f3f4f6;
-  border-radius: 10px;
-}
-
-.button {
-  background-color: #f3f4f6;
-  height: 40px;
-  width: auto;
-  font-family: var(--font-sans);
-  font-size: 15px;
-  font-weight: 500;
-  color: #343a40;
-  transition: ease 0.5s;
-  border-radius: 10px;
-}
-
-.Buttons button:hover {
-  transition: ease 0.5s;
-  background-color: #ffffff;
 }
 
 /* Projects grid beneath featured */
@@ -542,19 +495,19 @@
 }
 
 .all-projects-button {
-  padding: 1rem 2rem;
+  padding: 0.75rem 1.5rem;
   background-color: #ffffff;
-  color: #384252;
-  border: 1px solid #dcdcdc;
-  border-radius: 6px;
+  color: var(--brand);
+  border: 1px solid #d1d5db;
+  border-radius: var(--radius-pill);
   font-weight: 600;
-  font-size: 15px;
+  font-size: 0.95rem;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .all-projects-button:hover {
-  background-color: #000000;
+  background-color: var(--brand);
   color: #ffffff;
 }
 
@@ -563,15 +516,6 @@
     padding: 2rem 1rem;
   }
 
-  .section-title {
-    font-size: 1.75rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .section-description {
-    font-size: 0.9rem;
-    margin-bottom: 1.5rem;
-  }
 
   .projects-grid {
     grid-template-columns: 1fr;
@@ -704,13 +648,6 @@
     padding: 1.5rem 0.75rem;
   }
 
-  .section-title {
-    font-size: 1.5rem;
-  }
-
-  .section-description {
-    font-size: 0.85rem;
-  }
 
   /* Featured project extra small */
   .First-2 {

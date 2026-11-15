@@ -1,5 +1,8 @@
 /*
- * Cekirdek buton sistemi — yeni bilesenler bunu kullanir.
+ * Cekirdek buton sistemi. Site genelinde butonlar pill; padding 12/24,
+ * 0.95rem / 600. Birincil = --brand (lacivert), vurgu = --accent (pembe,
+ * yalnizca Projeler). Ayni olculer events/slider/sponsors/about/team
+ * css'lerindeki eski CTA siniflarinda da uygulanir. — yeni bilesenler bunu kullanir.
  * Eski daginik .btn/.button/.X-button siniflari kademeli olarak buraya tasinir.
  *
  *   <a class="macs-btn macs-btn--primary">…</a>
@@ -13,13 +16,13 @@
   justify-content: center;
   gap: 0.5rem;
   min-height: 44px;
-  padding: 0.625rem 1.5rem;
+  padding: 0.75rem 1.5rem;
   font-family: inherit;
   font-size: 0.95rem;
   font-weight: 600;
   line-height: 1.2;
   text-decoration: none;
-  border-radius: var(--radius-control);
+  border-radius: var(--radius-pill);
   border: 1px solid transparent;
   cursor: pointer;
   transition: background-color 0.15s ease, border-color 0.15s ease,
@@ -45,12 +48,12 @@
 }
 
 .macs-btn--accent {
-  background: var(--accent-blue);
+  background: var(--accent);
   color: #ffffff;
 }
 
 .macs-btn--accent:hover {
-  background: #003d99;
+  background: #a63a65;
 }
 
 .macs-btn--ghost {
@@ -66,6 +69,52 @@
 
 .macs-btn--pill {
   border-radius: var(--radius-pill);
-  padding: 0.5rem 1.25rem;
+}
+
+/*
+ * Filtre cipi — kategori filtreleri ve gorunum gecisleri.
+ * Etkinlikler ve Sponsorluk sayfalarindaki Tailwind ciplerle ayni olculer
+ * (px-6 py-2.5, 1rem/500, aktif: lacivert).
+ *
+ *   <div class="filter-chips"><button class="filter-chip is-active">…</button></div>
+ */
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.filter-chip {
+  min-height: 44px;
+  padding: 0.625rem 1.5rem;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: #f3f4f6;
+  color: #374151;
+  font-family: inherit;
+  font-size: 1rem;
   font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.filter-chip:hover {
+  background: #e5e7eb;
+}
+
+.filter-chip.is-active {
+  background: var(--brand);
+  color: #ffffff;
+}
+
+@media (max-width: 768px) {
+  .filter-chips {
+    gap: 0.5rem;
+  }
+
+  .filter-chip {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
 }

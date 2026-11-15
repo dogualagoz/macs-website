@@ -36,9 +36,10 @@ const EventsSection = ({ events, categories, featuredEvent }) => {
 
         {/* Category filters */}
         <div className="events-filters">
-          <div className="buttons">
+          <div className="filter-chips" role="group" aria-label="Kategori filtresi">
             <button
-              className={`filter-button ${!activeFilter ? 'active' : ''}`}
+              className={`filter-chip ${!activeFilter ? 'is-active' : ''}`}
+              aria-pressed={!activeFilter}
               onClick={() => setActiveFilter(null)}
             >
               Tümü
@@ -46,7 +47,8 @@ const EventsSection = ({ events, categories, featuredEvent }) => {
             {categories.map(category => (
               <button
                 key={category.id}
-                className={`filter-button ${activeFilter === category.id ? 'active' : ''}`}
+                className={`filter-chip ${activeFilter === category.id ? 'is-active' : ''}`}
+                aria-pressed={activeFilter === category.id}
                 onClick={() => setActiveFilter(category.id)}
               >
                 {category.name}

@@ -63,8 +63,8 @@
 
 .form-input:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(7, 19, 43, 0.2);
 }
 
 .btn {
@@ -78,13 +78,13 @@
 
 .btn-primary {
   width: 100%;
-  background-color: #3b82f6;
+  background-color: var(--brand);
   color: white;
   border: none;
 }
 
 .btn-primary:hover {
-  background-color: #2563eb;
+  background-color: var(--navy-800);
 }
 
 .btn-primary:disabled {
@@ -141,8 +141,8 @@
 
 .form-input:focus-visible {
   outline: none;
-  border-color: var(--accent-blue, #0052CC);
-  box-shadow: 0 0 0 3px rgba(0, 82, 204, 0.25);
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(7, 19, 43, 0.2);
 }
 
 .btn {
@@ -152,11 +152,11 @@
 .btn-primary {
   min-height: 48px;
   font-weight: 600;
-  background-color: var(--accent-blue, #0052CC);
+  background-color: var(--brand);
 }
 
 .btn-primary:hover {
-  background-color: #003d99;
+  background-color: var(--navy-800);
 }
 
 .login-footer {
@@ -167,7 +167,7 @@
 }
 
 .login-backlink {
-  color: var(--accent-blue, #0052CC);
+  color: var(--brand);
   text-decoration: none;
   font-size: 0.875rem;
   font-weight: 500;

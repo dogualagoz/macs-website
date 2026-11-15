@@ -33,7 +33,7 @@ const AboutSection = () => {
           <div className="values-grid">
             <div className="value-item">
               <div className="value-header">
-                <Users className="value-icon text-blue-600" size={24} />
+                <Users className="value-icon" size={24} />
                 <span className="value-name">Topluluk</span>
               </div>
               <p className="value-description">
@@ -44,7 +44,7 @@ const AboutSection = () => {
 
             <div className="value-item">
               <div className="value-header">
-                <GraduationCap className="value-icon text-blue-600" size={24} />
+                <GraduationCap className="value-icon" size={24} />
                 <span className="value-name">Öğrenme</span>
               </div>
               <p className="value-description">
@@ -55,7 +55,7 @@ const AboutSection = () => {
 
             <div className="value-item">
               <div className="value-header">
-                <Lightbulb className="value-icon text-blue-600" size={24} />
+                <Lightbulb className="value-icon" size={24} />
                 <span className="value-name">Yenilik</span>
               </div>
               <p className="value-description">
@@ -66,7 +66,7 @@ const AboutSection = () => {
 
             <div className="value-item">
               <div className="value-header">
-                <Handshake className="value-icon text-blue-600" size={24} />
+                <Handshake className="value-icon" size={24} />
                 <span className="value-name">İş Birliği</span>
               </div>
               <p className="value-description">

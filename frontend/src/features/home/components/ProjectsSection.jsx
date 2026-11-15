@@ -35,9 +35,10 @@ const ProjectsSection = ({ projects, categories, featuredProject }) => {
 
         {/* Filtreler */}
         <div className="Buttonss">
-          <div className="Buttons">
+          <div className="filter-chips" role="group" aria-label="Kategori filtresi">
             <button
-              className={`button ${!activeFilter ? 'active' : ''}`}
+              className={`filter-chip ${!activeFilter ? 'is-active' : ''}`}
+              aria-pressed={!activeFilter}
               onClick={() => setActiveFilter(null)}
             >
               Tümü
@@ -45,7 +46,8 @@ const ProjectsSection = ({ projects, categories, featuredProject }) => {
             {categories.map(category => (
               <button
                 key={category.id}
-                className={`button ${activeFilter === category.id ? 'active' : ''}`}
+                className={`filter-chip ${activeFilter === category.id ? 'is-active' : ''}`}
+                aria-pressed={activeFilter === category.id}
                 onClick={() => setActiveFilter(category.id)}
               >
                 {category.name}

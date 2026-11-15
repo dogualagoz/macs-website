@@ -81,7 +81,7 @@
 .value-icon {
   width: 24px;
   height: 24px;
-  color: #2563eb;
+  color: var(--brand);
   flex-shrink: 0;
 }
 

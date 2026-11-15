@@ -1,6 +1,6 @@
 import React from 'react';
 import { GraduationCap, Lightbulb, Handshake, Target, Heart, Rocket, Users } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import '../../../styles/pages/about.css';
 import SEO from '../../../shared/components/seo/SEO';
 import TeamSection from '../../team/components/TeamSection';
@@ -108,7 +108,7 @@ const AboutPage = () => {
         url="https://macsclub.com.tr/hakkimizda"
       />
 
-      <motion.div
+      <m.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
@@ -116,7 +116,7 @@ const AboutPage = () => {
             <div className="about-page">
               {/* Hero Section */}
               <section className="about-hero">
-                <motion.div
+                <m.div
                   className="about-hero-content"
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -129,7 +129,7 @@ const AboutPage = () => {
                     Matematik ve Bilgisayar Bilimleri tutkusuyla bir araya gelen öğrencilerin
                     oluşturduğu, yenilikçi ve dinamik bir topluluk.
                   </p>
-                </motion.div>
+                </m.div>
                 <div className="about-hero-decoration">
                   <div className="decoration-circle circle-1"></div>
                   <div className="decoration-circle circle-2"></div>
@@ -142,7 +142,7 @@ const AboutPage = () => {
                 <div className="about-container">
 
                   {/* Biz Kimiz */}
-                  <motion.div
+                  <m.div
                     className="about-intro-card"
                     variants={fadeInUp}
                     initial="hidden"
@@ -166,17 +166,17 @@ const AboutPage = () => {
                         ve geliştirmelerine yardımcı olmaktadır.
                       </p>
                     </div>
-                  </motion.div>
+                  </m.div>
 
                   {/* Misyon & Vizyon */}
-                  <motion.div
+                  <m.div
                     className="about-mission-vision"
                     variants={staggerContainer}
                     initial="hidden"
                     whileInView="visible"
                     viewport={{ once: true, amount: 0.2 }}
                   >
-                    <motion.div className="mission-card" variants={fadeInLeft}>
+                    <m.div className="mission-card" variants={fadeInLeft}>
                       <div className="card-icon">
                         <Target size={28} />
                       </div>
@@ -188,8 +188,8 @@ const AboutPage = () => {
                         dünyasını keşfetmeye, güçlü bağlar kurmaya ve birlikte teknolojik
                         yenilikler üretmeye teşvik ediyoruz.
                       </p>
-                    </motion.div>
-                    <motion.div className="vision-card" variants={fadeInRight}>
+                    </m.div>
+                    <m.div className="vision-card" variants={fadeInRight}>
                       <div className="card-icon">
                         <Rocket size={28} />
                       </div>
@@ -200,11 +200,11 @@ const AboutPage = () => {
                         Yenilikçi projeler ve güçlü bir network ile öğrenci topluluklarına
                         ilham kaynağı olmak.
                       </p>
-                    </motion.div>
-                  </motion.div>
+                    </m.div>
+                  </m.div>
 
                   {/* Değerlerimiz */}
-                  <motion.div
+                  <m.div
                     className="about-values-section"
                     variants={fadeInUp}
                     initial="hidden"
@@ -215,14 +215,14 @@ const AboutPage = () => {
                       <Heart size={24} className="section-icon" />
                       <h2>Değerlerimiz</h2>
                     </div>
-                    <motion.div
+                    <m.div
                       className="values-grid"
                       variants={staggerContainer}
                       initial="hidden"
                       whileInView="visible"
                       viewport={{ once: true, amount: 0.2 }}
                     >
-                      <motion.div className="value-card" variants={scaleIn}>
+                      <m.div className="value-card" variants={scaleIn}>
                         <div className="value-icon-wrapper">
                           <Users size={24} />
                         </div>
@@ -231,9 +231,9 @@ const AboutPage = () => {
                           MACS kendini ait ve güvende hissedebileceğin, destekleyici bir
                           ortam ve birlikte büyüdüğümüz bir topluluktur.
                         </p>
-                      </motion.div>
+                      </m.div>
 
-                      <motion.div className="value-card" variants={scaleIn}>
+                      <m.div className="value-card" variants={scaleIn}>
                         <div className="value-icon-wrapper">
                           <GraduationCap size={24} />
                         </div>
@@ -242,9 +242,9 @@ const AboutPage = () => {
                           Merak ederiz, araştırırız ve paylaşırız. Her etkinlikte
                           birbirimizden öğrenmeye önem veririz.
                         </p>
-                      </motion.div>
+                      </m.div>
 
-                      <motion.div className="value-card" variants={scaleIn}>
+                      <m.div className="value-card" variants={scaleIn}>
                         <div className="value-icon-wrapper">
                           <Lightbulb size={24} />
                         </div>
@@ -253,9 +253,9 @@ const AboutPage = () => {
                           Yeni fikirlere açığız. Denemekten korkmadan, yaratıcılığı
                           destekleriz.
                         </p>
-                      </motion.div>
+                      </m.div>
 
-                      <motion.div className="value-card" variants={scaleIn}>
+                      <m.div className="value-card" variants={scaleIn}>
                         <div className="value-icon-wrapper">
                           <Handshake size={24} />
                         </div>
@@ -264,47 +264,47 @@ const AboutPage = () => {
                           Birlikte üretmenin gücüne inanırız. Ekip çalışmasıyla daha büyük
                           işler başarırız.
                         </p>
-                      </motion.div>
-                    </motion.div>
-                  </motion.div>
+                      </m.div>
+                    </m.div>
+                  </m.div>
 
                   {/* Yönetim Ekibi */}
-                  <motion.div
+                  <m.div
                     variants={fadeInUp}
                     initial="hidden"
                     whileInView="visible"
                     viewport={{ once: true, amount: 0.1 }}
                   >
                     <TeamSection />
-                  </motion.div>
+                  </m.div>
 
                   {/* İstatistikler */}
-                    <motion.div className="about-stats"
+                    <m.div className="about-stats"
                     variants={staggerContainer}
                     initial="hidden"
                     whileInView="visible"
                     viewport={{ once: true, amount: 0.2 }}
                   >
-                    <motion.div className="stat-item" variants={scaleIn}>
+                    <m.div className="stat-item" variants={scaleIn}>
                       <span className="stat-number">50+</span>
                       <span className="stat-label">Aktif Üye</span>
-                    </motion.div>
-                    <motion.div className="stat-item" variants={scaleIn}>
+                    </m.div>
+                    <m.div className="stat-item" variants={scaleIn}>
                       <span className="stat-number">4+</span>
                       <span className="stat-label">Tamamlanan Proje</span>
-                    </motion.div>
-                    <motion.div className="stat-item" variants={scaleIn}>
+                    </m.div>
+                    <m.div className="stat-item" variants={scaleIn}>
                       <span className="stat-number">6+</span>
                       <span className="stat-label">Etkinlik</span>
-                    </motion.div>
-                    <motion.div className="stat-item" variants={scaleIn}>
+                    </m.div>
+                    <m.div className="stat-item" variants={scaleIn}>
                       <span className="stat-number">1+</span>
                       <span className="stat-label">Yıllık Deneyim</span>
-                    </motion.div>
-                  </motion.div>
+                    </m.div>
+                  </m.div>
 
                   {/* Emeği Geçenler */}
-                  <motion.div
+                  <m.div
                     className="about-team-section"
                     variants={fadeInUp}
                     initial="hidden"
@@ -318,7 +318,7 @@ const AboutPage = () => {
                     <p className="team-section-subtitle">
                       Bu web sitesinin geliştirilmesinde emeği geçen ekip üyelerimiz
                     </p>
-                    <motion.div
+                    <m.div
                       className="team-grid"
                       variants={staggerContainer}
                       initial="hidden"
@@ -326,7 +326,7 @@ const AboutPage = () => {
                       viewport={{ once: true, amount: 0.2 }}
                     >
                       {websiteTeam.map((uye) => (
-                        <motion.div
+                        <m.div
                           className="team-card"
                           key={uye.id}
                           variants={scaleIn}
@@ -340,13 +340,13 @@ const AboutPage = () => {
                           </div>
                           <h4 className="team-name">{uye.ad_soyad}</h4>
                           <span className="team-role">{uye.rol}</span>
-                        </motion.div>
+                        </m.div>
                       ))}
-                    </motion.div>
-                  </motion.div>
+                    </m.div>
+                  </m.div>
 
                   {/* CTA Section */}
-                  <motion.div
+                  <m.div
                     className="about-cta"
                     variants={fadeInUp}
                     initial="hidden"
@@ -366,11 +366,11 @@ const AboutPage = () => {
                       <span>Başvuru Yap</span>
                       <Rocket size={18} />
                     </a>
-                  </motion.div>
+                  </m.div>
                 </div>
               </section>
             </div>
-      </motion.div>
+      </m.div>
     </>
   );
 };

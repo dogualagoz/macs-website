@@ -41,7 +41,7 @@
 /* Koyu Tema: Projeler sayfası ve Sponsorlar sayfasının tam ekran paneli */
 .header.header-dark,
 body.sponsors-split-visible .header {
-  --header-bg: rgba(5, 11, 20, 0.9);
+  --header-bg: rgba(7, 19, 43, 0.9); /* --navy-900 */
   --header-text: #ffffff;
   --header-border: rgba(255, 255, 255, 0.1);
   --header-logo-filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(0deg)
@@ -477,7 +477,7 @@ body.sponsors-split-visible .header .r-navbar ul li a:hover {
 
   .header.header-dark.header-scrolled,
   body.sponsors-split-visible .header.header-scrolled {
-    --header-bg: rgba(5, 11, 20, 0.82);
+    --header-bg: rgba(7, 19, 43, 0.82);
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
   }
 }

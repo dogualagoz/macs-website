@@ -9,3 +9,4 @@ export { FormSelect } from './FormSelect';
 export { FormCheckbox } from './FormCheckbox';
 export { ImageUploader } from './ImageUploader';
 export { Alert } from './Alert';
+export { default as PageHero } from './PageHero';

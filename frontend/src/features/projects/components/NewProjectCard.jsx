@@ -1,9 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
-import { motion, useReducedMotion } from 'framer-motion';
+import { m, useReducedMotion } from 'framer-motion';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { handleImageError } from '../../../utils/imageUtils';
+import { responsiveImgProps, withVariantFallback } from '../../../shared/utils/responsiveImage';
 
 const MAX_TAGS = 3;
 const MAX_AVATARS = 3;
@@ -15,7 +16,7 @@ const ENTER_VARIANTS = {
   hidden: { opacity: 0, y: 56, scale: 0.88 },
   shown: { opacity: 1, y: 0, scale: 1 },
 };
-const MotionLink = motion.create(Link);
+const MotionLink = m.create(Link);
 
 const initialsOf = (name = '') =>
   name.trim().split(/\s+/).slice(0, 2).map((word) => word.charAt(0)).join('').toLocaleUpperCase('tr-TR') || '?';
@@ -63,11 +64,11 @@ const ProjectCard = ({ project, variant = 'default', index = 0 }) => {
         }`}
       >
         <img
-          src={project.imageUrl}
+          src={project.imageUrl} {...responsiveImgProps(project.imageUrl, '(min-width: 1024px) 66vw, 100vw')}
           alt=""
           loading={featured ? 'eager' : 'lazy'}
           decoding="async"
-          onError={handleImageError}
+          onError={withVariantFallback(handleImageError)}
           className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-black/10" />
@@ -98,11 +99,11 @@ const ProjectCard = ({ project, variant = 'default', index = 0 }) => {
     >
       <div className="relative h-48 shrink-0 overflow-hidden">
         <img
-          src={project.imageUrl}
+          src={project.imageUrl} {...responsiveImgProps(project.imageUrl, '(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw')}
           alt=""
           loading="lazy"
           decoding="async"
-          onError={handleImageError}
+          onError={withVariantFallback(handleImageError)}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#1a2333] to-transparent opacity-60" />

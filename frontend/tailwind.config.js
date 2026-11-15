@@ -12,12 +12,23 @@ module.exports = {
   ],
   theme: {
     extend: {
+      // global.css :root token'lariyla ayni degerler.
+      maxWidth: {
+        container: '1200px',
+      },
       colors: {
         // Projeler sayfasinin vurgu rengi. Merdiven #F2317C'e sabitlendi:
         // 400 = verilen renk, digerleri ayni ton uzerinde Tailwind
         // blue'nun aciklik basamaklarini takip ediyor, boylece blue-300/500/600
         // yazan her yer birebir karsiligiyla degistirilebiliyor.
         macs: {
+          // Birincil renk. 900 = --brand / --navy-900.
+          navy: {
+            DEFAULT: '#07132b',
+            700: '#1a2333',
+            800: '#0a1a3a',
+            900: '#07132b',
+          },
           accent: {
             DEFAULT: '#F2317C',
              50: '#FDF2F7',

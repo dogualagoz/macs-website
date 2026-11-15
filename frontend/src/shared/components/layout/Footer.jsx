@@ -40,16 +40,16 @@ const Footer = ({ variant = 'default' }) => {
           <div className="footer-section">
             <h3>Sosyal Medya</h3>
             <div className="social-links">
-              <img src="/assets/images/img_icon.svg" alt="X" />
+              <img loading="lazy" decoding="async" src="/assets/images/img_icon.svg" alt="X" />
               <a href="https://www.linkedin.com/company/esogumacs" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
-                <img
+                <img loading="lazy" decoding="async"
                   src="/assets/images/img_icon_gray_50_01_18x18.svg"
                   alt="LinkedIn"
                 />
               </a>
-              {/* <img src="/assets/images/img_logo_youtube.svg" alt="YouTube" /> */}
+              {/* <img loading="lazy" decoding="async" src="/assets/images/img_logo_youtube.svg" alt="YouTube" /> */}
               <a href="https://www.instagram.com/esogumacs/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
-                <img
+                <img loading="lazy" decoding="async"
 
                   src="/assets/images/img_icon_gray_50_01.svg"
                   alt="Instagram"

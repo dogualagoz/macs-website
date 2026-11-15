@@ -474,7 +474,7 @@
 .sponsor-card__header {
   position: relative;
   height: 7rem;
-  background: linear-gradient(to bottom right, #07132b, #0f2447, #1e3a8a);
+  background: linear-gradient(to bottom right, var(--navy-900), var(--navy-800));
   padding: 1rem;
 }
 
@@ -551,7 +551,7 @@
 }
 
 .sponsor-card:hover .sponsor-card__name {
-  color: #1e3a8a;
+  color: var(--navy-800);
 }
 
 .sponsor-card__desc {
@@ -722,7 +722,7 @@
 }
 
 .sponsor-popup__avatar--placeholder {
-  background: linear-gradient(to bottom right, #07132b, #1e3a8a);
+  background: linear-gradient(to bottom right, var(--navy-900), var(--navy-800));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -943,7 +943,7 @@
 }
 
 .sponsor-modal__header {
-  background: linear-gradient(to bottom right, #07132b, #1e3a8a);
+  background: linear-gradient(to bottom right, var(--navy-900), var(--navy-800));
   padding: 2rem;
   text-align: center;
   position: relative;
@@ -1080,7 +1080,7 @@
 .sponsors-cta__title {
   font-size: 1.875rem;
   font-weight: 700;
-  color: #111827;
+  color: var(--brand);
   margin-bottom: 1rem;
 }
 
@@ -1094,10 +1094,11 @@
 
 .sponsors-cta__btn {
   display: inline-block;
-  padding: 0.75rem 2rem;
-  background: #07132b;
+  padding: 0.75rem 1.5rem;
+  background: var(--brand);
   color: #ffffff;
-  font-weight: 500;
+  font-size: 0.95rem;
+  font-weight: 600;
   border-radius: 9999px;
   text-decoration: none;
   transition: all 0.2s;
@@ -1106,7 +1107,7 @@
 }
 
 .sponsors-cta__btn:hover {
-  background: #0a1a3a;
+  background: var(--navy-800);
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 }
 

@@ -188,65 +188,12 @@
   margin: 0 auto;
 }
 
-.section-title {
-  text-align: center;
-  font-size: 2rem;
-  font-weight: 500;
-  font-family: var(--font-sans);
-  color: #191919;
-  margin-bottom: 1rem;
-  font-weight: 600;
-}
-
-.section-description {
-  text-align: center;
-  color: #464d6d;
-  font-size: 1rem;
-  font-weight: 500;
-  margin-bottom: 2rem;
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
-  font-family: var(--font-sans);
-}
-
 .events-filters {
   display: flex;
   justify-content: center;
   gap: 0.75rem;
   margin-bottom: 2.5rem;
   flex-wrap: wrap;
-}
-
-.buttons {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  padding: 0.2rem 0.2rem;
-  background-color: #f3f4f6;
-  border-radius: 10px;
-}
-
-.filter-button {
-  padding: 0.5rem 1.25rem;
-  border: none;
-  border-radius: 6px;
-  background-color: #f3f4f6;
-  color: #343a40;
-  font-weight: 500;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.filter-button:hover {
-  background-color: #ffffff;
-}
-
-.filter-button.active {
-  background-color: #ffffff;
-  color: #000000;
 }
 
 .First {
@@ -285,7 +232,7 @@
   width: 90px;
   height: 30px;
   border-radius: 20px;
-  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+  background: linear-gradient(135deg, var(--navy-900) 0%, var(--navy-800) 100%);
   color: #ffffff;
   text-align: center;
   font-weight: 600;
@@ -470,7 +417,7 @@
   position: absolute;
   top: 1rem;
   left: 1rem;
-  background-color: #0052cc;
+  background-color: var(--brand);
   color: white;
   padding: 0.35rem 0.75rem;
   border-radius: 4px;
@@ -599,8 +546,8 @@
   justify-self: end;
   align-self: center;
   background-color: transparent;
-  border: 1px solid #0052CC;
-  color: #0052CC;
+  border: 1px solid var(--brand);
+  color: var(--brand);
   border-radius: 6px;
   font-weight: 500;
   font-size: 0.9rem;
@@ -620,7 +567,7 @@
 .load-more-button {
   display: block;
   margin: 0 auto;
-  padding: 0.875rem 2rem;
+  padding: 0.75rem 1.5rem;
   min-height: 44px;
   background-color: #ffffff;
   color: var(--bg-dark);
@@ -977,30 +924,9 @@
 }
 
 @media only screen and (max-width: 768px) {
-  .section-title {
-    margin-top: 1rem;
-    font-size: 1.75rem;
-  }
-
-  .section-description {
-    font-size: 1rem;
-  }
-
-  .buttons {
-    padding: 0.5rem 0.25rem;
-  }
 
   .events-filters {
     gap: 0.5rem;
-  }
-
-  .filter-button {
-    padding: 0.35rem 0.9rem;
-    font-size: 0.85rem;
-  }
-
-  .filter-button.active {
-    padding: 0.35rem 0.9rem;
   }
 
   /* Featured card responsive - tablet */

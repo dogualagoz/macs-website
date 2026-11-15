@@ -1,17 +1,25 @@
 import React from 'react';
-import '../../styles/pages/Page404.css'; // CSS kodunu buraya ekle
+import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
+import '../../styles/pages/Page404.css';
 
 const Page404 = () => {
   return (
-    <div className="notfound-container">
-      <h1 className="notfound-title">404</h1>
-      <p className="notfound-text">
-        Oops! The page you are looking for does not exist.
+    <div className="notfound">
+      <Helmet>
+        <title>Sayfa bulunamadı | MACS</title>
+        <meta name="robots" content="noindex" />
+      </Helmet>
+      <p className="notfound__code" aria-hidden="true">404</p>
+      <h1 className="notfound__title">Sayfa bulunamadı</h1>
+      <p className="notfound__text">
+        Aradığınız sayfa taşınmış ya da hiç var olmamış olabilir.
       </p>
-      <a href="/" className="notfound-btn">
-        Go Home
-      </a>
+      <Link to="/" className="macs-btn macs-btn--primary">
+        Ana sayfaya dön
+      </Link>
     </div>
   );
 };
+
 export default Page404;

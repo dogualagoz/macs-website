@@ -1,24 +1,39 @@
 @import './fonts.css';
 
 :root {
+  /* Renk rolleri
+     --brand  : birincil (butonlar, aktif durumlar, basliklar). Lacivert.
+     --accent : vurgu. Pembe; yalnizca odak halkasi ve Projeler alt markasi.
+     Mavi (#3b82f6 vb.) marka rengi degil, kullanma. */
+  --brand: #07132b;
+  --navy-900: #07132b;            /* koyu zemin */
+  --navy-800: #0a1a3a;            /* yukseltilmis koyu yuzey, hover */
+  --navy-700: #1a2333;            /* koyu zemin uzerinde kart */
+  --accent: #F2317C;
+  --accent-blue: var(--accent);   /* eski ad; yeni kodda --accent kullan */
+
+  /* Notr skala Tailwind gray ile ayni */
   --primary-bg: #FFFFFF;
-  --secondary-bg: #F8F9FA;
+  --secondary-bg: #F9FAFB;        /* gray-50 */
   --text-primary: #191919;
-  --text-secondary: #4A4A4A;
-  --accent-blue: #F2317C;
-  --border-color: #E9ECEF;
-  --bg-dark: #07132b;
-  --bg-dark-elevated: #0a1a3a;
+  --text-secondary: #4B5563;      /* gray-600 */
+  --border-color: #E5E7EB;        /* gray-200 */
+  --bg-dark: var(--navy-900);
+  --bg-dark-elevated: var(--navy-800);
   --text-on-dark: #f5f7fa;
   --text-on-dark-muted: #b6c2d4;
+
   --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
     Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas,
     monospace;
-  --focus-ring: 0 0 0 2px #ffffff, 0 0 0 4px var(--accent-blue);
+  --focus-ring: 0 0 0 2px #ffffff, 0 0 0 4px var(--accent);
+
   --radius-control: 8px;
   --radius-card: 16px;
   --radius-pill: 9999px;
+  --container: 1200px;
+
   --z-nav: 40;
   --z-modal: 50;
   --z-loader: 60;
@@ -40,7 +55,7 @@ body {
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent-blue);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
@@ -56,17 +71,20 @@ body {
 }
 
 .container {
-  max-width: 1200px;
+  max-width: var(--container);
   margin: 0 auto;
   padding: 0 20px;
 }
 
+/* Bolum basligi: tek tanim. Sayfa CSS'lerinde yeniden tanimlama (CRA tum
+   CSS'i tek pakette birlestirir, kapsamsiz kural her sayfaya sizar). */
 .section-title {
   font-size: 2rem;
-  font-weight: 600;
+  font-weight: 700;
+  line-height: 1.15;
   text-align: center;
   margin-bottom: 1rem;
-  color: var(--text-primary);
+  color: var(--brand);
 }
 
 .section-description {
@@ -77,23 +95,6 @@ body {
   max-width: 600px;
   margin-left: auto;
   margin-right: auto;
-}
-
-.button {
-  background-color: var(--accent-blue);
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  min-height: 44px;
-  border-radius: var(--radius-control);
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  font-size: 0.9rem;
-}
-
-.button:hover {
-  opacity: 0.9;
 }
 
 .card {
@@ -132,10 +133,6 @@ body {
     padding: 0 0.5rem;
   }
 
-  .button {
-    padding: 8px 16px;
-    font-size: 0.85rem;
-  }
 }
 
 @media (max-width: 480px) {

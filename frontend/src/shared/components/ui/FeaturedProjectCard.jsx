@@ -8,6 +8,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Link, useNavigate } from 'react-router-dom';
 import { getImageUrl, handleImageError } from '../../../utils/imageUtils';
+import { responsiveImgProps, withVariantFallback } from '../../utils/responsiveImage';
 
 const FeaturedProjectCard = ({ title, description, image, technologies, githubUrl, liveUrl, slug }) => {
   // Technologies string'ini virgülle ayır
@@ -32,9 +33,9 @@ const FeaturedProjectCard = ({ title, description, image, technologies, githubUr
       <div className="Image-container">
         <img 
           className='First-img' 
-          src={getImageUrl(image, '/assets/images/img_source_code.webp')} 
+          src={getImageUrl(image, '/assets/images/img_source_code.webp')} {...responsiveImgProps(getImageUrl(image, '/assets/images/img_source_code.webp'), '(min-width: 768px) 600px, 100vw')} 
           alt={title}
-          onError={(e) => handleImageError(e, '/assets/images/img_source_code.webp')}
+          onError={withVariantFallback((e) => handleImageError(e, '/assets/images/img_source_code.webp'))}
         loading="lazy" />
       </div>
       <div className="Details-Container">

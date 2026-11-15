@@ -9,6 +9,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Calendar, MapPin, Star } from 'lucide-react';
 import { getImageUrl, handleImageError } from '../../../utils/imageUtils';
 import { parseApiDate, isPastApiDate, SITE_TIMEZONE } from '../../utils/apiDate';
+import { responsiveImgProps, withVariantFallback } from '../../utils/responsiveImage';
 
 const FeaturedEventCard = ({ title, date, location, description, image, startTime, endTime, maxParticipants, slug }) => {
   const getDateObject = (dateStr) => parseApiDate(dateStr) || new Date(NaN);
@@ -52,10 +53,10 @@ const FeaturedEventCard = ({ title, date, location, description, image, startTim
       <div className="featured-event-card-grid">
         {/* Image Container - Left Side */}
         <div className="featured-event-card-image relative overflow-hidden bg-gray-100">
-          <img
-            src={getImageUrl(image)}
+          <img loading="lazy" decoding="async"
+            src={getImageUrl(image)} {...responsiveImgProps(getImageUrl(image), '(min-width: 768px) 600px, 100vw')}
             alt={title}
-            onError={handleImageError}
+            onError={withVariantFallback(handleImageError)}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             style={isPast ? { filter: 'grayscale(100%)' } : {}}
           />
@@ -69,14 +70,14 @@ const FeaturedEventCard = ({ title, date, location, description, image, startTim
           {/* Featured Badge */}
           <div>
             <div className="mb-4">
-              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold bg-blue-600 text-white">
+              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold bg-macs-navy text-white">
                 <Star className="h-4 w-4 fill-white" />
                 ÖNE ÇIKAN
               </span>
             </div>
 
             {/* Title */}
-            <h3 className="text-3xl font-bold text-gray-900 mb-4 line-clamp-2 group-hover:text-blue-700 transition">
+            <h3 className="text-3xl font-bold text-gray-900 mb-4 line-clamp-2 group-hover:text-macs-navy-800 transition">
               <Link to={`/etkinlikler/${slug || ''}`} onClick={(e) => e.stopPropagation()} className="featured-event-card-title-link">
                 {title}
               </Link>
@@ -90,11 +91,11 @@ const FeaturedEventCard = ({ title, date, location, description, image, startTim
             {/* Date and Location */}
             <div className="flex flex-wrap gap-6 text-sm text-gray-600 mb-6">
               <div className="flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-blue-600" />
+                <Calendar className="h-5 w-5 text-macs-navy" />
                 <span className="font-medium">{formatDate(date)}</span>
               </div>
               <div className="flex items-center gap-2">
-                <MapPin className="h-5 w-5 text-blue-600" />
+                <MapPin className="h-5 w-5 text-macs-navy" />
                 <span className="font-medium">{location}</span>
               </div>
             </div>
@@ -111,7 +112,7 @@ const FeaturedEventCard = ({ title, date, location, description, image, startTim
           <div className="flex gap-3 pt-4 border-t border-gray-200" onClick={handleButtonClick}>
             <Link 
               to={`/etkinlikler/${slug || ''}`} 
-              className="flex-1 px-6 py-3 bg-gray-900 text-white rounded-lg font-semibold hover:bg-gray-800 transition text-center"
+              className="flex-1 px-6 py-3 bg-macs-navy text-white rounded-full font-semibold hover:bg-macs-navy-800 transition text-center"
               style={{ textDecoration: 'none' }}
             >
               Detayları Gör

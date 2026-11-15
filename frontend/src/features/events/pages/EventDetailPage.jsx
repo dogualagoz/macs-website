@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import {
   CalendarDays,
   Clock,
@@ -147,10 +147,10 @@ function EventPageView({ event }) {
           aria-hidden
         />
         <div className="absolute inset-0 bg-[#07132b]/70" />
-        <motion.div
+        <m.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="relative mx-auto max-w-7xl px-4 sm:px-6 pt-16 pb-12 sm:pt-20 sm:pb-16 lg:pt-28 lg:pb-24 text-white"
+          className="relative mx-auto max-w-container px-5 pt-16 pb-12 sm:pt-20 sm:pb-16 lg:pt-28 lg:pb-24 text-white"
         >
           <div className="mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-white/80">
             <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -161,7 +161,7 @@ function EventPageView({ event }) {
             {/* Left: Title & Meta */}
             <div className="col-span-3 w-full">
               <div className="mb-3 sm:mb-4 flex flex-wrap items-center gap-2 sm:gap-3">
-                <motion.span
+                <m.span
                   variants={badgeVariants}
                   initial="initial"
                   animate="animate"
@@ -174,7 +174,7 @@ function EventPageView({ event }) {
                 >
                   {event.is_featured ? <Star className="h-3.5 w-3.5" /> : <BadgeCheck className="h-3.5 w-3.5" />}
                   {event.is_featured ? "Öne Çıkan" : event.category?.name || "Etkinlik"}
-                </motion.span>
+                </m.span>
                 {isPast ? (
                   <span className="inline-flex items-center gap-2 rounded-full bg-red-500/20 px-3 py-1 text-xs text-red-200 ring-1 ring-red-400/40">
                     <Clock className="h-3.5 w-3.5" /> Kayıt Kapalı
@@ -190,14 +190,14 @@ function EventPageView({ event }) {
                 )}
               </div>
 
-              <motion.h1
+              <m.h1
                 initial={{ y: 12, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.4 }}
                 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight tracking-tight"
               >
                 {event.title}
-              </motion.h1>
+              </m.h1>
 
               <p className="mt-3 sm:mt-4 max-w-2xl text-sm sm:text-base text-white/90">{event.description}</p>
 
@@ -233,7 +233,7 @@ function EventPageView({ event }) {
             </div>
 
             {/* Right: Floating card */}
-            <motion.aside
+            <m.aside
               variants={cardVariants}
               initial="initial"
               animate="animate"
@@ -265,16 +265,16 @@ function EventPageView({ event }) {
                   )}
                 </div>
               </div>
-            </motion.aside>
+            </m.aside>
           </div>
-        </motion.div>
+        </m.div>
       </section>
 
       {/* Content & Program */}
-      <main className="mx-auto max-w-7xl px-4 sm:px-6 py-8 sm:py-12 lg:py-14">
+      <main className="mx-auto max-w-container px-5 py-8 sm:py-12 lg:py-14">
         <div className="grid gap-6 sm:gap-8 lg:grid-cols-3 lg:gap-12">
           {/* Content */}
-          <motion.section
+          <m.section
             variants={cardVariants}
             initial="initial"
             animate="animate"
@@ -298,10 +298,10 @@ function EventPageView({ event }) {
                 <Timeline start={event.start_time} end={event.end_time} contentProgramLines={programLines} />
               </Card>
             )}
-          </motion.section>
+          </m.section>
 
           {/* Sidebar extra */}
-          <motion.aside
+          <m.aside
             variants={cardVariants}
             initial="initial"
             animate="animate"
@@ -336,11 +336,11 @@ function EventPageView({ event }) {
                 ]}
               />
             </Card>
-          </motion.aside>
+          </m.aside>
         </div>
 
         {/* Bottom CTA (Plan A: lacivert blok) */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.4 }}
@@ -358,10 +358,10 @@ function EventPageView({ event }) {
               </GhostButton>
             </div>
           </div>
-        </motion.div>
+        </m.div>
       </main>
 
-      <footer className="mx-auto max-w-7xl px-4 sm:px-6 pb-12 sm:pb-16 pt-6 sm:pt-8 text-center text-xs sm:text-sm text-slate-500">
+      <footer className="mx-auto max-w-container px-5 pb-12 sm:pb-16 pt-6 sm:pt-8 text-center text-xs sm:text-sm text-slate-500">
         MACS • Matematik ve Bilgisayar Bilimleri Topluluğu
       </footer>
     </div>
@@ -388,7 +388,7 @@ function MetaChip({ icon: Icon, label }) {
 
 function PrimaryButton({ children, disabled = false }) {
   return (
-    <motion.button
+    <m.button
       whileHover={disabled ? {} : { y: -2, scale: 1.02 }}
       whileTap={disabled ? {} : { y: 0, scale: 0.98 }}
       transition={{ duration: 0.2 }}
@@ -399,20 +399,20 @@ function PrimaryButton({ children, disabled = false }) {
         }`}
     >
       {children}
-    </motion.button>
+    </m.button>
   );
 }
 
 function GhostButton({ children }) {
   return (
-    <motion.button
+    <m.button
       whileHover={{ y: -2, scale: 1.02 }}
       whileTap={{ y: 0, scale: 0.98 }}
       transition={{ duration: 0.2 }}
       className="inline-flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl border border-white/30 bg-transparent px-3 sm:px-4 py-1.5 sm:py-2 text-sm sm:text-base text-white hover:bg-white/10 transition-all duration-200"
     >
       {children}
-    </motion.button>
+    </m.button>
   );
 }
 
@@ -460,13 +460,13 @@ function Accordion({ items = [] }) {
             aria-controls={`accordion-panel-${i}`}
           >
             <span>{it.q}</span>
-            <motion.span animate={{ rotate: open === i ? 90 : 0 }}>
+            <m.span animate={{ rotate: open === i ? 90 : 0 }}>
               <ArrowRight className="h-4 w-4" />
-            </motion.span>
+            </m.span>
           </button>
           <AnimatePresence initial={false}>
             {open === i && (
-              <motion.div
+              <m.div
                 key={`panel-${i}`}
                 id={`accordion-panel-${i}`}
                 initial={{ height: 0, opacity: 0 }}
@@ -475,7 +475,7 @@ function Accordion({ items = [] }) {
                 className="overflow-hidden text-sm text-slate-700"
               >
                 <div className="pt-2">{it.a}</div>
-              </motion.div>
+              </m.div>
             )}
           </AnimatePresence>
         </div>
@@ -495,7 +495,7 @@ function Timeline({ start, end, contentProgramLines }) {
   return (
     <ol className="relative ml-1 border-l border-slate-200 pl-6">
       {items.map((it, idx) => (
-        <motion.li
+        <m.li
           key={idx}
           initial={{ opacity: 0, x: -10 }}
           whileInView={{ opacity: 1, x: 0 }}
@@ -508,7 +508,7 @@ function Timeline({ start, end, contentProgramLines }) {
             {new Intl.DateTimeFormat("tr-TR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Istanbul" }).format(it.t)}
           </div>
           <div className="text-sm font-medium text-slate-800">{it.title}</div>
-        </motion.li>
+        </m.li>
       ))}
     </ol>
   );
