@@ -70,9 +70,9 @@ test("socket IP ignores XFF; loopback real-IP splits global/write buckets and LR
     security: { globalRateLimit: { ratePerMin: 1, burst: 2 }, writeRateLimit: { ratePerMin: 1, burst: 1 }, maxTrackedIps: 3 },
   });
   try {
-    for (let i = 0; i < 2; i++) expect((await s.send("/health", { headers: { "X-Forwarded-For": `9.9.9.${String(i)}` } })).status).toBe(200);
-    const limited = await s.send("/health", { headers: { "X-Forwarded-For": "9.9.9.9" } }); expect(limited.status).toBe(429); expect(await limited.json()).toHaveProperty("error");
-    expect((await s.send("/health", { headers: { "X-Real-IP": "192.0.2.1" } })).status).toBe(200);
+    for (let i = 0; i < 2; i++) expect((await s.send("/events", { headers: { "X-Forwarded-For": `9.9.9.${String(i)}` } })).status).toBe(200);
+    const limited = await s.send("/events", { headers: { "X-Forwarded-For": "9.9.9.9" } }); expect(limited.status).toBe(429); expect(await limited.json()).toHaveProperty("error");
+    expect((await s.send("/events", { headers: { "X-Real-IP": "192.0.2.1" } })).status).toBe(200);
     for (const method of ["POST", "PUT", "DELETE"]) {
       const headers = { "X-Real-IP": `192.0.2.${String(method.length)}`, "Content-Type": "application/json" };
       await s.send("/events/bad", { method, headers, body: "{}" });
@@ -87,19 +87,19 @@ test("socket IP ignores XFF; loopback real-IP splits global/write buckets and LR
   });
   try {
     for (const ip of ["198.51.100.1", "198.51.100.2"]) {
-      expect((await lru.send("/health", { headers: { "X-Real-IP": ip } })).status).toBe(200);
-      expect((await lru.send("/health", { headers: { "X-Real-IP": ip } })).status).toBe(200);
-      expect((await lru.send("/health", { headers: { "X-Real-IP": ip } })).status).toBe(429);
+      expect((await lru.send("/events", { headers: { "X-Real-IP": ip } })).status).toBe(200);
+      expect((await lru.send("/events", { headers: { "X-Real-IP": ip } })).status).toBe(200);
+      expect((await lru.send("/events", { headers: { "X-Real-IP": ip } })).status).toBe(429);
     }
     // Insert .3 (LRU->MRU: .1, .2, .3), touch .2 so .1 is oldest, then insert .4 to evict .1.
-    expect((await lru.send("/health", { headers: { "X-Real-IP": "198.51.100.3" } })).status).toBe(200);
-    expect((await lru.send("/health", { headers: { "X-Real-IP": "198.51.100.2" } })).status).toBe(429);
-    expect((await lru.send("/health", { headers: { "X-Real-IP": "198.51.100.4" } })).status).toBe(200);
+    expect((await lru.send("/events", { headers: { "X-Real-IP": "198.51.100.3" } })).status).toBe(200);
+    expect((await lru.send("/events", { headers: { "X-Real-IP": "198.51.100.2" } })).status).toBe(429);
+    expect((await lru.send("/events", { headers: { "X-Real-IP": "198.51.100.4" } })).status).toBe(200);
     // Retained .2 still has an exhausted bucket; evicted .1 gets a fresh burst=2 bucket.
-    expect((await lru.send("/health", { headers: { "X-Real-IP": "198.51.100.2" } })).status).toBe(429);
-    expect((await lru.send("/health", { headers: { "X-Real-IP": "198.51.100.1" } })).status).toBe(200);
-    expect((await lru.send("/health", { headers: { "X-Real-IP": "198.51.100.1" } })).status).toBe(200);
-    expect((await lru.send("/health", { headers: { "X-Real-IP": "198.51.100.1" } })).status).toBe(429);
+    expect((await lru.send("/events", { headers: { "X-Real-IP": "198.51.100.2" } })).status).toBe(429);
+    expect((await lru.send("/events", { headers: { "X-Real-IP": "198.51.100.1" } })).status).toBe(200);
+    expect((await lru.send("/events", { headers: { "X-Real-IP": "198.51.100.1" } })).status).toBe(200);
+    expect((await lru.send("/events", { headers: { "X-Real-IP": "198.51.100.1" } })).status).toBe(429);
   } finally { await lru.server.stop(true); }
 });
 test("21st failed login blocks before SQL, other IP and account lockout stay independent", async () => {
@@ -203,12 +203,12 @@ test("global budget covers preflight and invalid heads with CORS", async () => {
  const s = setup({ now: () => new Date(1_000_000), security: { maxHeaderBytes: 1024, globalRateLimit: { ratePerMin: 1, burst: 1 } } });
  const origin = s.deps.env.CORS_ORIGINS[0] ?? "";
  try {
- expect((await s.send("/health")).status).toBe(200);
- const preflight = await s.send("/health", { method: "OPTIONS", headers: { Origin: origin } });
+ expect((await s.send("/events")).status).toBe(200);
+ const preflight = await s.send("/events", { method: "OPTIONS", headers: { Origin: origin } });
  expect(preflight.status).toBe(429); expect(preflight.headers.get("Access-Control-Allow-Origin")).toBe(origin);
  const headers = { Origin: origin, "X-Real-IP": "192.0.2.123", "X-Large": "x".repeat(2048) };
- const invalid = await s.send("/health", { headers });
+ const invalid = await s.send("/events", { headers });
  expect(invalid.status).toBe(431); expect(invalid.headers.get("Access-Control-Allow-Origin")).toBe(origin);
- expect((await s.send("/health", { headers })).status).toBe(429);
+ expect((await s.send("/events", { headers })).status).toBe(429);
  } finally { await s.server.stop(true); }
 });
