@@ -54,7 +54,6 @@ export function serializeUser(row: UserPublicRow): UserResponse {
     password_changed_at: pgToUtcIso(row.password_changed_at) };
 }
 
-export const serializeUserRow = serializeUser;
 
 function userJson() {
   return sql`json_build_object(

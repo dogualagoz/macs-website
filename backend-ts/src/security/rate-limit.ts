@@ -4,7 +4,6 @@ import type { MiddlewareHandler } from "hono";
 import { HttpError } from "../lib/http-error";
 import { DEFAULT_SECURITY_CONFIG } from "./config";
 
-export type Role = "admin" | "moderator";
 export interface RateLimitSpec { limit: number; windowMs: number; label: string }
 export interface IpRateLimiter { consume(ip: string): void; size(): number }
 export const perMinute = (n: number): RateLimitSpec => ({ limit: n, windowMs: 60_000, label: `${String(n)} per 1 minute` });

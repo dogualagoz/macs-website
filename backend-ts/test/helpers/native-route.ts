@@ -11,6 +11,7 @@ import { limitBodySize } from "../../src/security/request-guards";
 import { publicCachedJson, sendJsonResponse } from "../../src/lib/public-cache";
 import type { HttpError } from "../../src/lib/http-error";
 interface Definition<P, Q, B, R> extends RouteMeta {
+  domain: import("../../src/lib/cache").Domain; public?: boolean; bodyKind?: "json" | "form";
   params?: z.ZodType<P>; query?: z.ZodType<Q>; body?: z.ZodType<B>;
   rateLimit?: RateLimitSpec; bodyInvalid?: HttpError;
   handler: (ctx: { params: P; query: Q; body: B; user: AuthUser | null; c: Context<AppEnv> }) => Promise<R | Response>;

@@ -14,8 +14,8 @@ import { sendJsonResponse } from "../../lib/public-cache";
 import { saveImage } from "./service";
 
 export function registerUploadRoutes(app: AppRouter, deps: AppDeps): void {
-  const base = { domain: "uploads", tag: "system" } as const;
-  registerRouteMetadata(app, deps, { ...base, method: "post", path: "/api/upload/", summary: "Resim yükle", auth: ["admin", "moderator"], upload: { field: "file", maxBytes: deps.env.MAX_UPLOAD_SIZE }, response: z.object({ url: z.string() }) });
+  const base = { tag: "system" } as const;
+  registerRouteMetadata(app, deps, { ...base, method: "post", path: "/api/upload/", summary: "Resim yükle", auth: ["admin", "moderator"], upload: true, response: z.object({ url: z.string() }) });
   app.post("/api/upload", routeRateLimit(deps, perMinute(20)), async (c, next) => {
     const user = await authenticate(c.req.raw, deps.env, deps.loadUser, deps.now?.() ?? new Date());
     requireRoles(user, ["admin", "moderator"]);

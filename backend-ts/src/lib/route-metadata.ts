@@ -1,20 +1,13 @@
 import { z } from "@hono/zod-openapi";
 import type { AppDeps, AppRouter } from "../app";
-import type { Domain } from "./cache";
 import type { Role } from "../middleware/auth";
 export interface RouteMeta {
   method: "get" | "post" | "put" | "patch" | "delete";
   path: string;
-  domain: Domain;
   tag: string;
   summary: string;
   auth?: "user" | readonly Role[];
-  public?: boolean;
-  params?: z.ZodType;
-  query?: z.ZodType;
-  body?: z.ZodType;
-  bodyKind?: "json" | "form";
-  upload?: { field: string; maxBytes: number };
+  upload?: boolean;
   status?: number;
   response?: z.ZodType;
   responseMediaType?: string;
