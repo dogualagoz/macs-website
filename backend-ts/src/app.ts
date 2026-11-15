@@ -62,6 +62,11 @@ export const fastApiDefaultHook: Hook<unknown, AppEnv, string, Promise<Response 
   if (result.target === "form") for (const item of items) if (item.type === "missing") item.input = null;
   throw c.get("bodyInvalid") ?? validationError(items);
 };
+export function isGlobalRateLimitExempt(path: string): boolean {
+  return path === "/uploads" || path.startsWith("/uploads/")
+    || path === "/static" || path.startsWith("/static/")
+    || path.startsWith("/health");
+}
 export function canonicalizeApiPath(req: Request): string {
   const path = new URL(req.url).pathname;
   if (path === "/docs" || path.startsWith("/docs/") || path === "/") return path;
@@ -91,7 +96,7 @@ export function createApp(deps: AppDeps, registerRoutes?: (router: AppRouter, de
   app.use("*", createCors(deps.env, c => {
     const ip = resolveClientIp(c.req.raw.headers, deps.getClientIp?.(c.req.raw) ?? (c.env as AppEnv["Bindings"] | undefined)?.socketIp);
     c.set("clientIp", ip);
-    if (deps.env.RATELIMIT_ENABLED) global.consume(ip);
+    if (deps.env.RATELIMIT_ENABLED && !isGlobalRateLimitExempt(c.req.path)) global.consume(ip);
     // Fetch parsers compare media types case sensitively; preserve boundary parameters.
     const contentType = c.req.header("Content-Type");
     if (contentType) {

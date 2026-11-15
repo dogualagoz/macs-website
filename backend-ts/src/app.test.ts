@@ -1,4 +1,7 @@
 import { afterAll, expect, test } from "bun:test";
+import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { z } from "zod";
 import request from "../test/helpers/http";
 import { route } from "../test/helpers/native-route";
@@ -42,11 +45,11 @@ test("Hono fetch shell ignores forwarded spoofing", async () => {
 test("global and write limiters use real IP and run before route parsing", async () => {
   const deps = testDeps({ env: { ...env, RATELIMIT_ENABLED: true }, security: { globalRateLimit: { ratePerMin: 1, burst: 2 }, writeRateLimit: { ratePerMin: 1, burst: 1 } } });
   const app = createApp(deps);
-  const first = await request(app).get("/health").set("X-Forwarded-For", "192.0.2.1");
+  const first = await request(app).get("/").set("X-Forwarded-For", "192.0.2.1");
   expect(first.status).toBe(200);
-  expect((await request(app).get("/health").set("X-Forwarded-For", "192.0.2.2")).status).toBe(200);
-  expect((await request(app).get("/health").set("X-Forwarded-For", "192.0.2.3")).status).toBe(429);
-  expect((await request(app).get("/health").set("X-Real-IP", "192.0.2.3")).status).toBe(200);
+  expect((await request(app).get("/").set("X-Forwarded-For", "192.0.2.2")).status).toBe(200);
+  expect((await request(app).get("/").set("X-Forwarded-For", "192.0.2.3")).status).toBe(429);
+  expect((await request(app).get("/").set("X-Real-IP", "192.0.2.3")).status).toBe(200);
   const write = await request(app).post("/auth/register").set("X-Real-IP", "192.0.2.4").type("application/json").send("{");
   expect(write.status).toBe(422);
   const limited = await request(app).post("/auth/register").set("X-Real-IP", "192.0.2.4").send({});
@@ -284,4 +287,50 @@ test("HEAD ZIP authenticates and lists but never resolves or opens file paths", 
     expect(response.status).toBe(200); expect(await response.text()).toBe("");
     expect(response.headers.get("Content-Type")).toBe("application/zip");
   } finally { await deps.sql.end(); }
+});
+
+test("E2: /uploads, /static, and /health* bypass global limiter, preserve guards/headers, and sustained API abuse hits 429", async () => {
+  const root = mkdtempSync(join(tmpdir(), "macs-e2-"));
+  const uploadDir = join(root, "uploads");
+  const staticDir = join(root, "static");
+  mkdirSync(uploadDir, { recursive: true });
+  mkdirSync(staticDir, { recursive: true });
+  writeFileSync(join(uploadDir, "img.png"), Buffer.from([137, 80, 78, 71]));
+  writeFileSync(join(staticDir, "app.css"), "body{}");
+  const natEnv = { ...env, RATELIMIT_ENABLED: true, UPLOAD_DIR: uploadDir, STATIC_DIR: staticDir };
+  const tightDeps = testDeps({ env: natEnv, security: { globalRateLimit: { ratePerMin: 1, burst: 5 } }, now: () => new Date("2026-11-15T00:00:00Z") });
+  const defaultDeps = testDeps({ env: natEnv, now: () => new Date("2026-11-15T00:00:00Z") });
+  try {
+    const tightApp = createApp(tightDeps);
+    for (let i = 0; i < 40; i++) {
+      const up = await request(tightApp).get("/uploads/img.png").set("X-Real-IP", "198.51.100.10");
+      expect(up.status).toBe(200);
+      expect(up.headers["x-content-type-options"]).toBe("nosniff");
+    }
+    expect((await request(tightApp).get("/static/app.css").set("X-Real-IP", "198.51.100.10")).status).toBe(200);
+    for (let i = 0; i < 10; i++) {
+      expect((await request(tightApp).get("/health").set("X-Real-IP", "198.51.100.10")).status).toBe(200);
+      expect((await request(tightApp).get("/health/ready").set("X-Real-IP", "198.51.100.10")).status).toBe(503);
+    }
+    // Request head guard still blocks exempt prefixes
+    expect((await request(tightApp).get(`/uploads/${"a".repeat(2100)}`).set("X-Real-IP", "198.51.100.10")).status).toBe(414);
+    // All 5 API burst tokens remain intact after 40+ exempt hits
+    for (let i = 0; i < 5; i++) {
+      expect((await request(tightApp).get("/").set("X-Real-IP", "198.51.100.10")).status).toBe(200);
+    }
+    expect((await request(tightApp).get("/").set("X-Real-IP", "198.51.100.10")).status).toBe(429);
+
+    // Browser-like burst under default limits (10 API calls + 40 upload images) succeeds, while >200 sustained API hits return 429
+    const defaultApp = createApp(defaultDeps);
+    for (let i = 0; i < 10; i++) expect((await request(defaultApp).get("/").set("X-Real-IP", "198.51.100.20")).status).toBe(200);
+    for (let i = 0; i < 40; i++) expect((await request(defaultApp).get("/uploads/img.png").set("X-Real-IP", "198.51.100.20")).status).toBe(200);
+    for (let i = 0; i < 190; i++) expect((await request(defaultApp).get("/").set("X-Real-IP", "198.51.100.20")).status).toBe(200);
+    const abused = await request(defaultApp).get("/").set("X-Real-IP", "198.51.100.20");
+    expect(abused.status).toBe(429);
+    expect(abused.body).toEqual({ error: "Rate limit exceeded: 1200 per 1 minute" });
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+    await tightDeps.sql.end();
+    await defaultDeps.sql.end();
+  }
 });

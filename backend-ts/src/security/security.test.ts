@@ -23,7 +23,7 @@ async function rejected(promise: Promise<unknown>): Promise<Error> {
 const request = (headers?: Headers) => new Request("http://localhost/", headers === undefined ? {} : { headers });
 describe("security primitives", () => {
   test("exact defaults", () => {
-    expect(config).toEqual({ globalRateLimit: { ratePerMin: 300, burst: 60 }, writeRateLimit: { ratePerMin: 60, burst: 60 }, maxTrackedIps: 50_000, loginIpLimit: { maxAttempts: 20, windowMs: 900_000 }, maxUrlLength: 2048, maxHeaderCount: 100, maxHeaderBytes: 16_384, maxBodyBytes: 2 * 1024 * 1024, uploadOverheadBytes: 262_144, idleTimeoutSec: 10, handlerTimeoutMs: 15_000 });
+    expect(config).toEqual({ globalRateLimit: { ratePerMin: 1200, burst: 200 }, writeRateLimit: { ratePerMin: 60, burst: 60 }, maxTrackedIps: 50_000, loginIpLimit: { maxAttempts: 20, windowMs: 900_000 }, maxUrlLength: 2048, maxHeaderCount: 100, maxHeaderBytes: 16_384, maxBodyBytes: 2 * 1024 * 1024, uploadOverheadBytes: 262_144, idleTimeoutSec: 10, handlerTimeoutMs: 15_000 });
   });
   test("single hop X-Real-IP only from private/loopback/test sockets", () => {
     for (const ip of ["127.0.0.1", "172.18.0.1", "10.0.0.1", "192.168.1.1", "::1", undefined]) {

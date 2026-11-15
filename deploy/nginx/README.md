@@ -50,7 +50,7 @@ sudo systemctl is-active nginx
 ## Sınırlar ve başlıklar
 
 - `server_tokens off;` `Server` başlığından ve nginx hata sayfalarından nginx sürüm numarasını kaldırır (yalnız `Server: nginx` döner).
-- Genel zone `20r/s`, burst `40`; login zone `5r/m`, burst `10`; IP başına eşzamanlı bağlantı/istek limiti `30`. Aşım 429. Login için nginx limiti uygulamanın başarısız giriş sayacından bağımsızdır, başarılı girişleri de sayar. nginx 429/413/405 yanıtları JSON yerine nginx HTML gövdesi içerebilir. HTTP/2 akışları bağlantı limitinde ayrı sayılır.
+- Genel API zone `50r/s`, burst `100 nodelay`; login zone `5r/m`, burst `10`; IP başına eşzamanlı bağlantı/istek limiti `60`. `/uploads/` `limit_req` dışında tutulur (yalnız `limit_conn 60` uygulanır) ve uygulama tarafında da `/uploads/*`, `/static/*`, `/health*` genel IP limitinden muaftır; uygulama genel limiti `1200/dk` (burst `200`) düzeyindedir. Aşım 429. Login için nginx limiti uygulamanın başarısız giriş sayacından bağımsızdır, başarılı girişleri de sayar. nginx 429/413/405 yanıtları JSON yerine nginx HTML gövdesi içerebilir. HTTP/2 akışları bağlantı limitinde ayrı sayılır.
 - `client_header_timeout 10s` eksik header bekleyen bağlantıları keser. **Bun 1.3.5 `idleTimeout`, kısmi header göndermede bağlantıyı kapatmaz; slowloris önlemi nginx'teki header/body timeout'larıdır.** `client_body_timeout 10s` tüm upload süresi değil ardışık okumalar arası sınırdır; sürekli yavaş veri akışına mutlak toplam süre koymaz. `send_timeout 15s` de yazmalar arasıdır. [nginx timeout belgesi](https://nginx.org/en/docs/http/ngx_http_core_module.html#client_body_timeout).
 - `env.ts` varsayılanı ve `backend-ts/docker-compose.contract.yml`: `MAX_UPLOAD_SIZE=5242880` (5 MiB). Ana `docker-compose.yml` bu değeri override etmez; env varsayılanını veya operatörün env değerini kullanır. Uygulama multipart için `262144` bayt ekler: toplam `5505024 < 6291456` (`6m`). Mevcut varsayılanlar tutarlı; compose değişikliği gerekmez. Operatör mevcut çalışan konteynerde `printenv MAX_UPLOAD_SIZE` ile override olup olmadığını kontrol etsin (boşsa varsayılan); artırılmışsa nginx sınırı da en az `MAX_UPLOAD_SIZE + 262144` bayt olmalıdır. Bu görev `.env` değiştirmez. JSON/form uygulama sınırı ayrıca 2 MiB'dir.
 - nginx her location'da istemcinin `X-Real-IP` değerini `$remote_addr` ile **değiştirir**, `X-Forwarded-For` değerini siler; boş X-Real-IP ile ikinci header eklenmez. `X-Forwarded-Proto $scheme` de istemci değerinin yerine geçer. Uygulama yalnız güvenilen tek hop'tan gelen X-Real-IP'yi kullanır. Plesk real_ip ayarı varsa `$remote_addr` kaynağını denetle; internete açık geniş `set_real_ip_from` tanımları kullanma. Backend 8010 portunu dışarı açma.
@@ -74,8 +74,10 @@ curl -sS -D - -o /dev/null -H 'X-Real-IP: 203.0.113.99' \
 Aşağıdaki yük problarını kısa bakım aralığında kendi IP'nden çalıştır; diğer kullanıcılarla aynı NAT IP'sini kullanıyorsan onları da sınırlayabilir. Login burst denemesinde gerçek kimlik bilgisi gönderme. nginx error log'da zone adını kontrol et; uygulama da 429 üretebilir.
 
 ```sh
-seq 1 100 | xargs -P 20 -I '{}' curl -sS -o /dev/null -w '%{http_code}\n' \
+seq 1 200 | xargs -P 20 -I '{}' curl -sS -o /dev/null -w '%{http_code}\n' \
   https://api.macsclub.com.tr/health | sort | uniq -c
+seq 1 40 | xargs -P 10 -I '{}' curl -sS -o /dev/null -w '%{http_code}\n' \
+  https://api.macsclub.com.tr/uploads/MEVCUT-DOSYA.webp | sort | uniq -c
 seq 1 20 | xargs -P 10 -I '{}' curl -sS -o /dev/null -w '%{http_code}\n' \
   -X POST https://api.macsclub.com.tr/auth/login | sort | uniq -c
 # Genel burst sonrası en az 3 s, login testi sonrası en az 132 s dolum bekle.
@@ -87,7 +89,7 @@ curl -sS -o /dev/null -w '%{http_code}\n' -H 'Expect:' \
 rm -f "$probe_body"
 ```
 
-Burst'te 429, 7 MiB gövdede 413 beklenir. `dd`/curl başarısızsa testi geçti sayma.
+İlk genel burst'te (`burst=100` üzeri `200` istek) 429, `/uploads/` burst'ünde tamamı 200 (`limit_req` muafiyeti), login'de 429 ve 7 MiB gövdede 413 beklenir. `dd`/curl başarısızsa testi geçti sayma.
 
 Eksik header ve CONNECT probları TLS üzerinde (Python 3):
 

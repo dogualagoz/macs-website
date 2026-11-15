@@ -13,7 +13,7 @@ export interface SecurityConfig {
 }
 export const MAX_JSON_BODY_BYTES = 2 * 1024 * 1024;
 export const DEFAULT_SECURITY_CONFIG: SecurityConfig = {
-  globalRateLimit: { ratePerMin: 300, burst: 60 },
+  globalRateLimit: { ratePerMin: 1200, burst: 200 },
   writeRateLimit: { ratePerMin: 60, burst: 60 },
   maxTrackedIps: 50_000,
   loginIpLimit: { maxAttempts: 20, windowMs: 900_000 },
