@@ -194,3 +194,11 @@ test("deviation n matches only raw static traversal, with exact 404 to 400 envel
     expect(approvedDeviation({ method: "GET", path, query: new URLSearchParams() }, old, next)).toBeNull();
   }
 });
+
+
+test("deviation m is restricted to GET docs paths and approved statuses", () => {
+  for (const path of ["/docs", "/docs/", "/openapi.json"]) {
+    for (const status of [200, 307]) expect(approvedDeviation({ method: "GET", path, query: new URLSearchParams() }, { status, body: "docs" }, { status: 404, body: { detail: "Not Found" } })).toBe("m");
+  }
+  for (const [method, path, status, next] of [["POST", "/docs", 200, 404], ["GET", "/docs/asset.js", 200, 404], ["GET", "/events", 200, 404], ["GET", "/docs", 500, 404], ["GET", "/docs", 200, 500]] as const) expect(approvedDeviation({ method, path, query: new URLSearchParams() }, { status, body: "docs" }, { status: next, body: {} })).toBeNull();
+});

@@ -81,6 +81,7 @@ export function approvedDeviation(r: RequestIdentity, old: ComparableResponse, n
     && old.status === 500 && old.body === "Internal Server Error" && next.status === 422
     && sponsorUpdateValidation(next.body)) return "l";
   if (r.method !== "GET") return null;
+  if (["/docs", "/docs/", "/openapi.json"].includes(r.path) && (old.status === 200 || old.status === 307) && next.status === 404) return "m";
   if (rawStaticTraversal(r.path) && !r.query.size
     && old.status === 404 && stableJson(old.body) === stableJson({ detail: "Not Found" })
     && next.status === 400 && stableJson(next.body) === stableJson({ detail: "Bad Request" })) return "n";
