@@ -2,22 +2,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import { memberService } from '../../../shared/services/api';
-import env from '../../../shared/config/env';
 import { handleAvatarError } from '../../../utils/imageUtils';
 import { handleApiError } from '../../../shared/utils/errorHandler';
+import { getMediaUrl } from '../../../shared/utils/media';
 
-// Backend URL'den /api kısmını çıkar ve image URL ile birleştir
-const getImageUrl = (imageUrl) => {
-  if (!imageUrl) return null;
-  // Eğer zaten tam URL ise direkt döndür
-  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-    return imageUrl;
-  }
-  // Backend base URL'ini al (API URL'den /api kısmını çıkar)
-  const apiUrl = env.apiUrl || 'http://localhost:8000';
-  const baseUrl = apiUrl.replace(/\/api$/, '');
-  return `${baseUrl}${imageUrl}`;
-};
 
 /**
  * Üyeler Sayfası
@@ -134,7 +122,7 @@ const Members = () => {
                           <div className="dashboard-table-cell">
                             {member.profile_image ? (
                               <img 
-                                src={getImageUrl(member.profile_image)} 
+                                src={getMediaUrl(member.profile_image, member.full_name)} 
                                 alt={member.full_name}
                                 className="table-thumb"
                                 style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }}

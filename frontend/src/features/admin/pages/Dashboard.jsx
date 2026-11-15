@@ -2,23 +2,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import { eventService, projectService, sponsorService } from '../../../shared/services/api';
-import env from '../../../shared/config/env';
 import { handleImageError, handleAvatarError } from '../../../utils/imageUtils';
 import { formatShortDate } from '../../../shared/utils/dateHelpers';
 import { handleApiError } from '../../../shared/utils/errorHandler';
+import { getMediaUrl } from '../../../shared/utils/media';
 
-// Backend URL'den /api kısmını çıkar ve image URL ile birleştir
-const getImageUrl = (imageUrl) => {
-  if (!imageUrl) return null;
-  // Eğer zaten tam URL ise direkt döndür
-  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-    return imageUrl;
-  }
-  // Backend base URL'ini al (API URL'den /api kısmını çıkar)
-  const apiUrl = env.apiUrl || 'http://localhost:8000';
-  const baseUrl = apiUrl.replace(/\/api$/, '');
-  return `${baseUrl}${imageUrl}`;
-};
 
 /**
  * Dashboard sayfası
@@ -319,7 +307,7 @@ const Dashboard = () => {
                             <div className="dashboard-table-cell">
                               {event.image_url ? (
                                 <img 
-                                  src={getImageUrl(event.image_url)} 
+                                  src={getMediaUrl(event.image_url, 'Event')} 
                                   alt={event.title}
                                   className="table-thumb"
                                   style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover' }}
@@ -430,7 +418,7 @@ const Dashboard = () => {
                             <div className="dashboard-table-cell">
                               {project.image_url ? (
                                 <img 
-                                  src={getImageUrl(project.image_url)} 
+                                  src={getMediaUrl(project.image_url, 'Project')} 
                                   alt={project.title}
                                   className="table-thumb"
                                   style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover' }}
@@ -542,7 +530,7 @@ const Dashboard = () => {
                             <div className="dashboard-table-cell">
                               {sponsor.image_url ? (
                                 <img 
-                                  src={getImageUrl(sponsor.image_url)} 
+                                  src={getMediaUrl(sponsor.image_url, 'Sponsor')} 
                                   alt={sponsor.name}
                                   className="sponsor-logo-thumb"
                                   style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }}

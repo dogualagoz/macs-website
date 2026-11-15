@@ -5,49 +5,72 @@
 
 import env from '../config/env';
 
-const PRODUCTION_URL = env.productionUrl;
+const AVATAR_BG = '#0D8ABC';
+const AVATAR_FG = '#FFFFFF';
 
 /**
- * İsmin baş harflerinden avatar üretir.
- * Hem "görsel hiç yok" hem de "görsel var ama yüklenemedi" durumunda
- * aynı yedeğin kullanılabilmesi için ayrı fonksiyon.
+ * İsmin baş harflerinden (en fazla iki) avatar üretir.
+ *
+ * Eskiden ui-avatars.com'a istek atılıyordu: her üyenin adı üçüncü taraf
+ * bir servise gidiyordu ve servis yavaşladığında avatarlar boş kalıyordu.
+ * Artık tarayıcıda SVG data URI olarak üretiliyor.
+ *
+ * Hem "görsel hiç yok" hem de "görsel var ama yüklenemedi" durumunda aynı
+ * yedeğin kullanılabilmesi için ayrı fonksiyon. Çıktı tırnak ve parantez
+ * içermez; CSS'te tırnaksız url(...) içinde de güvenle kullanılabilir.
  */
-export const getInitialsAvatar = (name = 'User') =>
-  `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0D8ABC&color=fff&size=128`;
+export const getInitialsAvatar = (name = 'User') => {
+  const initials = String(name || '')
+    .trim()
+    .split(/\s+/)
+    .map((word) => Array.from(word).find((char) => /\p{L}|\p{N}/u.test(char)) || '')
+    .filter(Boolean)
+    .slice(0, 2)
+    .join('')
+    .toLocaleUpperCase('tr-TR') || '?';
 
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">` +
+    `<rect width="128" height="128" fill="${AVATAR_BG}"/>` +
+    `<text x="64" y="64" dy=".35em" text-anchor="middle" fill="${AVATAR_FG}" ` +
+    `font-family="Arial, Helvetica, sans-serif" font-size="52" font-weight="600">${initials}</text>` +
+    `</svg>`;
+
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+};
+
+const FALLBACK_CONTENT_IMAGE = '/assets/images/img_source_code.webp';
+const CONTENT_KINDS = new Set(['Project', 'Event', 'Sponsor']);
+
+/**
+ * API'den gelen görsel yolunu tarayıcıda açılabilir URL'e çevirir.
+ *
+ * @param {string|null|undefined} url - Ham yol (/uploads/x.webp, tam URL ya da public asset)
+ * @param {string} name - 'Project' | 'Event' | 'Sponsor' ya da kişi adı (avatar yedeği için)
+ */
 export const getMediaUrl = (url, name = 'User') => {
   // 1. Durum: URL yoksa
   if (!url) {
-    if (name === 'Project' || name === 'Event' || name === 'Sponsor') {
-      return '/assets/images/img_source_code.webp';
-    }
-    return getInitialsAvatar(name);
+    return CONTENT_KINDS.has(name) ? FALLBACK_CONTENT_IMAGE : getInitialsAvatar(name);
   }
 
-  // 2. Durum: Zaten tam URL ise (http/https)
-  if (typeof url === 'string' && url.startsWith('http')) {
+  if (typeof url !== 'string') return FALLBACK_CONTENT_IMAGE;
+
+  // 2. Durum: Zaten tam URL ya da data URI ise
+  if (/^(https?:)?\/\//i.test(url) || url.startsWith('data:')) {
     return url;
   }
 
-  // 3. Durum: Frontend asset'leri
-  const isFrontendAsset = typeof url === 'string' && (url.startsWith('/assets') || url.startsWith('assets') || url.startsWith('/images') || url.startsWith('images'));
-  if (isFrontendAsset) {
+  // 3. Durum: Frontend asset'leri (public/)
+  if (/^\/?(assets|images)\//.test(url)) {
     return url.startsWith('/') ? url : `/${url}`;
   }
 
-  // 4. Durum: Backend dosyaları
+  // 4. Durum: Backend dosyaları. /static öneki eski backend'den kalma, production'da yok.
   let path = url.startsWith('/') ? url : `/${url}`;
-  
-  // /static prefix'ini kaldır (production'da /static yok)
   if (path.startsWith('/static/')) {
-    path = path.replace('/static', '');
+    path = path.slice('/static'.length);
   }
-  
-  // Production'da production URL ekle, development'ta relative path kullan
-  if (env.isProduction) {
-    return `${PRODUCTION_URL}${path}`;
-  }
-  
-  // Development'ta production URL'den çek (lokal backend'de resim yok)
-  return `${PRODUCTION_URL}${path}`;
+
+  return `${env.apiUrl.replace(/\/api\/?$/, '').replace(/\/$/, '')}${path}`;
 };

@@ -1,5 +1,4 @@
-import env from '../shared/config/env';
-import { getInitialsAvatar } from '../shared/utils/media';
+import { getInitialsAvatar, getMediaUrl } from '../shared/utils/media';
 
 /**
  * Resim URL'lerini işleyen merkezi utility fonksiyonları
@@ -13,27 +12,8 @@ import { getInitialsAvatar } from '../shared/utils/media';
  * @returns {string} İşlenmiş resim URL'i
  */
 export const getImageUrl = (imageUrl, fallbackImage = '/assets/images/img_innovation.png') => {
-  // Resim URL'i yoksa varsayılan resmi döndür
   if (!imageUrl) return fallbackImage;
-  
-  // Eğer URL zaten http ile başlıyorsa olduğu gibi kullan
-  if (typeof imageUrl === 'string' && imageUrl.startsWith('http')) return imageUrl;
-  
-  // Frontend asset'leri (Public klasöründekiler)
-  const isFrontendAsset = typeof imageUrl === 'string' && (imageUrl.startsWith('/assets') || imageUrl.startsWith('assets') || imageUrl.startsWith('/images') || imageUrl.startsWith('images'));
-  if (isFrontendAsset) {
-    return imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
-  }
-
-  // Backend'den gelen dosyalar - HER ZAMAN production URL kullan
-  let path = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
-  
-  // /static/uploads -> /uploads olarak normalize et (production'da /static yok)
-  if (path.startsWith('/static/')) {
-    path = path.replace('/static', '');
-  }
-  
-  return `${env.productionUrl}${path}`;
+  return getMediaUrl(imageUrl, 'Project');
 };
 
 /**

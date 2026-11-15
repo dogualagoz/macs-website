@@ -1,20 +1,10 @@
 import { useState, useEffect } from 'react';
 import { eventService } from '../services/contentService';
 import { handleApiError } from '../../../shared/utils/errorHandler';
-import env from '../../../shared/config/env';
 import { toSiteDateTimeInput, siteDateTimeInputToApi } from '../../../shared/utils/apiDate';
 import { safeExternalUrl, isValidOptionalUrl } from '../../../shared/utils/safeUrl';
+import { getMediaUrl } from '../../../shared/utils/media';
 
-// Backend URL'den /api kısmını çıkar ve image URL ile birleştir
-const getImageUrl = (imageUrl) => {
-  if (!imageUrl) return null;
-  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-    return imageUrl;
-  }
-  const apiUrl = env.apiUrl || 'http://localhost:8000';
-  const baseUrl = apiUrl.replace(/\/api$/, '');
-  return `${baseUrl}${imageUrl}`;
-};
 
 export const useEventForm = (editData = null, onUpdateSuccess = null) => {
   const [formData, setFormData] = useState({
@@ -64,7 +54,7 @@ export const useEventForm = (editData = null, onUpdateSuccess = null) => {
       
       // Mevcut resmi önizlemeye ekle
       if (editData.image_url) {
-        setImagePreview(getImageUrl(editData.image_url));
+        setImagePreview(getMediaUrl(editData.image_url, 'Project'));
       }
     } else {
       setIsEditMode(false);
