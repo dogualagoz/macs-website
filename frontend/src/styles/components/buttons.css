@@ -45,12 +45,12 @@
 }
 
 .macs-btn--accent {
-  background: var(--accent-blue);
+  background: var(--accent);
   color: #ffffff;
 }
 
 .macs-btn--accent:hover {
-  background: #003d99;
+  background: #a63a65;
 }
 
 .macs-btn--ghost {

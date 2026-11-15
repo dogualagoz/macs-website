@@ -69,14 +69,14 @@ const FeaturedEventCard = ({ title, date, location, description, image, startTim
           {/* Featured Badge */}
           <div>
             <div className="mb-4">
-              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold bg-blue-600 text-white">
+              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold bg-macs-navy text-white">
                 <Star className="h-4 w-4 fill-white" />
                 ÖNE ÇIKAN
               </span>
             </div>
 
             {/* Title */}
-            <h3 className="text-3xl font-bold text-gray-900 mb-4 line-clamp-2 group-hover:text-blue-700 transition">
+            <h3 className="text-3xl font-bold text-gray-900 mb-4 line-clamp-2 group-hover:text-macs-navy-800 transition">
               <Link to={`/etkinlikler/${slug || ''}`} onClick={(e) => e.stopPropagation()} className="featured-event-card-title-link">
                 {title}
               </Link>
@@ -90,11 +90,11 @@ const FeaturedEventCard = ({ title, date, location, description, image, startTim
             {/* Date and Location */}
             <div className="flex flex-wrap gap-6 text-sm text-gray-600 mb-6">
               <div className="flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-blue-600" />
+                <Calendar className="h-5 w-5 text-macs-navy" />
                 <span className="font-medium">{formatDate(date)}</span>
               </div>
               <div className="flex items-center gap-2">
-                <MapPin className="h-5 w-5 text-blue-600" />
+                <MapPin className="h-5 w-5 text-macs-navy" />
                 <span className="font-medium">{location}</span>
               </div>
             </div>

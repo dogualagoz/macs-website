@@ -103,7 +103,7 @@
 }
 
 .First-come-span {
-  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+  background: linear-gradient(135deg, var(--navy-900) 0%, var(--navy-800) 100%);
   color: #ffffff;
   padding: 8px 16px;
   font-weight: 600;

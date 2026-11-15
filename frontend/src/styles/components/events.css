@@ -285,7 +285,7 @@
   width: 90px;
   height: 30px;
   border-radius: 20px;
-  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+  background: linear-gradient(135deg, var(--navy-900) 0%, var(--navy-800) 100%);
   color: #ffffff;
   text-align: center;
   font-weight: 600;
@@ -470,7 +470,7 @@
   position: absolute;
   top: 1rem;
   left: 1rem;
-  background-color: #0052cc;
+  background-color: var(--brand);
   color: white;
   padding: 0.35rem 0.75rem;
   border-radius: 4px;
@@ -599,8 +599,8 @@
   justify-self: end;
   align-self: center;
   background-color: transparent;
-  border: 1px solid #0052CC;
-  color: #0052CC;
+  border: 1px solid var(--brand);
+  color: var(--brand);
   border-radius: 6px;
   font-weight: 500;
   font-size: 0.9rem;

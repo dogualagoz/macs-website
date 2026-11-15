@@ -98,7 +98,7 @@ const NewProjectDetailPage = () => {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#07132b] text-white">
         <h2 className="text-3xl font-bold mb-4">Proje Bulunamadı</h2>
-        <Link to="/projeler" className="text-blue-400 hover:underline">Geri Dön</Link>
+        <Link to="/projeler" className="text-macs-accent-300 hover:underline">Geri Dön</Link>
       </div>
     );
   }
@@ -128,7 +128,7 @@ const NewProjectDetailPage = () => {
           </Link>
 
           <div className="flex gap-3 mb-4">
-             <span className="px-3 py-1 bg-blue-600/30 border border-blue-500/50 text-blue-300 rounded-lg text-sm font-semibold backdrop-blur-md">
+             <span className="px-3 py-1 bg-macs-accent/20 border border-macs-accent/40 text-macs-accent-300 rounded-lg text-sm font-semibold backdrop-blur-md">
                 {project.category}
              </span>
              <span className={`px-3 py-1 border rounded-lg text-sm font-semibold backdrop-blur-md ${
@@ -152,7 +152,7 @@ const NewProjectDetailPage = () => {
               href={project.githubUrl || "#"} 
               target={project.githubUrl ? "_blank" : "_self"}
               rel="noopener noreferrer" 
-              className={`flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-xl backdrop-blur-md border border-white/10 transition-all font-medium ${!project.githubUrl ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-full backdrop-blur-md border border-white/10 transition-all font-medium ${!project.githubUrl ? 'opacity-50 cursor-not-allowed' : ''}`}
               onClick={(e) => !project.githubUrl && e.preventDefault()}
             >
               <Github size={20} />
@@ -162,7 +162,7 @@ const NewProjectDetailPage = () => {
               href={project.liveUrl || "#"} 
               target={project.liveUrl ? "_blank" : "_self"}
               rel="noopener noreferrer" 
-              className={`flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl transition-all font-medium shadow-[0_0_20px_rgba(37,99,235,0.4)] ${!project.liveUrl ? 'opacity-50 cursor-not-allowed bg-blue-600/50 shadow-none' : ''}`}
+              className={`flex items-center gap-2 bg-macs-accent-600 hover:bg-macs-accent-700 text-white px-6 py-3 rounded-full transition-all font-medium shadow-[0_0_20px_rgba(242,49,124,0.35)] ${!project.liveUrl ? 'opacity-50 cursor-not-allowed bg-macs-accent-600/50 shadow-none' : ''}`}
               onClick={(e) => !project.liveUrl && e.preventDefault()}
             >
               <ExternalLink size={20} />
@@ -171,14 +171,14 @@ const NewProjectDetailPage = () => {
             <div className="relative">
               <button 
                 onClick={handleShare}
-                className="flex items-center gap-2 bg-white/5 hover:bg-white/10 text-gray-300 px-4 py-3 rounded-xl backdrop-blur-md border border-white/5 transition-all"
+                className="flex items-center gap-2 bg-white/5 hover:bg-white/10 text-gray-300 px-4 py-3 rounded-full backdrop-blur-md border border-white/5 transition-all"
                 title="Paylaş"
               >
                 <Share2 size={20} />
               </button>
               
               {copied && (
-                <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs px-3 py-2 rounded-lg shadow-lg whitespace-nowrap animate-bounce">
+                <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-macs-accent-600 text-white text-xs px-3 py-2 rounded-lg shadow-lg whitespace-nowrap animate-bounce">
                   Link Kopyalandı!
                 </div>
               )}
@@ -195,7 +195,7 @@ const NewProjectDetailPage = () => {
           
           <section>
             <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-              <span className="w-1 h-8 bg-blue-500 rounded-full block"></span>
+              <span className="w-1 h-8 bg-macs-accent rounded-full block"></span>
               Proje Hakkında
             </h3>
             <div className="bg-[#1A2332]/50 p-8 rounded-3xl border border-white/5 text-lg leading-relaxed text-gray-300 shadow-xl">
@@ -210,7 +210,7 @@ const NewProjectDetailPage = () => {
             </h3>
             <div className="flex flex-wrap gap-3">
               {project.tags.map(tag => (
-                <div key={tag} className="bg-[#1E293B] border border-white/5 px-6 py-3 rounded-2xl text-blue-200 font-medium hover:bg-[#334155] transition-colors cursor-default">
+                <div key={tag} className="bg-[#1E293B] border border-white/5 px-6 py-3 rounded-2xl text-macs-accent-100 font-medium hover:bg-[#334155] transition-colors cursor-default">
                   {tag}
                 </div>
               ))}
@@ -261,7 +261,7 @@ const NewProjectDetailPage = () => {
                   <img src={member.avatar} alt={member.name} className="w-12 h-12 rounded-full border border-white/10" onError={(e) => handleAvatarError(e, member.name)} />
                   <div>
                     <p className="text-white font-semibold">{member.name}</p>
-                    <p className="text-xs text-blue-400">{member.role}</p>
+                    <p className="text-xs text-macs-accent-300">{member.role}</p>
                   </div>
                 </div>
               ))}

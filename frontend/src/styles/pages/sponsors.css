@@ -474,7 +474,7 @@
 .sponsor-card__header {
   position: relative;
   height: 7rem;
-  background: linear-gradient(to bottom right, #07132b, #0f2447, #1e3a8a);
+  background: linear-gradient(to bottom right, var(--navy-900), var(--navy-800));
   padding: 1rem;
 }
 
@@ -551,7 +551,7 @@
 }
 
 .sponsor-card:hover .sponsor-card__name {
-  color: #1e3a8a;
+  color: var(--navy-800);
 }
 
 .sponsor-card__desc {
@@ -722,7 +722,7 @@
 }
 
 .sponsor-popup__avatar--placeholder {
-  background: linear-gradient(to bottom right, #07132b, #1e3a8a);
+  background: linear-gradient(to bottom right, var(--navy-900), var(--navy-800));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -943,7 +943,7 @@
 }
 
 .sponsor-modal__header {
-  background: linear-gradient(to bottom right, #07132b, #1e3a8a);
+  background: linear-gradient(to bottom right, var(--navy-900), var(--navy-800));
   padding: 2rem;
   text-align: center;
   position: relative;

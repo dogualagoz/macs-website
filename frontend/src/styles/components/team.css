@@ -9,8 +9,8 @@
   /* --- renk: hepsi global.css'ten ya da ondan turetilmis --- */
   --navy: var(--bg-dark, #07132b);
   --paper: #f2f5fa;                 /* murekkep rampasinin kagit ucu */
-  --blue: var(--accent-blue, #0052cc);
-  --blue-200: #9fc1ff;              /* lacivert uzerinde rol satiri (#0052CC 1.9:1, kullanilamaz) */
+  --role: #a63a65;                  /* macs-accent-600: beyaz uzerinde AA (pembe 400 kucuk metinde yetmiyor) */
+  --role-on-dark: #f7a1c4;          /* koyu murekkep uzerinde rol satiri */
   --rule: #e5e7eb;                  /* sitenin mevcut hairline'i */
   --muted: #6b7280;
   --lede: #515b69;                  /* about.css ile ayni govde grisi */
@@ -105,7 +105,7 @@
 }
 
 .team-person:focus-visible .team-plate {
-  outline: 3px solid var(--blue);
+  outline: 3px solid var(--accent);
   outline-offset: 3px;
 }
 
@@ -203,7 +203,7 @@
   font-size: 14px;
   font-weight: 500;
   line-height: 1.3;
-  color: var(--blue);
+  color: var(--role);
 }
 
 .team-person__year {
@@ -224,7 +224,7 @@
 .team-plate__id .team-person__role {
   font-size: 14px;
   font-weight: 600;
-  color: var(--blue-200);
+  color: var(--role-on-dark);
 }
 
 .team-plate__id .team-person__year {
