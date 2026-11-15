@@ -147,3 +147,18 @@ test("list ties use id descending and pagination returns the full total", async 
   const result = await listUsers(deps.db, 2, 2);
   expect(result.total).toBe(7); expect(result.users.map(row => row.id)).toEqual([5, 4]);
 });
+
+test("login shield check and failures require enabled POST login", async () => {
+  for (const enabled of [false, true]) {
+    const calls: string[] = [];
+    const app = createApp({ ...deps, env: { ...deps.env, RATELIMIT_ENABLED: enabled }, loginShield: {
+      check: ip => { calls.push(`check:${ip}`); }, recordFailure: ip => { calls.push(`failure:${ip}`); }, size: () => 0,
+    } });
+    const options = { headers: { "X-Real-IP": "203.0.113.9" } };
+    await app.request("/auth/login", options);
+    expect(calls).toEqual([]);
+    const response = await app.request("/auth/login", { ...options, method: "POST", body: new URLSearchParams({ username: "missing@example.com", password: "wrong" }) });
+    expect(response.status).toBe(401);
+    expect(calls).toEqual(enabled ? ["check:203.0.113.9", "failure:203.0.113.9"] : []);
+  }
+});

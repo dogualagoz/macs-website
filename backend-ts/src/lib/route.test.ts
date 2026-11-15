@@ -207,3 +207,11 @@ test("legacy JSON route maps non-JSON media to a model_attributes_type 422", asy
   expect(response.status).toBe(422);
   expect(response.body).toEqual({ detail: [{ type: "model_attributes_type", loc: ["body"], msg: "Input should be a valid dictionary or object to extract fields from", input: "plain body" }] });
 });
+
+ test("legacy JSON media types are case insensitive", async () => {
+  const app = createApp(deps(), (router, d) => {
+    route(router, d, { ...base, body: z.object({ value: z.string() }), handler: ({ body }) => Promise.resolve(body) });
+  });
+  const r = await app.request("/test", { method: "POST", headers: { "Content-Type": "Application/JSON" }, body: '{"value":"ok"}' });
+  expect(r.status).toBe(200); expect(await r.json()).toEqual({ value: "ok" });
+});

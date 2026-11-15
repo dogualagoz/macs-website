@@ -24,7 +24,7 @@ export function registerUploadRoutes(app: AppRouter, deps: AppDeps): void {
     const bytes = await c.req.arrayBuffer();
     let form: FormData;
     try {
-      if (!(c.req.header("Content-Type") ?? "").startsWith("multipart/form-data")) form = new FormData();
+      if (!(c.req.header("Content-Type") ?? "").toLowerCase().startsWith("multipart/form-data")) form = new FormData();
       else form = await new Request(c.req.url, { method: "POST", headers: c.req.raw.headers, body: bytes }).formData();
     } catch { throw new HttpError(400, "There was an error parsing the body"); }
     const files = [...new Set(form.keys())].flatMap(key => form.getAll(key)).filter(entry => entry instanceof File);

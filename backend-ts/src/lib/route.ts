@@ -97,7 +97,7 @@ export function legacyRoute<P, Q, B, R>(router: AppRouter, deps: AppDeps, def: R
     let raw: unknown = {};
     if (!["GET", "HEAD"].includes(c.req.method)) {
       const text = await c.req.raw.text();
-      const type = c.req.header("Content-Type") ?? "";
+      const type = (c.req.header("Content-Type") ?? "").toLowerCase();
       if (def.bodyKind === "form") {
         if (type.startsWith("application/x-www-form-urlencoded")) raw = Object.fromEntries(new URLSearchParams(text));
       } else if (type.startsWith("application/json") && text) {

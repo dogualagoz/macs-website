@@ -194,3 +194,10 @@ test("chunked multipart exceeding the streaming cap returns 413 without writing 
     expect(await readdir(deps.env.UPLOAD_DIR)).toEqual([]);
   } finally { await server.stop(true); }
 });
+
+test("multipart media type is case insensitive", async () => {
+  const original = new Request("http://localhost/api/upload/", { method: "POST", body: (() => { const form = new FormData(); form.set("file", new File([png], "x.png")); return form; })() });
+  original.headers.set("Content-Type", (original.headers.get("Content-Type") ?? "").replace("multipart/form-data", "Multipart/Form-Data"));
+  original.headers.set("Authorization", `Bearer ${await tokenFor("mod@example.com", "moderator")}`);
+  expect((await createApp(deps).request(original)).status).toBe(200);
+});

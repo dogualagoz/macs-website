@@ -58,7 +58,7 @@ export const fastApiDefaultHook: Hook<unknown, AppEnv, string, Promise<Response 
   const source = result.target === "param" ? "path" : result.target === "query" ? "query" : "body";
   const raw: unknown = result.target === "param" ? c.req.param()
     : result.target === "query" ? Object.fromEntries(Object.entries(c.req.queries()).map(([key, values]) => [key, values.length === 1 ? values[0] : values]))
-    : result.target === "json" ? c.req.header("Content-Type")?.includes("json") ? await c.req.json() as unknown : {} : await c.req.parseBody({ all: true });
+    : result.target === "json" ? c.req.header("Content-Type")?.toLowerCase().includes("json") ? await c.req.json() as unknown : {} : await c.req.parseBody({ all: true });
   const items = toFastApi422(result.error, source, raw);
   if (result.target === "form") for (const item of items) if (item.type === "missing") item.input = null;
   throw c.get("bodyInvalid") ?? validationError(items);
@@ -85,6 +85,13 @@ export function createApp(deps: AppDeps, registerRoutes?: (router: AppRouter, de
     deps.logger.info({ reqId: c.get("requestId"), method: c.req.method, path: c.req.path, status: c.res.status, ms: performance.now() - start }, "Request completed");
   });
   app.use("*", async (c, next) => {
+    // Fetch parsers also compare media types case sensitively; preserve boundary parameters.
+    const contentType = c.req.header("Content-Type");
+    if (contentType) {
+      const separator = contentType.indexOf(";");
+      const mediaType = separator < 0 ? contentType : contentType.slice(0, separator);
+      c.req.raw.headers.set("Content-Type", mediaType.toLowerCase() + (separator < 0 ? "" : contentType.slice(separator)));
+    }
     validateRequestHead(c.req.raw, c.req.raw.url.replace(/^[^:]+:\/\/[^/]+/, ""), security);
     await next();
   });
@@ -99,12 +106,12 @@ export function createApp(deps: AppDeps, registerRoutes?: (router: AppRouter, de
     if (deps.env.RATELIMIT_ENABLED) {
       global.consume(ip);
       if (!["GET", "HEAD", "OPTIONS"].includes(c.req.method)) writes.consume(ip);
-      if (c.req.path === "/auth/login") shield.check(ip);
+      if (c.req.method === "POST" && canonicalizeApiPath(c.req.raw) === "/auth/login") shield.check(ip);
     }
     // next() resolves when the response is ready; ZIP streaming itself is unbounded.
     try { await withHandlerTimeout(security.handlerTimeoutMs, next); }
     catch (error) { throw error instanceof Error ? error : new Error("Non-error request failure", { cause: error }); }
-    if (c.req.path === "/auth/login" && c.res.status === 401) shield.recordFailure(ip);
+    if (deps.env.RATELIMIT_ENABLED && c.req.method === "POST" && canonicalizeApiPath(c.req.raw) === "/auth/login" && c.res.status === 401) shield.recordFailure(ip);
   });
   for (const [prefix, root] of [["/uploads", deps.env.UPLOAD_DIR], ["/static", deps.env.STATIC_DIR]] as const) {
     app.get(`${prefix}/*`, async c => {
