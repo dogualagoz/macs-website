@@ -12,23 +12,38 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import '../../../styles/components/hero.css';
 
-const images = [
-  '/assets/heroimages/codedrink.webp',
-  '/assets/heroimages/devbreak.webp',
-  '/assets/heroimages/log.webp'
-];
+const HERO_NAMES = ['codedrink', 'devbreak', 'log'];
+
+/* Iki genislik uretildi (sharp ile, kaynak ayni klasordeki .jpg'ler): 960 ve 1920 px WebP. Ekranin fiziksel genisligine gore biri
+   secilir; telefonda 1920'lik dosya (~110-220 KB) yerine 960'lik (~50-80 KB)
+   iner. */
+const pickHeroWidth = () => {
+  if (typeof window === 'undefined') return 1920;
+  const physical = window.innerWidth * (window.devicePixelRatio || 1);
+  return physical <= 1100 ? 960 : 1920;
+};
+
+const heroImages = (width) =>
+  HERO_NAMES.map((name) => `/assets/heroimages/${name}-${width}.webp`);
 
 const HeroSection = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [images] = useState(() => heroImages(pickHeroWidth()));
   const reduceMotion = useReducedMotion();
 
+  // Siradaki gorseli onceden getir. Eskiden uc gorsel acilista birlikte
+  // isteniyordu ve ilk gorselle (LCP) bant genisligi paylasiyordu; artik
+  // her seferinde yalnizca bir sonraki, gecisten once iniyor.
   useEffect(() => {
-    // Preload images
-    images.forEach((src) => {
-      const img = new Image();
-      img.src = src;
-    });
+    if (reduceMotion) return undefined;
+    const next = new Image();
+    const timer = setTimeout(() => {
+      next.src = images[(currentIndex + 1) % images.length];
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [currentIndex, images, reduceMotion]);
 
+  useEffect(() => {
     if (reduceMotion) return undefined;
 
     let timer;
@@ -56,7 +71,7 @@ const HeroSection = () => {
       clearInterval(timer);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [reduceMotion]);
+  }, [reduceMotion, images.length]);
 
   return (
     <section className="hero" id="home">
