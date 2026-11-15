@@ -72,14 +72,14 @@ export const useEventsData = () => {
 export const useEventFilters = (events) => {
   const [activeFilter, setActiveFilter] = useState(null);
 
-  // Filter and sort events by start time
+  // Filter and sort events by start time, newest first
   const filteredAndSorted = useMemo(() => {
     const filteredList = activeFilter
       ? events.filter(event => event.category_id === activeFilter)
       : events.slice();
-    
-    return filteredList.sort((a, b) => 
-      new Date(a.start_time) - new Date(b.start_time)
+
+    return filteredList.sort((a, b) =>
+      new Date(b.start_time) - new Date(a.start_time)
     );
   }, [events, activeFilter]);
 

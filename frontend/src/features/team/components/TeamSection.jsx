@@ -202,7 +202,7 @@ const TeamSection = ({ as: Heading = 'h2' }) => {
             Bilimleri bölümünden. Tanımak istediğiniz kişinin fotoğrafına tıklayın.
           </p>
 
-          <h3 className="team-rank">Yönetim Kurulu</h3>
+          <div className="team-rank" aria-hidden="true" />
           <div className="team-plates team-plates--kurul">
             {board_data.map((person, index) => (
               <Plate
@@ -216,7 +216,7 @@ const TeamSection = ({ as: Heading = 'h2' }) => {
             ))}
           </div>
 
-          <h3 className="team-rank">Koordinatörler</h3>
+          <div className="team-rank" aria-hidden="true" />
           <div className="team-plates team-plates--koordinator">
             {coordinator_data.map((person, index) => (
               <Plate
