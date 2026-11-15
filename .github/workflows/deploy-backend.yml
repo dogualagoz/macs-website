@@ -2,38 +2,59 @@ name: Deploy Backend
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
     paths:
-      - 'backend/**'
+      - 'backend-ts/**'
+      - 'docker-compose*.yml'
+      - 'scripts/deploy-backend-ts.sh'
+      - '.github/workflows/deploy-backend.yml'
+  workflow_dispatch:
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+  verify:
+    uses: ./.github/workflows/ci-backend-ts.yml
 
+  deploy:
+    needs: verify
+    if: vars.VPS_SSH_REACHABLE == 'true'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
       - name: Setup SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_SSH_PORT: ${{ vars.VPS_SSH_PORT || '22' }}
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan -p "$VPS_SSH_PORT" -H "$VPS_HOST" >> ~/.ssh/known_hosts
 
-      - name: Sync backend files to VPS
+      - name: Deploy backend-ts container on VPS
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_SSH_PORT: ${{ vars.VPS_SSH_PORT || '22' }}
         run: |
-          rsync -avz --delete \
-            --exclude='venv' \
-            --exclude='.env' \
-            --exclude='__pycache__' \
-            --exclude='*.pyc' \
-            --exclude='static/uploads' \
-            ./backend/ \
-            root@${{ secrets.VPS_HOST }}:/var/www/vhosts/api.macsclub.com.tr/httpdocs/
+          ssh -p "$VPS_SSH_PORT" "root@$VPS_HOST" \
+            'set -euo pipefail; cd /opt/macs-website && git fetch origin main && git show origin/main:scripts/deploy-backend-ts.sh | bash -s'
 
-      - name: Install dependencies & restart gunicorn
+  manual-deploy-notice:
+    needs: verify
+    if: vars.VPS_SSH_REACHABLE != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Write manual deploy instructions to job summary
         run: |
-          ssh root@${{ secrets.VPS_HOST }} "
-            source /var/www/vhosts/api.macsclub.com.tr/venv/bin/activate &&
-            pip install -r /var/www/vhosts/api.macsclub.com.tr/httpdocs/requirements.txt &&
-            kill -HUP \$(cat /var/run/macs-backend.pid)
-          "
+          {
+            echo "### Manual Deploy Required (VPS SSH filtered)"
+            echo ""
+            echo "Plesk SSH Terminal (first deploy & upgrades — fetch-first):"
+            echo '```bash'
+            echo 'set -euo pipefail'
+            echo 'cd /opt/macs-website && git fetch origin main && git show origin/main:scripts/deploy-backend-ts.sh | bash -s'
+            echo '```'
+            echo ""
+            echo "Plesk SSH Terminal: bash /opt/macs-website/scripts/deploy-backend-ts.sh"
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -49,6 +49,12 @@ jobs:
       - name: Benchmark gate tests
         run: bun test bench
 
+      - name: Lint deploy script
+        working-directory: .
+        run: |
+          bash -n scripts/deploy-backend-ts.sh
+          shellcheck scripts/deploy-backend-ts.sh
+
   integration:
     runs-on: ubuntu-latest
     defaults:
