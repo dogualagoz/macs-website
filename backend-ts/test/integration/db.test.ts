@@ -1,6 +1,6 @@
 import { afterAll, expect, test } from "bun:test";
 import { getTableConfig } from "drizzle-orm/pg-core";
-import request from "supertest";
+import request from "../helpers/http";
 import { createApp } from "../../src/app";
 import { createDb } from "../../src/db/client";
 import { alembicVersion, assets, events, projects, sponsors, users } from "../../src/db/schema";

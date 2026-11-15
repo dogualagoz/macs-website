@@ -1,6 +1,6 @@
 import { afterAll, beforeEach, expect, test } from "bun:test";
 import { readFile } from "node:fs/promises";
-import request from "supertest";
+import request from "../helpers/http";
 import { z } from "zod";
 import { sql } from "drizzle-orm";
 import { createApp } from "../../src/app";
@@ -26,7 +26,7 @@ beforeEach(async () => {
 afterAll(async () => { await database.sql.end({ timeout: 1 }); });
 const mod = () => tokenFor("mod@example.com", "moderator");
 const publicHeaders = "public, max-age=30, stale-while-revalidate=300";
-function noStore(response: request.Response): void {
+function noStore(response: import("../helpers/http").TestResponse): void {
   expect(response.headers["cache-control"]).toBe("no-store");
   expect(response.headers.etag).toBeUndefined(); expect(response.headers["x-cache"]).toBeUndefined();
 }
@@ -143,7 +143,7 @@ test("TTL expiry reruns the public handler and preserves conditional HTTP semant
 });
 test("HEAD bypasses shared cache and leaves warm GET entries intact", async () => {
   const app = createApp(deps); await request(app).get("/events");
-  const head = await request(app).head("/events").set("If-None-Match", "*"); expect(head.status).toBe(200); expect(head.text).toBeUndefined(); noStore(head);
+  const head = await request(app).head("/events").set("If-None-Match", "*"); expect(head.status).toBe(200); expect(head.text).toBe(""); noStore(head);
   deps.counter.reset(); expect((await request(app).get("/events")).headers["x-cache"]).toBe("HIT"); expect(deps.counter.count()).toBe(0);
 });
 test("non-200 public route and JSON null retain correct eligibility", async () => {

@@ -1,6 +1,6 @@
 import { afterAll, beforeEach, describe, expect, test } from "bun:test";
 import { readFile } from "node:fs/promises";
-import request from "supertest";
+import request from "../helpers/http";
 import { createApp } from "../../src/app";
 import { testDeps } from "../helpers/app";
 import { seedDb } from "../helpers/db";

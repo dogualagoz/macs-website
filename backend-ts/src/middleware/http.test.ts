@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { Writable } from "node:stream";
 import { DrizzleQueryError } from "drizzle-orm/errors";
 import pino from "pino";
-import request from "supertest";
+import request from "../../test/helpers/http";
 import { createApp } from "../app";
 import type { AppDeps } from "../app";
 import { parseEnv } from "../config/env";
@@ -23,12 +23,12 @@ function setup(options: { user?: AuthUser | null; enabled?: boolean; error?: obj
     loadUser: (email) => { expect(email).toBe(user.email); return Promise.resolve(options.user === undefined ? user : options.user); } });
   const app = createApp(deps, (router, d) => {
     const base = { domain: "system", tag: "System", summary: "Test" } as const;
-    router.get("/injected-error", (_req, _res, next) => { next(options.error); });
+    router.get("/injected-error", () => { throw options.error instanceof Error ? options.error : new Error("Injected failure", { cause: options.error }); });
     route(router, d, { ...base, method: "get", path: "/protected", auth: "user", handler: ({ user: current }) => Promise.resolve({ email: current?.email }) });
     for (const path of ["/limited", "/other-limit"]) route(router, d, { ...base, method: "get", path, rateLimit: perMinute(3), handler: () => Promise.resolve({ ok: true }) });
     route(router, d, { ...base, method: "post", path: "/body", handler: ({ body }) => Promise.resolve(body) });
     route(router, d, { ...base, method: "get", path: "/boom", handler: () => Promise.reject(new Error("boom")) });
-    route(router, d, { ...base, method: "get", path: "/db/:code", handler: ({ req }) => Promise.reject(Object.assign(new Error("db"), { code: req.params.code })) });
+    route(router, d, { ...base, method: "get", path: "/db/:code", handler: ({ c }) => Promise.reject(Object.assign(new Error("db"), { code: c.req.param("code") })) });
     route(router, d, { ...base, method: "get", path: "/teapot", handler: () => Promise.reject(new HttpError(418, "Tea", { "X-Tea": "yes" })) });
     for (const method of ["put", "get"] as const) route(router, d, { ...base, method, path: "/multi/:id", handler: () => Promise.resolve(null) });
   });
@@ -78,14 +78,14 @@ test("token errors preserve all four messages and Bearer challenge", async () =>
 });
 test("rate limit: 4th request is 429, counters are per-route and per-IP", async () => {
   const { app } = setup();
-  for (let i = 0; i < 3; i++) expect((await request(app).get("/limited").set("X-Forwarded-For", "192.0.2.1")).status).toBe(200);
-  const r = await request(app).get("/limited").set("X-Forwarded-For", "192.0.2.1");
+  for (let i = 0; i < 3; i++) expect((await request(app).get("/limited").set("X-Real-IP", "192.0.2.1")).status).toBe(200);
+  const r = await request(app).get("/limited").set("X-Real-IP", "192.0.2.1");
   expect(r.status).toBe(429);
   expect(r.body).toEqual({ error: "Rate limit exceeded: 3 per 1 minute" });
   expect(r.headers["x-ratelimit-limit"]).toBeUndefined();
   expect(r.headers["ratelimit-limit"]).toBeUndefined();
-  expect((await request(app).get("/other-limit").set("X-Forwarded-For", "192.0.2.1")).status).toBe(200);
-  expect((await request(app).get("/limited").set("X-Forwarded-For", "192.0.2.2")).status).toBe(200);
+  expect((await request(app).get("/other-limit").set("X-Real-IP", "192.0.2.1")).status).toBe(200);
+  expect((await request(app).get("/limited").set("X-Real-IP", "192.0.2.2")).status).toBe(200);
   expect(perHour(5)).toEqual({ limit: 5, windowMs: 3600000, label: "5 per 1 hour" });
 });
 test("RATELIMIT_ENABLED=false allows 20 requests", async () => {
@@ -217,4 +217,16 @@ test("CORS allows configured origins, rejects others, preflight is 200", async (
   expect(preflight.status).toBe(200);
   expect(preflight.headers["access-control-max-age"]).toBe("600");
   expect(preflight.headers["x-request-id"]).toBeDefined();
+});
+
+test("forwarded-for spoofing shares the default socket IP bucket", async () => {
+  const { app } = setup();
+  for (let i = 0; i < 3; i++) expect((await request(app).get("/limited").set("X-Forwarded-For", `192.0.2.${String(i + 1)}`)).status).toBe(200);
+  expect((await request(app).get("/limited").set("X-Forwarded-For", "192.0.2.99")).status).toBe(429);
+  expect((await request(app).get("/limited").set("X-Real-IP", "192.0.2.99")).status).toBe(200);
+});
+
+test.each(["__proto__", "constructor", "toString"])("non-PG inherited error code %s stays a JSON 500", async code => {
+  const response = await request(setup().app).get(`/db/${code}`);
+  expect(response.status).toBe(500); expect(response.body).toEqual({ detail: "Internal Server Error" });
 });

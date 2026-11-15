@@ -5,10 +5,10 @@ import { Writable } from "node:stream";
 import { ZipArchive } from "archiver";
 import { randomBytes } from "node:crypto";
 import { mkdir, mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
-import { get } from "node:http";
+import { get, request as nodeRequest } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import request from "supertest";
+import request, { serveEphemeral } from "../helpers/http";
 import { createApp } from "../../src/app";
 import { signAccessToken } from "../../src/lib/jwt";
 import { parseEnv } from "../../src/config/env";
@@ -29,7 +29,7 @@ beforeEach(async () => {
 afterEach(async () => { await deps.sql.end({ timeout: 1 }); await rm(dir, { recursive: true, force: true }); });
 const upload = async (name: string, bytes: Buffer) => request(createApp(deps)).post("/api/upload/").auth(await tokenFor("mod@example.com", "moderator"), { type: "bearer" }).attach("file", bytes, name);
 
-test("auth runs before real multer, including oversized or malformed multipart", async () => {
+test("auth runs before multipart parsing, including oversized or malformed multipart", async () => {
   const app = createApp(deps);
   const tooLarge = await request(app).post("/api/upload/").attach("file", Buffer.alloc(5242881), "x.png");
   expect(tooLarge.status).toBe(401);
@@ -44,7 +44,7 @@ test("rejected upload leaves no file behind: extension, signature, size", async 
     expect(await readdir(deps.env.UPLOAD_DIR)).toEqual([]);
   }
 });
-test("actual multer maps wrong or missing field to exact FastAPI 422 and distinguishes extra files", async () => {
+test("native multipart maps wrong or missing field to exact FastAPI 422 and distinguishes extra files", async () => {
   const token = await tokenFor("mod@example.com", "moderator");
   const app = createApp(deps);
   for (const r of [request(app).post("/api/upload/").auth(token, { type: "bearer" }).attach("dosya", png, "x.png"), request(app).post("/api/upload/").auth(token, { type: "bearer" }).field("description", "no file"), request(app).post("/api/upload/").auth(token, { type: "bearer" }).send({})]) {
@@ -56,14 +56,14 @@ test("actual multer maps wrong or missing field to exact FastAPI 422 and disting
   }
   expect(await readdir(deps.env.UPLOAD_DIR)).toEqual([]);
 });
-test("valid uppercase upload is UUID v4, served from both paths; static missing, dotfiles and traversal are 404", async () => {
+test("valid uppercase upload is UUID v4, served from both paths; static missing, dotfiles and directories are 404", async () => {
   const app = createApp(deps);
   const r = await request(app).post("/api/upload/").auth(await tokenFor("mod@example.com", "moderator"), { type: "bearer" }).attach("file", png, "FOTO.PNG");
   expect(r.status).toBe(200); const { url } = r.body as { url: string };
   expect(url).toMatch(/^\/uploads\/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\.png$/);
   for (const path of [url, `/static${url}`]) { const served = await request(app).get(path); expect(served.status).toBe(200); expect(served.body).toEqual(png); }
   await writeFile(join(deps.env.UPLOAD_DIR, ".hidden"), "secret");
-  for (const path of ["/uploads/missing.png", "/static/uploads/missing.png", "/uploads/..%2f..%2fpackage.json", "/uploads/.hidden", "/static/uploads/.hidden", "/uploads/"]) {
+  for (const path of ["/uploads/missing.png", "/static/uploads/missing.png", "/uploads/.hidden", "/static/uploads/.hidden", "/uploads/"]) {
     const response = await request(app).get(path); expect(response.status).toBe(404); expect(response.body).toEqual({ detail: "Not Found" });
   }
 });
@@ -84,9 +84,7 @@ test("download-all empty dir and admin authorization", async () => {
 test("ZIP contains every uploaded filename at root, UTC filename, no appended JSON or double send", async () => {
   deps.now = () => new Date("2026-11-14T23:59:58Z");
   const app = createApp(deps); await writeFile(join(deps.env.UPLOAD_DIR, "a.png"), png); await writeFile(join(deps.env.UPLOAD_DIR, "b.png"), "second");
-  const r = await request(app).get("/api/upload/download-all").auth(await signAccessToken({ sub: "admin@example.com", role: "admin" }, TEST_JWT_SECRET, 60, deps.now()), { type: "bearer" }).buffer(true).parse((res, callback) => {
-    const chunks: Buffer[] = []; res.on("data", (chunk: Buffer) => chunks.push(chunk)); res.on("end", () => { callback(null, Buffer.concat(chunks)); });
-  });
+  const r = await request(app).get("/api/upload/download-all").auth(await signAccessToken({ sub: "admin@example.com", role: "admin" }, TEST_JWT_SECRET, 60, deps.now()), { type: "bearer" });
   expect(r.status).toBe(200); expect(r.headers["content-type"]).toBe("application/zip"); expect(r.headers["content-disposition"]).toBe('attachment; filename="macs_uploads_20261114_235958.zip"');
   const bytes = r.body as Buffer; expect(bytes.subarray(0, 4)).toEqual(Buffer.from([80, 75, 3, 4]));
   expect(normalizeZip(bytes)).toEqual([{ name: "a.png", data: png.toString("base64") }, { name: "b.png", data: Buffer.from("second").toString("base64") }]);
@@ -95,8 +93,7 @@ test("real ZIP stream aborts and closes on client disconnect mid-stream", async 
   const app = createApp(deps); await writeFile(join(deps.env.UPLOAD_DIR, "large.png"), randomBytes(8 * 1024 * 1024));
   const abort = spyOn(ZipArchive.prototype, "abort"); const destroy = spyOn(ZipArchive.prototype, "destroy");
   const sourceDestroy = spyOn(ReadStream.prototype, "destroy");
-  const server = app.listen(0); const address = server.address();
-  if (!address || typeof address === "string") throw new Error("Expected TCP server");
+  const server = serveEphemeral(app); const address = { port: server.port };
   const token = await tokenFor("admin@example.com", "admin");
   try {
     await new Promise<void>((resolve, reject) => {
@@ -109,7 +106,7 @@ test("real ZIP stream aborts and closes on client disconnect mid-stream", async 
     for (let i = 0; i < 100 && abort.mock.calls.length === 0; i++) await new Promise(resolve => setTimeout(resolve, 5));
     expect(abort).toHaveBeenCalled(); expect(destroy).toHaveBeenCalled(); expect(sourceDestroy).toHaveBeenCalled();
     expect(await readdir(deps.env.UPLOAD_DIR)).toEqual(["large.png"]);
-  } finally { abort.mockRestore(); destroy.mockRestore(); sourceDestroy.mockRestore(); await new Promise<void>(resolve => server.close(() => { resolve(); })); }
+  } finally { abort.mockRestore(); destroy.mockRestore(); sourceDestroy.mockRestore(); await server.stop(true); }
 });
 
 test("multipart parser failure returns 400 without writing a file", async () => {
@@ -139,4 +136,61 @@ test("ZIP setup error before headers returns JSON 500, logs failure and aborts a
     expect(r.headers["cache-control"]).toBe("no-store"); expect(r.headers.etag).toBeUndefined();
     expect(logs.some(log => log.includes("ZIP stream failed") && log.includes("Disk unavailable"))).toBe(true); expect(abort).toHaveBeenCalled();
   } finally { path.mockRestore(); abort.mockRestore(); }
+});
+
+test("Bun socket preserves encoded traversal for request-head rejection", async () => {
+  const server = serveEphemeral(createApp(deps));
+  try {
+    for (const path of ["/uploads/..%2f..%2fpackage.json", "/uploads/a%00.png", "/static/%252e%252e/package.json", "/uploads/a%5cb.png", "/uploads/..%5cpackage.json"]) {
+      const response = await new Promise<{ status: number | undefined; body: string }>((resolve, reject) => {
+        get({ hostname: "127.0.0.1", port: server.port, path }, res => {
+          const chunks: Buffer[] = []; res.on("data", (chunk: Buffer) => chunks.push(chunk));
+          res.on("end", () => { resolve({ status: res.statusCode, body: Buffer.concat(chunks).toString() }); });
+        }).on("error", reject);
+      });
+      expect(response.status).toBe(400); expect(JSON.parse(response.body) as object).toEqual({ detail: "Bad Request" });
+    }
+  } finally { await server.stop(true); }
+});
+
+test("Bun normalizes dot segments without exposing files outside static roots", async () => {
+  // This existing file is outside UPLOAD_DIR; neither a dot segment nor an
+  // encoded separator may make it available through the uploads mount.
+  await writeFile(join(dir, "outside-secret.txt"), "outside-upload-root");
+  const server = serveEphemeral(createApp(deps));
+  try {
+    for (const path of ["/static/../package.json", "/static/%2e%2e/package.json", "/uploads/../outside-secret.txt", "/uploads/%2e%2e/outside-secret.txt"]) {
+      const response = await socketGet(server.port, path);
+      expect(response.status).toBe(404);
+      expect(response.body).toBe(JSON.stringify({ detail: "Not Found" }));
+      expect(response.body).not.toContain("outside-upload-root");
+    }
+  } finally { await server.stop(true); }
+});
+function socketGet(port: number | undefined, path: string): Promise<{ status: number | undefined; body: string }> {
+  return new Promise((resolve, reject) => {
+    get({ hostname: "127.0.0.1", port, path }, res => {
+      const chunks: Buffer[] = []; res.on("data", (chunk: Buffer) => chunks.push(chunk));
+      res.on("end", () => { resolve({ status: res.statusCode, body: Buffer.concat(chunks).toString() }); });
+    }).on("error", reject);
+  });
+}
+test("chunked multipart exceeding the streaming cap returns 413 without writing files", async () => {
+  deps.env.MAX_UPLOAD_SIZE = 1024;
+  const server = serveEphemeral(createApp(deps));
+  try {
+    const token = await tokenFor("mod@example.com", "moderator");
+    const response = await new Promise<{ status: number | undefined; body: string }>((resolve, reject) => {
+      const client = nodeRequest({ hostname: "127.0.0.1", port: server.port, path: "/api/upload/", method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data; boundary=chunked", "Transfer-Encoding": "chunked" } }, res => {
+        const chunks: Buffer[] = []; res.on("data", (chunk: Buffer) => chunks.push(chunk));
+        res.on("end", () => { resolve({ status: res.statusCode, body: Buffer.concat(chunks).toString() }); });
+      });
+      client.on("error", reject);
+      client.write('--chunked\r\nContent-Disposition: form-data; name="file"; filename="big.png"\r\nContent-Type: image/png\r\n\r\n');
+      client.write(Buffer.alloc(300 * 1024)); client.end("\r\n--chunked--\r\n");
+    });
+    expect(response.status).toBe(413);
+    expect(JSON.parse(response.body) as object).toEqual({ detail: "İstek gövdesi çok büyük" });
+    expect(await readdir(deps.env.UPLOAD_DIR)).toEqual([]);
+  } finally { await server.stop(true); }
 });

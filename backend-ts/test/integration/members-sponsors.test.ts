@@ -2,7 +2,7 @@ import { afterAll, beforeEach, describe, expect, spyOn, test } from "bun:test";
 import { readFile } from "node:fs/promises";
 import { Writable } from "node:stream";
 import pino from "pino";
-import request from "supertest";
+import request from "../helpers/http";
 import { createApp } from "../../src/app";
 import type { AppDeps } from "../../src/app";
 import { parseEnv } from "../../src/config/env";

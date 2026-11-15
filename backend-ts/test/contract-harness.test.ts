@@ -16,7 +16,7 @@ test("normalization changes volatile values and unordered lists only", () => {
   expect(stableJson({ b: 1, a: { d: 2, c: 3 } })).toBe('{"a":{"c":3,"d":2},"b":1}');
 });
 test("deviation IDs are registered and unknown IDs fail closed", () => {
-  expect(knownDeviations.map(d => d.id)).toEqual(["a", "b", "c", "d", "e", "f", "g", "h", "j", "k", "l", "P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8"]);
+  expect(knownDeviations.map(d => d.id)).toEqual(["a", "b", "c", "d", "e", "f", "g", "h", "j", "k", "l", "m", "n", "P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8"]);
   expect(selectDeviation("old", "a", { old: 500, new: 401 })).toBe(500);
   expect(selectDeviation("new", "a", { old: 500, new: 401 })).toBe(401);
   expect(selectDeviation("new", "l", { old: 500, new: 422 })).toBe(422);
@@ -177,4 +177,20 @@ test("shared compare module passes raw responses to approvedDeviation and valida
     body: { id: 2, members: [{ id: 1, project_role: "Other" }, { id: 2, project_role: "Member" }] },
   };
   expect(compareResponses(identity, old, next)).toMatchObject({ equal: false, deviation: null });
+});
+
+test("deviation n matches only raw static traversal, with exact 404 to 400 envelopes", () => {
+  const old = { status: 404, body: { detail: "Not Found" } };
+  const next = { status: 400, body: { detail: "Bad Request" } };
+  for (const path of ["/uploads/..%2fsecret", "/uploads/a%00.png", "/static/%252e%252e/secret", "/uploads/a%5cb.png"]) {
+    const req = { method: "GET", path, query: new URLSearchParams() };
+    expect(approvedDeviation(req, old, next)).toBe("n");
+    expect(approvedDeviation({ ...req, method: "POST" }, old, next)).toBeNull();
+    expect(approvedDeviation({ ...req, query: new URLSearchParams("x=1") }, old, next)).toBeNull();
+    expect(approvedDeviation(req, old, { status: 400, body: { detail: "other" } })).toBeNull();
+    expect(approvedDeviation(req, { status: 500, body: old.body }, next)).toBeNull();
+  }
+  for (const path of ["/static/%2e%2e/package.json", "/static/%2e%2e/safe%25.png", "/uploads/../secret", "/package.json", "/uploads/missing.png", "/uploads/%25file.png", "/api/..%2fsecret"]) {
+    expect(approvedDeviation({ method: "GET", path, query: new URLSearchParams() }, old, next)).toBeNull();
+  }
 });

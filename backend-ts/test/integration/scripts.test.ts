@@ -1,6 +1,6 @@
 import { afterAll, beforeEach, describe, expect, test } from "bun:test";
 import { readFile } from "node:fs/promises";
-import request from "supertest";
+import request from "../helpers/http";
 import { z } from "zod";
 import { createApp } from "../../src/app";
 import { userResponseSchema } from "../../src/modules/users/schemas";

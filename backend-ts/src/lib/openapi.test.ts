@@ -1,5 +1,5 @@
 import { afterAll, expect, test } from "bun:test";
-import request from "supertest";
+import request from "../../test/helpers/http";
 import type { ResponseObject, ParameterObject } from "openapi3-ts/oas31";
 import { z } from "zod";
 import { createApp } from "../app";
@@ -10,7 +10,7 @@ import { buildOpenApiDocument, toOpenApiPath } from "./openapi";
 const deps = testDeps({ cache: createResponseCache({ max: 500, ttlMs: 60_000, now: Date.now, enabled: true }) });
 const app = createApp(deps);
 afterAll(() => deps.sql.end());
-const document = () => buildOpenApiDocument(deps.routeRegistry);
+const document = () => app.getOpenAPI31Document({ openapi: "3.1.0", info: buildOpenApiDocument(deps.routeRegistry).info, tags: buildOpenApiDocument(deps.routeRegistry).tags ?? [] });
 test("OpenAPI 3.1 info matches FastAPI", () => {
   const doc = document();
   expect(doc.openapi).toBe("3.1.0");

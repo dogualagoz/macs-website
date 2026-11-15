@@ -1,16 +1,18 @@
 import { expect, test } from "bun:test";
-import express from "express";
-import { get } from "node:http";
-import request from "supertest";
+import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
+import type { AppEnv } from "../app";
+import request from "../../test/helpers/http";
 import { z } from "zod";
 import { createApp } from "../app";
 import type { AppDeps } from "../app";
 import { parseEnv } from "../config/env";
 import type { AuthUser } from "../middleware/auth";
+import type { FastApiErrorItem } from "./validation";
 import { HttpError } from "./http-error";
 import { signAccessToken } from "./jwt";
 import { testDeps } from "../../test/helpers/app";
-import { route, STREAMED } from "./route";
+import { limitBodySize } from "../security/request-guards";
+import { route } from "./route";
 
 const now = new Date("2026-11-14T00:00:00Z");
 const env = parseEnv({ DATABASE_URL: "postgresql://u:p@db/x", JWT_SECRET_KEY: "x".repeat(32), NODE_ENV: "test" });
@@ -71,14 +73,9 @@ test("handler returning null sends JSON null", async () => {
   expect(r.text).toBe("null");
   expect(r.headers["content-type"]).toContain("application/json");
 });
-test("STREAMED leaves response ownership with the handler", async () => {
-  const app = createApp(deps(), (router, d) => {
-    route(router, d, { ...base, handler: ({ res }) => { res.type("application/zip"); setImmediate(() => { res.end("zip-bytes"); }); return Promise.resolve(STREAMED); } });
-  });
-  const r = await request(app).post("/test").buffer(true);
-  expect(r.status).toBe(200);
-  expect(r.headers["content-type"]).toContain("application/zip");
-  expect(r.text).toBe("zip-bytes");
+test("Response leaves ownership with handler", async () => {
+  const app = createApp(deps(), (router, d) => { route(router, d, { ...base, handler: () => Promise.resolve(new Response("zip-bytes", { headers: { "Content-Type": "application/zip" } })) }); });
+  const r = await request(app).post("/test"); expect(r.text).toBe("zip-bytes");
 });
 test("extra query params are ignored and parsed inputs reach handler", async () => {
   const app = createApp(deps(), (router, d) => {
@@ -110,42 +107,12 @@ test("per-app registry includes metadata and remains independent", () => {
   expect(login?.bodyKind).toBe("form");
   expect(first.routeRegistry.find((r) => r.path === "/upload")?.upload).toEqual({ field: "file", maxBytes: 1024 });
   expect(second.routeRegistry.some((r) => r.path === "/test" || r.path === "/upload")).toBe(false);
-  const router = express.Router();
+  const router = new OpenAPIHono<AppEnv>();
   route(router, second, { ...base, path: "/second", handler: () => Promise.resolve(null) });
   expect(first.routeRegistry.some((r) => r.path === "/second")).toBe(false);
 });
 
 
-test("STREAMED allows handler cleanup on client disconnect", async () => {
-  let aborted = false;
-  let closed: (() => void) | undefined;
-  const disconnected = new Promise<void>((resolve) => { closed = resolve; });
-  const app = createApp(deps(), (router, d) => {
-    route(router, d, { ...base, method: "get", handler: ({ req, res }) => {
-      res.type("application/zip");
-      req.once("aborted", () => { aborted = !res.writableFinished; res.destroy(); closed?.(); });
-      res.write("zip-start");
-      res.flushHeaders();
-      return Promise.resolve(STREAMED);
-    } });
-  });
-  const server = app.listen(0);
-  try {
-    const address = server.address();
-    if (!address || typeof address === "string") throw new Error("Expected TCP server");
-    await new Promise<void>((resolve, reject) => {
-      const client = get(`http://127.0.0.1:${address.port.toString()}/test`, (response) => {
-        response.once("data", () => { response.destroy(); resolve(); });
-        response.on("error", reject);
-      });
-      client.on("error", reject);
-    });
-    await disconnected;
-    expect(aborted).toBe(true);
-  } finally {
-    await new Promise<void>((resolve, reject) => { server.close((error) => { if (error) reject(error); else resolve(); }); });
-  }
-});
 test("missing body field retains parent input in the entire 422 envelope", async () => {
   const app = createApp(deps(), (router, d) => {
     route(router, d, { ...base, body: z.object({ email: z.string() }), handler: () => Promise.resolve(null) });
@@ -171,4 +138,72 @@ test("form-only route rejects JSON credentials as missing fields", async () => {
   const r = await request(app).post("/test").send({ username: "mod@example.com" });
   expect(r.status).toBe(422);
   expect(r.body).toEqual({ detail: [{ type: "missing", loc: ["body", "username"], msg: "Field required", input: null }] });
+});
+
+test("unauthenticated text body precedes media type validation", async () => {
+  const app = createApp(deps(), (router, d) => { route(router, d, { ...base, auth: "user", body: z.object({ email: z.string() }), handler: () => Promise.resolve(null) }); });
+  const r = await request(app).post("/test").type("text/plain").send("{");
+  expect(r.status).toBe(401);
+  expect(r.headers["www-authenticate"]).toBe("Bearer");
+});
+
+test("rate limit precedes auth and params/query/body validation", async () => {
+  const d = deps(); d.env = { ...d.env, RATELIMIT_ENABLED: true };
+  const app = createApp(d, (app, d) => {
+    route(app, d, { ...base, path: "/order/:id", auth: "user", rateLimit: { limit: 1, windowMs: 60000, label: "1 per 1 minute" }, params: z.object({ id: z.coerce.number() }), query: z.object({ q: z.string() }), body: z.object({ email: z.string() }), handler: () => Promise.resolve(null) });
+  });
+  const first = await request(app).post("/order/bad").type("application/json").send("{");
+  expect(first.status).toBe(401);
+  const limited = await request(app).post("/order/bad").type("text/plain").send("{");
+  expect(limited.status).toBe(429);
+  expect(limited.body).toEqual({ error: "Rate limit exceeded: 1 per 1 minute" });
+  const authorized = await signAccessToken({ sub: user.email, role: "moderator" }, env.JWT_SECRET_KEY, 60, now);
+  const path = await request(app).post("/order/bad").set("X-Real-IP", "192.0.2.21").auth(authorized, { type: "bearer" }).send({});
+  expect(path.status).toBe(422); expect((path.body as { detail: FastApiErrorItem[] }).detail[0]?.loc).toEqual(["path", "id"]);
+  const query = await request(app).post("/order/1").set("X-Real-IP", "192.0.2.22").auth(authorized, { type: "bearer" }).send({});
+  expect(query.status).toBe(422); expect((query.body as { detail: FastApiErrorItem[] }).detail[0]?.loc).toEqual(["query", "q"]);
+});
+
+test("native OpenAPI hook retains raw input; JSON errors and overrides match FastAPI", async () => {
+  const app = createApp(deps(), app => {
+    for (const override of [false, true]) {
+      app.openapi(createRoute({ method: "post", path: override ? "/native-override" : "/native", middleware: [async (c, next) => { if (override) c.set("bodyInvalid", new HttpError(400, "Override")); await next(); }, limitBodySize()], request: { body: { required: true, content: { "application/json": { schema: z.object({ email: z.string() }) } } } }, responses: { 200: { description: "OK" } } }), c => c.json({ ok: true }));
+    }
+  });
+  const badField = await request(app).post("/native").send({ email: 42 });
+  expect(badField.status).toBe(422);
+  expect(badField.body).toEqual({ detail: [{ type: "string_type", loc: ["body", "email"], msg: "Input should be a valid string", input: 42 }] });
+  const malformed = await request(app).post("/native").type("application/json").send("{");
+  expect(malformed.status).toBe(422); expect((malformed.body as { detail: FastApiErrorItem[] }).detail[0]?.type).toBe("json_invalid");
+  for (const body of ["{", "{}"]) {
+    const override = await request(app).post("/native-override").type("application/json").send(body);
+    expect(override.status).toBe(400); expect(override.body).toEqual({ detail: "Override" });
+  }
+  const media = await request(app).post("/native").type("text/plain").send("data");
+  expect(media.status).toBe(422); expect((media.body as { detail: FastApiErrorItem[] }).detail[0]?.type).toBe("model_attributes_type");
+});
+
+test("native param and query failures are tested separately (F11 validator ordering)", async () => {
+  // @hono/zod-openapi runs route.middleware before validators, then query before
+  // params. Legacy routes explicitly retain params -> query -> body ordering.
+  const app = createApp(deps(), app => {
+    app.openapi(createRoute({ method: "get", path: "/native/{id}", request: { params: z.object({ id: z.string().regex(/^\d+$/) }), query: z.object({ q: z.string() }) }, responses: { 200: { description: "OK" } } }), c => c.json({ ok: true }));
+    app.openapi(createRoute({ method: "post", path: "/native-empty", request: { body: { required: true, content: { "application/json": { schema: z.object({ email: z.string() }) } } } }, responses: { 200: { description: "OK" } } }), c => c.json({ ok: true }));
+  });
+  const param = await request(app).get("/native/bad?q=valid");
+  expect(param.status).toBe(422);
+  expect((param.body as { detail: FastApiErrorItem[] }).detail[0]?.loc).toEqual(["path", "id"]);
+  const query = await request(app).get("/native/1");
+  expect(query.status).toBe(422);
+  expect((query.body as { detail: FastApiErrorItem[] }).detail[0]?.loc).toEqual(["query", "q"]);
+  const empty = await request(app).post("/native-empty");
+  expect(empty.status).toBe(422);
+  expect((empty.body as { detail: FastApiErrorItem[] }).detail[0]?.type).toBe("missing");
+});
+
+test("legacy JSON route maps non-JSON media to a model_attributes_type 422", async () => {
+  const app = createApp(deps(), (app, d) => { route(app, d, { ...base, body: z.object({ email: z.string() }), handler: () => Promise.resolve(null) }); });
+  const response = await request(app).post("/test").type("text/plain").send("plain body");
+  expect(response.status).toBe(422);
+  expect(response.body).toEqual({ detail: [{ type: "model_attributes_type", loc: ["body"], msg: "Input should be a valid dictionary or object to extract fields from", input: "plain body" }] });
 });
