@@ -44,9 +44,22 @@ function addTailwindToPostcssLoaders(rules) {
   return patched;
 }
 
+// CRA env değişkenlerini build anında bundle'a gömüyor. REACT_APP_API_URL
+// boşsa uygulama sessizce http://localhost:8000'e istek atan bir production
+// build üretiyordu; site açılıyor ama hiçbir veri gelmiyordu. Build'i durdur.
+function assertProductionEnv(env) {
+  if (env !== 'production') return;
+  const apiUrl = process.env.REACT_APP_API_URL;
+  if (!apiUrl || !apiUrl.trim()) {
+    throw new Error('craco: production build için REACT_APP_API_URL tanımlanmalı (API kök adresi).');
+  }
+}
+
 module.exports = {
   webpack: {
-    configure: (webpackConfig) => {
+    configure: (webpackConfig, { env }) => {
+      assertProductionEnv(env);
+
       const patched = addTailwindToPostcssLoaders(webpackConfig.module.rules);
 
       if (patched === 0) {

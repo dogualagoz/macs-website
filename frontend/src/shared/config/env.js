@@ -16,8 +16,5 @@ if (!env.mapboxToken) {
   console.warn('REACT_APP_MAPBOX_TOKEN tanimli degil. Harita ozellikleri calismayabilir.');
 }
 
-if (env.isDevelopment) {
-  console.log('Mapbox Token:', env.mapboxToken ? 'yuklendi' : 'yok');
-}
 
 export default env;
