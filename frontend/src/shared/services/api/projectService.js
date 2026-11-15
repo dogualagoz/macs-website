@@ -5,6 +5,7 @@
 import apiClient from './apiClient';
 import uploadService from './uploadService';
 import { getMediaUrl } from '../../utils/media';
+import { safeExternalUrl } from '../../utils/safeUrl';
 
 const projectService = {
   /**
@@ -12,6 +13,9 @@ const projectService = {
    */
   _mapProject: (p) => {
     if (!p) return null;
+    // Dış bağlantılar href'e basılıyor: yalnızca http(s) geçer (bkz. safeUrl).
+    const githubUrl = safeExternalUrl(p.github_url || p.githubUrl);
+    const liveUrl = safeExternalUrl(p.live_url || p.liveUrl);
     return {
       ...p,
       // Backend -> Frontend Eşleşmeleri
@@ -24,8 +28,10 @@ const projectService = {
       image: getMediaUrl(p.image_url || p.image || p.imageUrl, 'Project'),
       tags: p.technologies ? p.technologies.split(',').map(t => t.trim()) : [],
       
-      githubUrl: p.github_url || p.githubUrl,
-      liveUrl: p.live_url || p.liveUrl,
+      github_url: githubUrl,
+      live_url: liveUrl,
+      githubUrl,
+      liveUrl,
       
       // Project Type -> Tab Eşleşmesi
       tab: p.project_type === 'DEVELOPED_BY_MACS' ? 'developed' :

@@ -5,6 +5,7 @@
 import apiClient from './apiClient';
 import uploadService from './uploadService';
 import { getMediaUrl } from '../../utils/media';
+import { safeExternalUrl } from '../../utils/safeUrl';
 
 const eventService = {
   /**
@@ -18,6 +19,9 @@ const eventService = {
       image_url: fullUrl,
       imageUrl: fullUrl,
       image: fullUrl,
+      // Dış bağlantılar href'e basılıyor: yalnızca http(s) geçer (bkz. safeUrl).
+      registration_link: safeExternalUrl(e.registration_link),
+      directions_link: safeExternalUrl(e.directions_link),
     };
   },
 

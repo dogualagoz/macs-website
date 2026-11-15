@@ -3,6 +3,7 @@ import { eventService } from '../services/contentService';
 import { handleApiError } from '../../../shared/utils/errorHandler';
 import env from '../../../shared/config/env';
 import { toSiteDateTimeInput, siteDateTimeInputToApi } from '../../../shared/utils/apiDate';
+import { safeExternalUrl, isValidOptionalUrl } from '../../../shared/utils/safeUrl';
 
 // Backend URL'den /api kısmını çıkar ve image URL ile birleştir
 const getImageUrl = (imageUrl) => {
@@ -94,6 +95,10 @@ export const useEventForm = (editData = null, onUpdateSuccess = null) => {
     setSubmitSuccess(false);
     
     try {
+      if (!isValidOptionalUrl(formData.registrationLink) || !isValidOptionalUrl(formData.directionsLink)) {
+        throw new Error('Kayıt ve yol tarifi bağlantıları http:// ya da https:// ile başlayan geçerli adresler olmalı.');
+      }
+
       // 1. Görsel yükle (yeni resim seçildiyse)
       let imageUrl = null;
       if (image) {
@@ -106,8 +111,8 @@ export const useEventForm = (editData = null, onUpdateSuccess = null) => {
         title: formData.title,
         description: formData.description,
         location: formData.location,
-        registration_link: formData.registrationLink || null,
-        directions_link: formData.directionsLink || null,
+        registration_link: safeExternalUrl(formData.registrationLink),
+        directions_link: safeExternalUrl(formData.directionsLink),
         start_time: startTimeWithTZ,
         category_id: formData.category !== '' ? parseInt(formData.category) : null,
         content: formData.content,

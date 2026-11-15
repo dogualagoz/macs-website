@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { projectService } from '../services/contentService';
 import { handleApiError } from '../../../shared/utils/errorHandler';
 import env from '../../../shared/config/env';
+import { safeExternalUrl, isValidOptionalUrl } from '../../../shared/utils/safeUrl';
 
 const PROJECT_STATUS_ENUMS = ['PLANNING', 'IN_PROGRESS', 'COMPLETED', 'ON_HOLD', 'CANCELLED'];
 const PROJECT_STATUS_LABEL_TO_ENUM = {
@@ -120,6 +121,10 @@ export const useProjectForm = (editData = null, onUpdateSuccess = null) => {
     setSubmitSuccess(false);
     
     try {
+      if (!isValidOptionalUrl(formData.githubUrl) || !isValidOptionalUrl(formData.liveUrl)) {
+        throw new Error('GitHub ve canlı demo bağlantıları http:// ya da https:// ile başlayan geçerli adresler olmalı.');
+      }
+
       // 1. Görsel yükle (yeni resim seçildiyse)
       let imageUrl = null;
       if (image) {
@@ -132,8 +137,8 @@ export const useProjectForm = (editData = null, onUpdateSuccess = null) => {
         description: formData.description,
         content: formData.content,
         technologies: formData.technologies,
-        github_url: formData.githubUrl,
-        live_url: formData.liveUrl,
+        github_url: safeExternalUrl(formData.githubUrl),
+        live_url: safeExternalUrl(formData.liveUrl),
         status: formData.status,
         category_id: formData.category !== '' ? parseInt(formData.category) : null,
         team_members: formData.teamMembers,
