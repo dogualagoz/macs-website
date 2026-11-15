@@ -64,8 +64,24 @@ describe("events database integration", () => {
     for (const body of ["{", JSON.stringify({ title: "x" })]) {
       const r = await request(app).post("/events").auth(token, { type: "bearer" }).set("Content-Type", "application/json").send(body);
       expect(r.status).toBe(400); expect(r.body).toEqual({ detail: "Geçersiz istek gövdesi" });
+      expect(r.headers["cache-control"]).toBe("no-store");
     }
     expect((await request(app).post("/events").set("Content-Type", "application/json").send("{")).status).toBe(401);
+  });
+  test("body-model event routes reject absent bodies without Content-Type", async () => {
+    const app = createApp(deps); const token = await tokenFor("mod@example.com", "moderator");
+    const missing = { detail: [{ type: "missing", loc: ["body"], msg: "Field required", input: null }] };
+    for (const [method, path, status] of [
+      ["post", "/events", 400], ["post", "/events/categories", 422],
+      ["put", "/events/categories/1", 422], ["put", "/events/1", 422],
+    ] as const) {
+      const r = await request(app)[method](path).auth(token, { type: "bearer" });
+      expect(r.status).toBe(status);
+      expect(r.body).toEqual(status === 400 ? { detail: "Geçersiz istek gövdesi" } : missing);
+      expect(r.headers["cache-control"]).toBe("no-store");
+    }
+    expect((await request(app).post("/events")).status).toBe(401);
+    expect((await request(app).put("/events/1").auth(token, { type: "bearer" }).send({})).status).toBe(200);
   });
   test("empty featured is 200 null while missing detail is 404", async () => {
     await deps.sql`UPDATE events SET is_active = false`;

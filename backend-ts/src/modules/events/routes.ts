@@ -4,7 +4,7 @@ import type { AppRouter, AppDeps, AppEnv } from "../../app";
 import { HttpError } from "../../lib/http-error";
 import { publicCachedJson, sendJsonResponse } from "../../lib/public-cache";
 import { authenticate, requireRoles } from "../../middleware/auth";
-import { limitBodySize } from "../../security/request-guards";
+import { limitBodySize, requireJsonBody } from "../../security/request-guards";
 import * as schema from "./schemas";
 import * as queries from "./queries";
 import * as service from "./service";
@@ -38,8 +38,8 @@ export function registerEventRoutes(app: AppRouter, deps: AppDeps): void {
   });
   deps.routeRegistry.push({ method: "get", path: "/events/categories", domain: "events", tag: "events", summary: "Etkinlik kategorileri", public: true, response: z.array(schema.categoryResponseSchema), query: schema.categoryQuerySchema });
   const createCategory = createRoute({ method: "post", path: "/events/categories", tags: ["events"], summary: "Kategori oluştur",
-    security: [{ OAuth2PasswordBearer: [] }], middleware: [staff, limitBodySize(deps.security?.maxBodyBytes)],
-    request: { body: { content: { "application/json": { schema: schema.categoryCreateSchema } } } },
+    security: [{ OAuth2PasswordBearer: [] }], middleware: [staff, limitBodySize(deps.security?.maxBodyBytes), requireJsonBody],
+    request: { body: { required: true, content: { "application/json": { schema: schema.categoryCreateSchema } } } },
     responses: { 422: { $ref: "#/components/responses/HTTPValidationError" }, 201: { description: "Success", content: { "application/json": { schema: schema.categoryResponseSchema } } } },
   });
   app.openapi(createCategory, async c => {
@@ -58,8 +58,8 @@ export function registerEventRoutes(app: AppRouter, deps: AppDeps): void {
   });
   deps.routeRegistry.push({ method: "get", path: "/events/categories/:category_id", domain: "events", tag: "events", summary: "Kategori detayı", public: true, response: schema.categoryResponseSchema, params: schema.categoryParamsSchema });
   const updateCategory = createRoute({ method: "put", path: "/events/categories/{category_id}", tags: ["events"], summary: "Kategori güncelle",
-    security: [{ OAuth2PasswordBearer: [] }], middleware: [staff, limitBodySize(deps.security?.maxBodyBytes)],
-    request: { params: schema.categoryParamsSchema, body: { content: { "application/json": { schema: schema.categoryCreateSchema } } } },
+    security: [{ OAuth2PasswordBearer: [] }], middleware: [staff, limitBodySize(deps.security?.maxBodyBytes), requireJsonBody],
+    request: { params: schema.categoryParamsSchema, body: { required: true, content: { "application/json": { schema: schema.categoryCreateSchema } } } },
     responses: { 422: { $ref: "#/components/responses/HTTPValidationError" }, 200: { description: "Success", content: { "application/json": { schema: schema.categoryResponseSchema } } } },
   });
   app.openapi(updateCategory, async c => {
@@ -121,8 +121,8 @@ export function registerEventRoutes(app: AppRouter, deps: AppDeps): void {
   });
   deps.routeRegistry.push({ method: "get", path: "/events/by-slug/:slug", domain: "events", tag: "events", summary: "Slug ile etkinlik", public: true, response: schema.eventResponseSchema, params: schema.slugParamsSchema });
   const create = createRoute({ method: "post", path: "/events", tags: ["events"], summary: "Etkinlik oluştur",
-    security: [{ OAuth2PasswordBearer: [] }], middleware: [staff, bodyInvalid, limitBodySize(deps.security?.maxBodyBytes)],
-    request: { body: { content: { "application/json": { schema: schema.eventCreateSchema } } } },
+    security: [{ OAuth2PasswordBearer: [] }], middleware: [staff, bodyInvalid, limitBodySize(deps.security?.maxBodyBytes), requireJsonBody],
+    request: { body: { required: true, content: { "application/json": { schema: schema.eventCreateSchema } } } },
     responses: { 422: { $ref: "#/components/responses/HTTPValidationError" }, 201: { description: "Success", content: { "application/json": { schema: schema.eventResponseSchema } } } },
   });
   app.openapi(create, async c => {
@@ -131,8 +131,8 @@ export function registerEventRoutes(app: AppRouter, deps: AppDeps): void {
     const result = await service.createEvent(deps.db, user.id, c.req.valid("json"), now());
     deps.cache.invalidate("events");
     return sendJsonResponse(c, result, { status: 201 });
-  }, (result, c) => {
-    if (!result.success && result.target === "json") return c.json({ detail: "Geçersiz istek gövdesi" }, 400);
+  }, result => {
+    if (!result.success && result.target === "json") throw new HttpError(400, "Geçersiz istek gövdesi");
   });
   deps.routeRegistry.push({ method: "post", path: "/events", domain: "events", tag: "events", summary: "Etkinlik oluştur", auth: ["admin", "moderator"], response: schema.eventResponseSchema, body: schema.eventCreateSchema, status: 201 });
   const detail = createRoute({ method: "get", path: "/events/{event_id}", tags: ["events"], summary: "Etkinlik detayı",
@@ -145,8 +145,8 @@ export function registerEventRoutes(app: AppRouter, deps: AppDeps): void {
   });
   deps.routeRegistry.push({ method: "get", path: "/events/:event_id", domain: "events", tag: "events", summary: "Etkinlik detayı", public: true, response: schema.eventResponseSchema, params: schema.eventParamsSchema });
   const update = createRoute({ method: "put", path: "/events/{event_id}", tags: ["events"], summary: "Etkinlik güncelle",
-    security: [{ OAuth2PasswordBearer: [] }], middleware: [staff, limitBodySize(deps.security?.maxBodyBytes)],
-    request: { params: schema.eventParamsSchema, body: { content: { "application/json": { schema: schema.eventUpdateSchema } } } },
+    security: [{ OAuth2PasswordBearer: [] }], middleware: [staff, limitBodySize(deps.security?.maxBodyBytes), requireJsonBody],
+    request: { params: schema.eventParamsSchema, body: { required: true, content: { "application/json": { schema: schema.eventUpdateSchema } } } },
     responses: { 422: { $ref: "#/components/responses/HTTPValidationError" }, 200: { description: "Success", content: { "application/json": { schema: schema.eventResponseSchema } } } },
   });
   app.openapi(update, async c => {

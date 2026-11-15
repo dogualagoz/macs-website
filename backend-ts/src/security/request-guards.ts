@@ -1,4 +1,6 @@
 import type { MiddlewareHandler } from "hono";
+import type { AppEnv } from "../app";
+import { validationError } from "../lib/validation";
 import { HttpError } from "../lib/http-error";
 import { MAX_JSON_BODY_BYTES } from "./config";
 import type { SecurityConfig } from "./config";
@@ -50,6 +52,13 @@ export function limitBodySize(maxBytes = MAX_JSON_BODY_BYTES): MiddlewareHandler
     await next();
   };
 }
+// Run after limitBodySize so this cached read remains bounded and available to zValidator.
+export const requireJsonBody: MiddlewareHandler<AppEnv> = async (c, next) => {
+  if ((await c.req.arrayBuffer()).byteLength === 0) {
+    throw c.get("bodyInvalid") ?? validationError([{ type: "missing", loc: ["body"], msg: "Field required", input: null }]);
+  }
+  await next();
+};
 export async function withHandlerTimeout<T>(ms: number, run: () => Promise<T>): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
