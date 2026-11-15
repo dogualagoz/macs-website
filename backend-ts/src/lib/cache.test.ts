@@ -1,53 +1,428 @@
+import { brotliDecompressSync, gunzipSync } from "node:zlib";
 import { expect, test } from "bun:test";
-import { cacheKey, createResponseCache, INVALIDATES, weakEtag } from "./cache";
+import {
+  cacheKey,
+  COMPRESS_MIN_BYTES,
+  compressBytes,
+  createResponseCache,
+  DEFAULT_CACHE_MAX_BYTES,
+  DEFAULT_CACHE_MAX_ENTRIES,
+  INVALIDATES,
+  RECENT_WARMUP_WINDOW_MS,
+  selectEncoding,
+  WARMUP_CONCURRENCY,
+  weakEtag,
+} from "./cache";
+import type { CachedResponse } from "./cache";
 
-const value = { status: 200, body: '{"ok":true}', etag: 'W/"test"' };
+function makeCached(bodyText = '{"ok":true}', status = 200): CachedResponse {
+  const raw = new Uint8Array(Buffer.from(bodyText, "utf8"));
+  const { br, gzip } = compressBytes(raw);
+  return { status, raw, br, gzip, etag: weakEtag(raw) };
+}
+
+const value = makeCached('{"ok":true}');
 const cache = (max = 500) => createResponseCache({ max, ttlMs: 60_000, now: () => 0, enabled: true });
 
-test("cacheKey sorts query and encodes separators without collisions", () => {
+test("exported cache v2 constants match specification", () => {
+  expect(COMPRESS_MIN_BYTES).toBe(1024);
+  expect(DEFAULT_CACHE_MAX_ENTRIES).toBe(500);
+  expect(DEFAULT_CACHE_MAX_BYTES).toBe(64 * 1024 * 1024);
+  expect(RECENT_WARMUP_WINDOW_MS).toBe(10 * 60_000);
+  expect(WARMUP_CONCURRENCY).toBe(2);
+});
+
+test("cacheKey sorts query, ignores undefined values, and encodes separators without collisions", () => {
   expect(cacheKey("/events", { limit: "10", skip: "0" })).toBe("/events?limit=10&skip=0");
   expect(cacheKey("/events", { skip: "0", limit: "10" })).toBe("/events?limit=10&skip=0");
   expect(cacheKey("/events", {})).toBe("/events?");
+  expect(cacheKey("/events", { limit: 10 })).toBe(cacheKey("/events", { limit: 10, utm: undefined }));
+  expect(cacheKey("/events", { limit: 10, tag: ["a", undefined, "b"] })).toBe("/events?limit=10&tag=a&tag=b");
   expect(cacheKey("/events", { search: "a&b" })).not.toBe(cacheKey("/events", { search: "a", b: "" }));
   expect(cacheKey("/events", { search: ["a", "b"] })).not.toBe(cacheKey("/events", { search: "a,b" }));
   expect(cacheKey("/events", { "a=b": "c" })).not.toBe(cacheKey("/events", { a: "b=c" }));
 });
-test("entry expires at ttl without extending on a hit", () => {
+
+test("selectEncoding respects q=0 exclusions, quality weights, and priority", () => {
+  expect(selectEncoding(undefined)).toBe("identity");
+  expect(selectEncoding("")).toBe("identity");
+  expect(selectEncoding("deflate")).toBe("identity");
+  expect(selectEncoding("gzip, deflate, br")).toBe("br");
+  expect(selectEncoding("gzip;q=0.5, br;q=0.9")).toBe("br");
+  expect(selectEncoding("br;q=0.5, gzip;q=0.9")).toBe("gzip");
+  expect(selectEncoding("br;q=0, gzip")).toBe("gzip");
+  expect(selectEncoding("br;q=0, gzip;q=0")).toBe("identity");
+  expect(selectEncoding("br;q=0.5, identity;q=0.9")).toBe("identity");
+  expect(["gzip", "identity"]).toContain(selectEncoding("*"));
+  expect(selectEncoding("*;q=0")).toBe("identity");
+  expect(selectEncoding("*;q=0.5, gzip;q=0")).toBe("identity");
+});
+
+test("compressBytes skips payloads < 1024 bytes and precompresses >= 1024 bytes with lossless round-trip", () => {
+  const smallRaw = new Uint8Array(Buffer.from("x".repeat(COMPRESS_MIN_BYTES - 1), "utf8"));
+  expect(compressBytes(smallRaw)).toEqual({ br: null, gzip: null });
+
+  const largeText = JSON.stringify({
+    items: Array.from({ length: 40 }, (_, i) => ({
+      id: i + 1,
+      title: `MACS Etkinlik #${String(i + 1)} — ÇĞIİÖŞÜçğıiöşü`,
+    })),
+  });
+  const largeRaw = new Uint8Array(Buffer.from(largeText, "utf8"));
+  expect(largeRaw.byteLength).toBeGreaterThanOrEqual(COMPRESS_MIN_BYTES);
+
+  const compressed = compressBytes(largeRaw);
+  expect(compressed.br).toBeInstanceOf(Uint8Array);
+  expect(compressed.gzip).toBeInstanceOf(Uint8Array);
+  if (!compressed.br || !compressed.gzip) {
+    throw new Error("Expected non-null br and gzip buffers");
+  }
+  expect(compressed.br.byteLength).toBeLessThan(largeRaw.byteLength);
+  expect(compressed.gzip.byteLength).toBeLessThan(largeRaw.byteLength);
+
+  expect(brotliDecompressSync(compressed.br).toString("utf8")).toBe(largeText);
+  expect(gunzipSync(compressed.gzip).toString("utf8")).toBe(largeText);
+});
+
+test("entry expires at ttl without extending on a hit and releases byteSize", () => {
   let now = 0;
   const c = createResponseCache({ max: 500, ttlMs: 60_000, now: () => now, enabled: true });
   c.set("a", "events", value);
-  now = 59_999; expect(c.get("a")).toEqual(value);
-  now = 60_000; expect(c.get("a")).toBeUndefined(); expect(c.size()).toBe(0);
+  expect(c.byteSize()).toBe(value.raw.byteLength);
+  now = 59_999;
+  expect(c.get("a")).toEqual(value);
+  now = 60_000;
+  expect(c.get("a")).toBeUndefined();
+  expect(c.size()).toBe(0);
+  expect(c.byteSize()).toBe(0);
 });
+
 test("LRU evicts the least recently used at max", () => {
-  const c = cache(2); c.set("a", "events", value); c.set("b", "events", value);
-  expect(c.get("a")).toEqual(value); c.set("c", "events", value);
-  expect(c.get("b")).toBeUndefined(); expect(c.get("a")).toEqual(value); expect(c.get("c")).toEqual(value); expect(c.size()).toBe(2);
+  const c = cache(2);
+  c.set("a", "events", value);
+  c.set("b", "events", value);
+  expect(c.get("a")).toEqual(value);
+  c.set("c", "events", value);
+  expect(c.get("b")).toBeUndefined();
+  expect(c.get("a")).toEqual(value);
+  expect(c.get("c")).toEqual(value);
+  expect(c.size()).toBe(2);
 });
-test("replacing a key refreshes LRU position and never exceeds capacity", () => {
-  const c = cache(2); c.set("a", "events", value); c.set("b", "events", value);
-  c.set("a", "events", { ...value, body: "new" }); c.set("c", "events", value);
-  expect(c.get("a")?.body).toBe("new"); expect(c.get("b")).toBeUndefined(); expect(c.size()).toBe(2);
+
+test("replacing a key refreshes LRU position, updates byteSize, and never exceeds capacity", () => {
+  const c = cache(2);
+  const updated = makeCached("new-payload-value");
+  c.set("a", "events", value);
+  c.set("b", "events", value);
+  c.set("a", "events", updated);
+  expect(c.byteSize()).toBe(updated.raw.byteLength + value.raw.byteLength);
+  c.set("c", "events", value);
+  expect(Buffer.from(c.get("a")?.raw ?? []).toString("utf8")).toBe("new-payload-value");
+  expect(c.get("b")).toBeUndefined();
+  expect(c.size()).toBe(2);
+  expect(c.byteSize()).toBe(updated.raw.byteLength + value.raw.byteLength);
 });
-test("invalidate removes only mapped domains", () => {
-  const c = cache(); c.set("e", "events", value); c.set("p", "projects", value); c.set("s", "sponsors", value);
-  c.invalidate("sponsors"); expect(c.get("s")).toBeUndefined(); expect(c.get("e")).toEqual(value); expect(c.get("p")).toEqual(value);
+
+test("byte cap evicts LRU entries when maxBytes is exceeded and rejects single entry > maxBytes", () => {
+  const item100 = makeCached("a".repeat(100));
+  const item120 = makeCached("b".repeat(120));
+  const item150 = makeCached("c".repeat(150));
+  const oversized = makeCached("d".repeat(300));
+
+  const c = createResponseCache({
+    maxEntries: 500,
+    maxBytes: 250,
+    ttlMs: 60_000,
+    now: () => 0,
+    enabled: true,
+  });
+
+  c.set("k1", "events", item100);
+  c.set("k2", "events", item120);
+  expect(c.size()).toBe(2);
+  expect(c.byteSize()).toBe(220);
+
+  // Touch k1 so k2 becomes the LRU entry
+  expect(c.get("k1")).toEqual(item100);
+
+  // Adding 150 bytes requires evicting k2 (120 bytes) so 100 + 150 <= 250
+  c.set("k3", "events", item150);
+  expect(c.get("k2")).toBeUndefined();
+  expect(c.get("k1")).toEqual(item100);
+  expect(c.get("k3")).toEqual(item150);
+  expect(c.size()).toBe(2);
+  expect(c.byteSize()).toBe(250);
+
+  // Single entry > maxBytes (300 > 250) is never stored and does not evict valid entries
+  c.set("huge", "events", oversized);
+  expect(c.get("huge")).toBeUndefined();
+  expect(c.get("k1")).toEqual(item100);
+  expect(c.get("k3")).toEqual(item150);
+  expect(c.size()).toBe(2);
+  expect(c.byteSize()).toBe(250);
 });
+
+test("invalidate removes only mapped domains and updates byteSize", () => {
+  const c = cache();
+  c.set("e", "events", value);
+  c.set("p", "projects", value);
+  c.set("s", "sponsors", value);
+  expect(c.byteSize()).toBe(value.raw.byteLength * 3);
+  c.invalidate("sponsors");
+  expect(c.get("s")).toBeUndefined();
+  expect(c.get("e")).toEqual(value);
+  expect(c.get("p")).toEqual(value);
+  expect(c.byteSize()).toBe(value.raw.byteLength * 2);
+});
+
 test("INVALIDATES includes embedded creator and member/project dependencies", () => {
-  expect(INVALIDATES).toEqual({ events: ["events"], projects: ["projects", "members"], members: ["members", "projects"],
-    sponsors: ["sponsors"], users: ["events"], auth: ["events"], uploads: [], system: [] });
+  expect(INVALIDATES).toEqual({
+    events: ["events"],
+    projects: ["projects", "members"],
+    members: ["members", "projects"],
+    sponsors: ["sponsors"],
+    users: ["events"],
+    auth: ["events"],
+    uploads: [],
+    system: [],
+  });
 });
+
 test("generations advance for every mapped domain even with no entries", () => {
-  const c = cache(); expect(c.generation("events")).toBe(0); c.invalidate("auth"); c.invalidate("users");
-  expect(c.generation("events")).toBe(2); expect(c.generation("sponsors")).toBe(0);
-  c.invalidate("members"); expect(c.generation("members")).toBe(1); expect(c.generation("projects")).toBe(1);
-  c.invalidate("projects"); expect(c.generation("members")).toBe(2); expect(c.generation("projects")).toBe(2);
+  const c = cache();
+  expect(c.generation("events")).toBe(0);
+  c.invalidate("auth");
+  c.invalidate("users");
+  expect(c.generation("events")).toBe(2);
+  expect(c.generation("sponsors")).toBe(0);
+  c.invalidate("members");
+  expect(c.generation("members")).toBe(1);
+  expect(c.generation("projects")).toBe(1);
+  c.invalidate("projects");
+  expect(c.generation("members")).toBe(2);
+  expect(c.generation("projects")).toBe(2);
 });
+
 test("disabled cache never stores", () => {
   const c = createResponseCache({ max: 500, ttlMs: 60_000, now: () => 0, enabled: false });
-  c.set("a", "events", value); expect(c.get("a")).toBeUndefined(); expect(c.size()).toBe(0);
+  c.set("a", "events", value);
+  expect(c.get("a")).toBeUndefined();
+  expect(c.size()).toBe(0);
+  expect(c.byteSize()).toBe(0);
 });
-test("weakEtag is stable, body-sensitive and weak", () => {
-  expect(weakEtag('{"a":1}')).toBe(weakEtag('{"a":1}'));
-  expect(weakEtag('{"a":1}')).not.toBe(weakEtag('{"a":2}')); expect(weakEtag("x")).toMatch(/^W\/"[0-9a-z]+"$/);
+
+test("weakEtag is stable, body-sensitive, weak, and identical for string and Uint8Array", () => {
+  const text = '{"a":1}';
+  const bytes = new Uint8Array(Buffer.from(text, "utf8"));
+  expect(weakEtag(text)).toBe(weakEtag(text));
+  expect(weakEtag(text)).toBe(weakEtag(bytes));
+  expect(weakEtag('{"a":1}')).not.toBe(weakEtag('{"a":2}'));
+  expect(weakEtag("x")).toMatch(/^W\/"[0-9a-z]+"$/);
+});
+
+test("getOrLoad coalesces 10 concurrent misses into 1 loader call and clears inFlight on rejection", async () => {
+  const c = cache();
+  const payloadText = JSON.stringify({ data: "x".repeat(1500) });
+  let calls = 0;
+
+  const results = await Promise.all(
+    Array.from({ length: 10 }, () =>
+      c.getOrLoad("/events?", "events", async () => {
+        calls += 1;
+        await Bun.sleep(10);
+        return { status: 200, bodyText: payloadText, cacheable: true };
+      }),
+    ),
+  );
+
+  expect(calls).toBe(1);
+  for (const res of results) {
+    expect(res.status).toBe(200);
+    expect(Buffer.from(res.raw).toString("utf8")).toBe(payloadText);
+    expect(res.br).not.toBeNull();
+    expect(res.gzip).not.toBeNull();
+    expect(res.etag).toBe(weakEtag(res.raw));
+  }
+  expect(c.size()).toBe(1);
+  const first = results[0];
+  expect(c.byteSize()).toBe(
+    (first?.raw.byteLength ?? 0) + (first?.br?.byteLength ?? 0) + (first?.gzip?.byteLength ?? 0),
+  );
+
+  // Subsequent hit does not invoke loader
+  const hitRes = await c.getOrLoad("/events?", "events", () => {
+    calls += 1;
+    return Promise.resolve({ status: 200, bodyText: "unexpected", cacheable: true });
+  });
+  expect(calls).toBe(1);
+  expect(Buffer.from(hitRes.raw).toString("utf8")).toBe(payloadText);
+
+  // Rejection clears inFlight immediately and does not poison next call
+  let failCalls = 0;
+  const failing = Array.from({ length: 5 }, () =>
+    c.getOrLoad("/sponsors?", "sponsors", async () => {
+      failCalls += 1;
+      await Bun.sleep(5);
+      throw new Error("transient db failure");
+    }),
+  );
+  const outcomes = await Promise.all(
+    failing.map((p) => p.catch((err: unknown) => (err instanceof Error ? err.message : String(err)))),
+  );
+  expect(outcomes).toEqual(Array.from({ length: 5 }, () => "transient db failure"));
+  expect(failCalls).toBe(1);
+  expect(c.get("/sponsors?")).toBeUndefined();
+
+  const recovered = await c.getOrLoad("/sponsors?", "sponsors", () => {
+    failCalls += 1;
+    return Promise.resolve({ status: 200, bodyText: "[]", cacheable: true });
+  });
+  expect(failCalls).toBe(2);
+  expect(Buffer.from(recovered.raw).toString("utf8")).toBe("[]");
+  expect(c.get("/sponsors?")).toBeDefined();
+});
+
+test("getOrLoad caches literal 'null' 200 payload (F2) but never caches non-cacheable or 404 results", async () => {
+  const c = cache();
+  let featuredCalls = 0;
+  const firstNull = await c.getOrLoad("/events/featured?", "events", () => {
+    featuredCalls += 1;
+    return Promise.resolve({ status: 200, bodyText: "null", cacheable: true });
+  });
+  expect(firstNull.status).toBe(200);
+  expect(Buffer.from(firstNull.raw).toString("utf8")).toBe("null");
+  expect(c.get("/events/featured?")).toBeDefined();
+
+  const secondNull = await c.getOrLoad("/events/featured?", "events", () => {
+    featuredCalls += 1;
+    return Promise.resolve({ status: 200, bodyText: '{"id":1}', cacheable: true });
+  });
+  expect(featuredCalls).toBe(1);
+  expect(Buffer.from(secondNull.raw).toString("utf8")).toBe("null");
+
+  let missingCalls = 0;
+  const missing = await c.getOrLoad("/events/999?", "events", () => {
+    missingCalls += 1;
+    return Promise.resolve({ status: 404, bodyText: '{"detail":"Etkinlik bulunamadı"}', cacheable: false });
+  });
+  expect(missing.status).toBe(404);
+  expect(c.get("/events/999?")).toBeUndefined();
+  expect(missingCalls).toBe(1);
+});
+
+test("generation race guard (F29): invalidate during in-flight getOrLoad returns payload without caching", async () => {
+  const c = cache();
+  let resolveLoader!: () => void;
+  const loaderGate = new Promise<void>((resolve) => {
+    resolveLoader = resolve;
+  });
+  let started!: () => void;
+  const startedGate = new Promise<void>((resolve) => {
+    started = resolve;
+  });
+
+  const inFlightPromise = c.getOrLoad("/events/1?", "events", async () => {
+    started();
+    await loaderGate;
+    return { status: 200, bodyText: '{"id":1,"title":"Stale"}', cacheable: true };
+  });
+
+  await startedGate;
+  // Trigger invalidation on mapped domain while loader is awaiting
+  c.invalidate("users");
+  expect(c.generation("events")).toBe(1);
+
+  resolveLoader();
+  const result = await inFlightPromise;
+  expect(result.status).toBe(200);
+  expect(Buffer.from(result.raw).toString("utf8")).toBe('{"id":1,"title":"Stale"}');
+  expect(c.get("/events/1?")).toBeUndefined();
+  expect(c.size()).toBe(0);
+  expect(c.byteSize()).toBe(0);
+});
+
+test("warmupStartup fills up to 7 registered keys with max concurrency 2", async () => {
+  const c = cache();
+  let active = 0;
+  let maxActive = 0;
+  const loadedKeys: string[] = [];
+
+  for (let i = 1; i <= 9; i++) {
+    const key = `/endpoint-${String(i)}?`;
+    c.registerWarmup(key, "events", async () => {
+      active += 1;
+      if (active > maxActive) maxActive = active;
+      await Bun.sleep(10);
+      active -= 1;
+      loadedKeys.push(key);
+      return { status: 200, bodyText: `{"id":${String(i)}}`, cacheable: true };
+    });
+  }
+
+  await c.warmupStartup();
+  await c.drain();
+
+  expect(loadedKeys).toHaveLength(7);
+  expect(c.size()).toBe(7);
+  expect(maxActive).toBeLessThanOrEqual(2);
+  expect(maxActive).toBe(2);
+  expect(c.get("/endpoint-1?")).toBeDefined();
+  expect(c.get("/endpoint-7?")).toBeDefined();
+  expect(c.get("/endpoint-8?")).toBeUndefined();
+  expect(c.get("/endpoint-9?")).toBeUndefined();
+});
+
+test("invalidate re-warms only keys seen within recent 10-minute window with max concurrency 2 and respects stop/drain", async () => {
+  let now = 0;
+  const c = createResponseCache({
+    maxEntries: 500,
+    ttlMs: 60 * 60_000,
+    now: () => now,
+    enabled: true,
+  });
+
+  let active = 0;
+  let maxActive = 0;
+  const counts: Record<string, number> = {};
+
+  const makeLoader = (name: string) => async () => {
+    counts[name] = (counts[name] ?? 0) + 1;
+    active += 1;
+    if (active > maxActive) maxActive = active;
+    await Bun.sleep(10);
+    active -= 1;
+    return { status: 200, bodyText: `{"name":"${name}","v":${String(counts[name])}}`, cacheable: true };
+  };
+
+  // Load "stale-key" at t = 0
+  await c.getOrLoad("/events?page=stale", "events", makeLoader("stale"));
+
+  // Advance clock to 5 minutes and load 3 recent keys
+  now = 5 * 60_000;
+  await c.getOrLoad("/events?page=1", "events", makeLoader("r1"));
+  await c.getOrLoad("/events?page=2", "events", makeLoader("r2"));
+  await c.getOrLoad("/events?page=3", "events", makeLoader("r3"));
+
+  // Advance clock to 11 minutes: "stale" is 11m old (> 10m), r1..r3 are 6m old (<= 10m)
+  now = 11 * 60_000;
+  maxActive = 0;
+  c.invalidate("events");
+  await c.drain();
+
+  expect(counts.stale).toBe(1);
+  expect(counts.r1).toBe(2);
+  expect(counts.r2).toBe(2);
+  expect(counts.r3).toBe(2);
+  expect(maxActive).toBeLessThanOrEqual(2);
+  expect(c.get("/events?page=stale")).toBeUndefined();
+  expect(Buffer.from(c.get("/events?page=1")?.raw ?? []).toString("utf8")).toBe('{"name":"r1","v":2}');
+
+  // Verify stop() cancels queued warmup work cleanly while drain() awaits active workers
+  c.invalidate("events");
+  c.stop();
+  await c.drain();
+  expect(active).toBe(0);
+  // At most 2 workers started before stop() cancelled the 3rd queued key
+  const totalAfterStop = (counts.r1 ?? 0) + (counts.r2 ?? 0) + (counts.r3 ?? 0);
+  expect(totalAfterStop).toBeLessThanOrEqual(8);
 });

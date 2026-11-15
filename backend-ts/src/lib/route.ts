@@ -8,13 +8,14 @@ import { sendJson } from "../middleware/cache-headers";
 import { createLimiter } from "../middleware/rate-limit";
 import { HttpError } from "./http-error";
 import { cacheKey, weakEtag } from "./cache";
+import type { Domain } from "./cache";
 import type { UploadedFile } from "./storage";
 import { toFastApi422, validationError } from "./validation";
 
+export type { Domain } from "./cache";
 export type { UploadedFile } from "./storage";
 
 export type Role = "admin" | "moderator";
-export type Domain = "auth" | "users" | "events" | "projects" | "members" | "sponsors" | "uploads" | "system";
 export interface RateLimitSpec { limit: number; windowMs: number; label: string }
 export const STREAMED: unique symbol = Symbol("STREAMED");
 
@@ -105,7 +106,7 @@ export function route<P, Q, B, R>(router: Router, deps: AppDeps, def: RouteDef<P
         const cached = deps.cache.get(key);
         if (cached) {
           res.set("X-Cache", "HIT");
-          sendJson(req, res, cached.status, cached.body, { public: true, etag: cached.etag }); return;
+          sendJson(req, res, cached.status, Buffer.from(cached.raw).toString("utf8"), { public: true, etag: cached.etag }); return;
         }
       }
       const generation = deps.cache.generation(def.domain);
@@ -116,8 +117,9 @@ export function route<P, Q, B, R>(router: Router, deps: AppDeps, def: RouteDef<P
       if (status === 204) { sendJson(req, res, status, "", { public: false }); return; }
       const serialized = JSON.stringify(result);
       if (key !== undefined) {
-        const etag = weakEtag(serialized);
-        if (generation === deps.cache.generation(def.domain)) deps.cache.set(key, def.domain, { status, body: serialized, etag });
+        const raw = Buffer.from(serialized, "utf8");
+        const etag = weakEtag(raw);
+        if (generation === deps.cache.generation(def.domain)) deps.cache.set(key, def.domain, { status, raw, br: null, gzip: null, etag });
         res.set("X-Cache", "MISS");
         sendJson(req, res, status, serialized, { public: true, etag });
       } else sendJson(req, res, status, serialized, { public: false });
