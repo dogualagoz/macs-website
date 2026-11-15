@@ -22,8 +22,18 @@ test("parseEnv applies defaults", () => {
     RATELIMIT_ENABLED: true,
     RESPONSE_CACHE: true,
     RUN_MIGRATIONS: true,
+    DOCS_ENABLED: true,
     NOMINATIM_USER_AGENT: "MACS-Website/1.0 (contact@macs.com)",
   });
+});
+
+test("parseEnv disables DOCS_ENABLED by default in production and enables otherwise", () => {
+  expect(parseEnv({ ...base, NODE_ENV: "development" }).DOCS_ENABLED).toBe(true);
+  expect(parseEnv({ ...base, NODE_ENV: "test" }).DOCS_ENABLED).toBe(true);
+  expect(parseEnv({ ...base, NODE_ENV: "production" }).DOCS_ENABLED).toBe(false);
+  expect(parseEnv({ ...base, NODE_ENV: "production", DOCS_ENABLED: "true" }).DOCS_ENABLED).toBe(true);
+  expect(parseEnv({ ...base, NODE_ENV: "development", DOCS_ENABLED: "false" }).DOCS_ENABLED).toBe(false);
+  expect(() => parseEnv({ ...base, DOCS_ENABLED: "invalid" })).toThrow("Invalid environment");
 });
 
 test("parseEnv fails fast without JWT_SECRET_KEY", () => {
@@ -80,6 +90,7 @@ test("parseEnv parses configured values and postgres URLs", () => {
     RATELIMIT_ENABLED: false,
     RESPONSE_CACHE: false,
     RUN_MIGRATIONS: false,
+    DOCS_ENABLED: false,
     NOMINATIM_USER_AGENT: "Club-Test/contact@example.com",
   });
 });

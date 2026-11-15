@@ -22,15 +22,33 @@ export default [
   },
   {
     files: ["src/**/*.ts"],
-    ignores: ["src/lib/password.ts", "src/lib/cache.ts", "**/*.test.ts", "src/**/test/**", "src/**/tests/**"],
+    ignores: [
+      "src/lib/password.ts",
+      "src/lib/cache.ts",
+      "src/server.ts",
+      "src/modules/uploads/**",
+      "src/security/**",
+      "**/*.test.ts",
+      "src/**/test/**",
+      "src/**/tests/**",
+    ],
     rules: {
-      "no-restricted-globals": ["error", { name: "Bun", message: "Use Node-compatible APIs in production src except password.ts and cache.ts." }],
+      "no-restricted-globals": [
+        "error",
+        {
+          name: "Bun",
+          message: "Use Node-compatible APIs in production src except password.ts, cache.ts, server.ts, uploads, and security.",
+        },
+      ],
     },
   },
   {
-    files: ["src/modules/*/service.ts", "src/modules/*/repo.ts"],
+    files: ["src/modules/*/service.ts", "src/modules/*/repo.ts", "src/modules/*/queries.ts"],
     rules: {
-      "no-restricted-imports": ["error", { patterns: ["express", "express/*"] }],
+      "no-restricted-imports": [
+        "error",
+        { patterns: ["express", "express/*", "hono", "hono/*", "@hono/*"] },
+      ],
     },
   },
 ];

@@ -40,7 +40,11 @@ const schema = z.object({
   RESPONSE_CACHE: booleanFlag.default(true),
   NOMINATIM_USER_AGENT: z.string().min(1).default("MACS-Website/1.0 (contact@macs.com)"),
   RUN_MIGRATIONS: booleanFlag.default(true),
-});
+  DOCS_ENABLED: booleanFlag.optional(),
+}).transform((data) => ({
+  ...data,
+  DOCS_ENABLED: data.DOCS_ENABLED ?? data.NODE_ENV !== "production",
+}));
 
 export interface Env {
   NODE_ENV: "development" | "test" | "production";
@@ -61,6 +65,7 @@ export interface Env {
   RESPONSE_CACHE: boolean;
   NOMINATIM_USER_AGENT: string;
   RUN_MIGRATIONS: boolean;
+  DOCS_ENABLED: boolean;
 }
 
 export function parseRunMigrations(raw: string | undefined = process.env.RUN_MIGRATIONS): boolean {
