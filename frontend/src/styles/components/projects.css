@@ -21,25 +21,6 @@
   margin: 0 auto;
 }
 
-.section-title {
-  text-align: center;
-  font-size: 2rem;
-  color: #000000;
-  margin-bottom: 0.75rem;
-  font-weight: 600;
-  font-family: var(--font-sans);
-}
-
-.section-description {
-  text-align: center;
-  color: #464d6d;
-  font-size: 1rem;
-  margin-bottom: 2.5rem;
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
 /* Featured project card container */
 .First-2 {
   display: flex;
@@ -535,15 +516,6 @@
     padding: 2rem 1rem;
   }
 
-  .section-title {
-    font-size: 1.75rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .section-description {
-    font-size: 0.9rem;
-    margin-bottom: 1.5rem;
-  }
 
   .projects-grid {
     grid-template-columns: 1fr;
@@ -676,13 +648,6 @@
     padding: 1.5rem 0.75rem;
   }
 
-  .section-title {
-    font-size: 1.5rem;
-  }
-
-  .section-description {
-    font-size: 0.85rem;
-  }
 
   /* Featured project extra small */
   .First-2 {

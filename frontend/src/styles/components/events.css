@@ -188,28 +188,6 @@
   margin: 0 auto;
 }
 
-.section-title {
-  text-align: center;
-  font-size: 2rem;
-  font-weight: 500;
-  font-family: var(--font-sans);
-  color: #191919;
-  margin-bottom: 1rem;
-  font-weight: 600;
-}
-
-.section-description {
-  text-align: center;
-  color: #464d6d;
-  font-size: 1rem;
-  font-weight: 500;
-  margin-bottom: 2rem;
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
-  font-family: var(--font-sans);
-}
-
 .events-filters {
   display: flex;
   justify-content: center;
@@ -946,14 +924,6 @@
 }
 
 @media only screen and (max-width: 768px) {
-  .section-title {
-    margin-top: 1rem;
-    font-size: 1.75rem;
-  }
-
-  .section-description {
-    font-size: 1rem;
-  }
 
   .events-filters {
     gap: 0.5rem;

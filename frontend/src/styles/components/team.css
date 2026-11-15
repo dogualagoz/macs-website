@@ -32,13 +32,8 @@
    boylece izgaranin kenarlari ustteki Hakkimizda kartlariyla ayni cizgide durur.
    Eski 1080px override'i bilerek kaldirildi. */
 
-/* --- Baslik: About ile birebir ayni ritim (ortali, 32/600) --- */
+/* --- Baslik: olcu ve renk global .section-title'dan --- */
 .team-section .section-title {
-  font-size: 32px;
-  font-weight: 600;
-  line-height: 1.15;
-  color: var(--navy);
-  text-align: center;
   margin: 0 0 14px;
 }
 
@@ -479,7 +474,6 @@
 /* Telefon: kurul tam genislikte, koordinatorler ikili. */
 @media (max-width: 699px) {
   .team-section { padding: 56px 0 64px; --plate-gap: 28px; }
-  .team-section .section-title { font-size: 26px; }
   .team-lede { font-size: 15px; line-height: 24px; margin-bottom: 32px; }
   /* Kurul tam genislikte, koordinatorler ikili. Masaustunde kademeyi kunyenin
      yeri anlatiyordu; telefonda dokuz tam sayfa portre 5500px'lik bir kuyruk

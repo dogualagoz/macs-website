@@ -1080,7 +1080,7 @@
 .sponsors-cta__title {
   font-size: 1.875rem;
   font-weight: 700;
-  color: #111827;
+  color: var(--brand);
   margin-bottom: 1rem;
 }
 
