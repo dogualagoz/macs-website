@@ -426,3 +426,61 @@ test("invalidate re-warms only keys seen within recent 10-minute window with max
   const totalAfterStop = (counts.r1 ?? 0) + (counts.r2 ?? 0) + (counts.r3 ?? 0);
   expect(totalAfterStop).toBeLessThanOrEqual(8);
 });
+
+test("warmupRegistry is bounded by maxEntries/LRU and prunes expired/evicted registrations", async () => {
+  const now = 0;
+  const c1 = createResponseCache({
+    maxEntries: 1,
+    ttlMs: 60_000,
+    now: () => now,
+    enabled: true,
+  });
+
+  const calls: Record<number, number> = {};
+  for (let i = 1; i <= 8; i++) {
+    await c1.getOrLoad(`/events?k=${String(i)}`, "events", () => {
+      calls[i] = (calls[i] ?? 0) + 1;
+      return Promise.resolve({ status: 200, bodyText: `{"k":${String(i)}}`, cacheable: true });
+    });
+  }
+  expect(c1.size()).toBe(1);
+
+  c1.invalidate("events");
+  await c1.drain();
+
+  // Only the 1 retained LRU key (k=8) is re-warmed; keys 1..7 were pruned on eviction
+  for (let i = 1; i <= 7; i++) {
+    expect(calls[i]).toBe(1);
+    expect(c1.get(`/events?k=${String(i)}`)).toBeUndefined();
+  }
+  expect(calls[8]).toBe(2);
+  expect(c1.get("/events?k=8")).toBeDefined();
+
+  // Also verify expired (>10m) warmup registrations are pruned on subsequent insert and never retained if clock rewinds or invalidates
+  let clock = 0;
+  const c2 = createResponseCache({
+    maxEntries: 2,
+    ttlMs: 60 * 60_000,
+    now: () => clock,
+    enabled: true,
+  });
+  let oldCalls = 0;
+  let freshCalls = 0;
+  await c2.getOrLoad("/events?old=1", "events", () => {
+    oldCalls += 1;
+    return Promise.resolve({ status: 200, bodyText: '{"old":true}', cacheable: true });
+  });
+  // Advance past 10-minute window and insert a new key, which prunes old registration
+  clock = 11 * 60_000;
+  await c2.getOrLoad("/events?fresh=1", "events", () => {
+    freshCalls += 1;
+    return Promise.resolve({ status: 200, bodyText: '{"fresh":true}', cacheable: true });
+  });
+  // Even if clock is set back to 5m, "/events?old=1" was already pruned from warmupRegistry on insert
+  clock = 5 * 60_000;
+  c2.invalidate("events");
+  await c2.drain();
+  expect(oldCalls).toBe(1);
+  expect(freshCalls).toBe(2);
+});
+

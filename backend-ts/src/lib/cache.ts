@@ -222,22 +222,51 @@ export function createResponseCache(o: ResponseCacheOptions = {}): ResponseCache
     totalBytes = Math.max(0, totalBytes - existing.bytes);
   }
 
+  function pruneWarmupRegistry(currentNow: number): void {
+    for (const [key, item] of warmupRegistry) {
+      if (currentNow - item.lastSeenAt > recentWindowMs) {
+        warmupRegistry.delete(key);
+      }
+    }
+  }
+
+  function upsertWarmupEntry(
+    key: string,
+    domain: Domain,
+    loader: () => Promise<CacheLoadResult>,
+    seenAt: number,
+  ): void {
+    if (!enabled || stopped || maxEntries <= 0) return;
+    pruneWarmupRegistry(seenAt);
+    warmupRegistry.delete(key);
+    while (warmupRegistry.size >= maxEntries) {
+      const oldest = warmupRegistry.keys().next().value;
+      if (oldest === undefined) break;
+      warmupRegistry.delete(oldest);
+    }
+    warmupRegistry.set(key, { domain, loader, lastSeenAt: seenAt });
+  }
+
   function getGeneration(domain: Domain): number {
     return generations.get(domain) ?? 0;
   }
 
-  function setEntry(key: string, domain: Domain, value: CachedResponse): void {
-    if (!enabled) return;
+  function setEntry(key: string, domain: Domain, value: CachedResponse): boolean {
+    if (!enabled) return false;
     removeEntry(key);
     const bytes = entryByteLength(value);
-    if (maxEntries <= 0 || maxBytes <= 0 || bytes > maxBytes) return;
+    if (maxEntries <= 0 || maxBytes <= 0 || bytes > maxBytes) return false;
     while (entries.size > 0 && (entries.size >= maxEntries || totalBytes + bytes > maxBytes)) {
       const oldest = entries.keys().next().value;
       if (oldest === undefined) break;
       removeEntry(oldest);
+      if (!startupRegistry.has(oldest)) {
+        warmupRegistry.delete(oldest);
+      }
     }
     entries.set(key, { value, domain, expires: now() + ttlMs, bytes });
     totalBytes += bytes;
+    return true;
   }
 
   function getEntry(key: string): CachedResponse | undefined {
@@ -247,12 +276,15 @@ export function createResponseCache(o: ResponseCacheOptions = {}): ResponseCache
     const currentNow = now();
     if (entry.expires <= currentNow) {
       removeEntry(key);
+      pruneWarmupRegistry(currentNow);
       return undefined;
     }
     entries.delete(key);
     entries.set(key, entry);
     const warm = warmupRegistry.get(key);
-    if (warm) warm.lastSeenAt = currentNow;
+    if (warm) {
+      upsertWarmupEntry(key, warm.domain, warm.loader, currentNow);
+    }
     return entry.value;
   }
 
@@ -293,9 +325,9 @@ export function createResponseCache(o: ResponseCacheOptions = {}): ResponseCache
         loaded.status === 200 &&
         getGeneration(domain) === startGen;
       if (canStore) {
-        setEntry(key, domain, response);
-        if (flightRecord.touchLastSeen) {
-          warmupRegistry.set(key, { domain, loader, lastSeenAt: now() });
+        const stored = setEntry(key, domain, response);
+        if (stored && flightRecord.touchLastSeen) {
+          upsertWarmupEntry(key, domain, loader, now());
         }
       }
       return attachLookupMeta(response, false, loaded.cacheable);
@@ -347,8 +379,9 @@ export function createResponseCache(o: ResponseCacheOptions = {}): ResponseCache
     domain: Domain,
     loader: () => Promise<CacheLoadResult>,
   ): void {
-    if (!enabled || stopped) return;
+    if (!enabled || stopped || maxEntries <= 0) return;
     if (queuedKeys.has(key)) return;
+    if (activeWorkers.size + warmupQueue.length >= maxEntries) return;
     queuedKeys.add(key);
     warmupQueue.push({ key, domain, loader });
     pumpWarmup();
@@ -356,11 +389,13 @@ export function createResponseCache(o: ResponseCacheOptions = {}): ResponseCache
 
   return {
     get: getEntry,
-    set: setEntry,
+    set(key, domain, value) {
+      setEntry(key, domain, value);
+    },
     getOrLoad(key, domain, loader) {
       const cached = getEntry(key);
       if (cached !== undefined) {
-        warmupRegistry.set(key, { domain, loader, lastSeenAt: now() });
+        upsertWarmupEntry(key, domain, loader, now());
         return Promise.resolve(attachLookupMeta(cached, true, true));
       }
       return loadSingleFlight(key, domain, loader, true);
@@ -384,6 +419,7 @@ export function createResponseCache(o: ResponseCacheOptions = {}): ResponseCache
       }
       if (enabled && !stopped) {
         const currentNow = now();
+        pruneWarmupRegistry(currentNow);
         for (const [key, item] of warmupRegistry) {
           if (
             targets.has(item.domain) &&
@@ -410,13 +446,11 @@ export function createResponseCache(o: ResponseCacheOptions = {}): ResponseCache
       } else {
         spec = keyOrSpec;
       }
-      startupRegistry.set(spec.key, { domain: spec.domain, loader: spec.loader });
+      if (startupRegistry.has(spec.key) || startupRegistry.size < MAX_STARTUP_WARMUP_KEYS) {
+        startupRegistry.set(spec.key, { domain: spec.domain, loader: spec.loader });
+      }
       const existing = warmupRegistry.get(spec.key);
-      warmupRegistry.set(spec.key, {
-        domain: spec.domain,
-        loader: spec.loader,
-        lastSeenAt: existing?.lastSeenAt ?? now(),
-      });
+      upsertWarmupEntry(spec.key, spec.domain, spec.loader, existing?.lastSeenAt ?? now());
     },
     warmupStartup() {
       if (!enabled || stopped) return Promise.resolve();
@@ -440,6 +474,8 @@ export function createResponseCache(o: ResponseCacheOptions = {}): ResponseCache
       stopped = true;
       warmupQueue.length = 0;
       queuedKeys.clear();
+      warmupRegistry.clear();
+      startupRegistry.clear();
       notifyIdleIfDrained();
     },
   };
