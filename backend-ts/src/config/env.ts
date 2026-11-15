@@ -29,6 +29,8 @@ const schema = z.object({
   LOCKOUT_DURATION: positiveInteger.default(15),
   MIN_PASSWORD_LENGTH: positiveInteger.default(6),
   MAX_UPLOAD_SIZE: positiveInteger.default(5242880),
+  IMAGE_OPTIMIZE: booleanFlag.default(true),
+  IMAGE_MAX_DIMENSION: positiveInteger.min(320).max(8192).default(1920),
   UPLOAD_DIR: z.string().min(1).default("static/uploads"),
   STATIC_DIR: z.string().min(1).default("static"),
   CORS_ORIGINS: z.string().optional().transform((value) => [
@@ -57,6 +59,8 @@ export interface Env {
   LOCKOUT_DURATION: number;
   MIN_PASSWORD_LENGTH: number;
   MAX_UPLOAD_SIZE: number;
+  IMAGE_OPTIMIZE: boolean;
+  IMAGE_MAX_DIMENSION: number;
   UPLOAD_DIR: string;
   STATIC_DIR: string;
   CORS_ORIGINS: string[];

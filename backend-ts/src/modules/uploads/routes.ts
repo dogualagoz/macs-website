@@ -15,6 +15,9 @@ import { validationError } from "../../lib/validation";
 import { sendJsonResponse } from "../../lib/public-cache";
 import { saveImage } from "./service";
 
+/** Files at or below this size are stored untouched unless their longest edge exceeds IMAGE_MAX_DIMENSION. */
+const IMAGE_OPTIMIZE_MIN_BYTES = 256 * 1024;
+
 export function registerUploadRoutes(app: AppRouter, deps: AppDeps): void {
   const base = { tag: "system" } as const;
   registerRouteMetadata(app, deps, { ...base, method: "post", path: "/api/upload/", summary: "Resim yükle", auth: ["admin", "moderator"], upload: true, response: z.object({ url: z.string() }) });
@@ -34,7 +37,10 @@ export function registerUploadRoutes(app: AppRouter, deps: AppDeps): void {
     const file = form.get("file");
     if (!(file instanceof File)) throw validationError([{ type: "missing", loc: ["body", "file"], msg: "Field required", input: null }]);
     if (file.size > deps.env.MAX_UPLOAD_SIZE) throw new HttpError(413, `Dosya çok büyük. Sınır: ${String(Math.floor(deps.env.MAX_UPLOAD_SIZE / 1048576))} MB`);
-    return sendJsonResponse(c, JSON.stringify(await saveImage(deps.storage, { originalname: file.name, size: file.size, buffer: Buffer.from(await file.arrayBuffer()) })));
+    const optimize = deps.env.IMAGE_OPTIMIZE ? { maxDimension: deps.env.IMAGE_MAX_DIMENSION, minBytes: IMAGE_OPTIMIZE_MIN_BYTES } : null;
+    const saved = await saveImage(deps.storage, { originalname: file.name, size: file.size, buffer: Buffer.from(await file.arrayBuffer()) }, optimize);
+    deps.logger.info({ reqId: c.get("requestId"), bytesIn: saved.bytesIn, bytesOut: saved.bytesOut, optimization: saved.optimization }, "Image stored");
+    return sendJsonResponse(c, JSON.stringify({ url: saved.url }));
   });
   registerRouteMetadata(app, deps, { ...base, method: "get", path: "/api/upload/download-all", summary: "Yüklemeleri ZIP olarak indir", auth: ["admin"], response: z.string().meta({ format: "binary" }), responseMediaType: "application/zip" });
   app.get("/api/upload/download-all", routeRateLimit(deps, perHour(3)), async c => {
