@@ -66,7 +66,8 @@ export const fastApiDefaultHook: Hook<unknown, AppEnv, string, Promise<Response 
 export function canonicalizeApiPath(req: Request): string {
   const path = new URL(req.url).pathname;
   if (path === "/docs" || path.startsWith("/docs/") || path === "/") return path;
-  return path.replace(/\/+$/, "");
+  const normalized = path.replace(/\/+$/, "");
+  return normalized === "/sponsors" ? "/sponsors/" : normalized;
 }
 export function createApp(deps: AppDeps, registerRoutes?: (router: AppRouter, deps: AppDeps) => void): AppRouter {
   const security = { ...DEFAULT_SECURITY_CONFIG, ...deps.security };

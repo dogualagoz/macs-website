@@ -21,6 +21,43 @@ function geocodeApp(fetchImpl: NonNullable<AppDeps["fetchImpl"]>, extra: Partial
 }
 
 describe("members and sponsors database integration", () => {
+  test("sponsor reads build ordered JSON in exactly one SQL with slash parity", async () => {
+    const app = createApp(deps);
+    for (const path of ["/sponsors/", "/sponsors", "/sponsors/categories", "/sponsors/1"]) {
+      deps.counter.reset();
+      const r = await request(app).get(path);
+      expect(r.status).toBe(200);
+      expect(deps.counter.count()).toBe(1);
+      const statement = deps.counter.queries()[0] ?? "";
+      if (path.endsWith("categories")) {
+        expect(statement).toMatch(/json_agg\(.*ORDER BY/i);
+        expect(r.body).toEqual(["Kafe", "Kitap", "Restoran", "Teknoloji"]);
+      } else {
+        expect(statement).toContain("json_build_object");
+        expect(statement).toContain("to_char");
+        const first = path.endsWith("/1") ? r.body : (r.body as object[])[0];
+        expect(first).toMatchObject({ id: 1, name: "Kahve Durağı", created_at: "2026-01-01T12:00:00.123456Z", updated_at: null });
+        if (!path.endsWith("/1")) expect(statement).toMatch(/json_agg\(.*ORDER BY/i);
+      }
+    }
+  });
+  test("NULL sponsor active rows never match false", async () => {
+    await deps.sql`UPDATE sponsors SET is_active = NULL WHERE id = 1`;
+    const r = await request(createApp(deps)).get("/sponsors/?is_active=false");
+    expect(r.status).toBe(200);
+    expect((r.body as { id: number }[]).map(row => row.id)).toEqual([4]);
+  });
+  test("geocode preserves sponsor cache generation and entries", async () => {
+    const cached = testDeps({ db: deps.db, sql: deps.sql, counter: deps.counter, env: { ...deps.env, RESPONSE_CACHE: true, RATELIMIT_ENABLED: false } });
+    const app = createApp({ ...cached, fetchImpl: () => Promise.resolve(Response.json([{ lat: "41", lon: "29", display_name: "İstanbul" }])) });
+    await request(app).get("/sponsors/1");
+    const generation = cached.cache.generation("sponsors");
+    const r = await request(app).post("/sponsors/geocode").auth(await mod(), { type: "bearer" }).send({ address: "İstanbul" });
+    expect(r.status).toBe(200);
+    expect(cached.cache.generation("sponsors")).toBe(generation);
+    expect((await request(app).get("/sponsors/1")).headers["x-cache"]).toBe("HIT");
+  });
+
   test("leaderboard issues exactly one aggregate SQL and returns required counts", async () => {
     deps.counter.reset(); const r = await request(createApp(deps)).get("/members/leaderboard").auth("garbage", { type: "bearer" });
     expect(r.status).toBe(200); expect((r.body as { id: number; project_count: number; total_contributions: number }[]).map(({ id, project_count, total_contributions }) => ({ id, project_count, total_contributions }))).toEqual([

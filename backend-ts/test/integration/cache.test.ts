@@ -9,7 +9,7 @@ import { route } from "../../src/lib/route";
 import type { EventResponse } from "../../src/modules/events/schemas";
 import type { ProjectResponse } from "../../src/modules/projects/schemas";
 import type { SponsorResponse } from "../../src/modules/sponsors/schemas";
-import { getSponsor } from "../../src/modules/sponsors/service";
+import { getSponsorJson } from "../../src/modules/sponsors/queries";
 import { login } from "../../src/modules/auth/service";
 import { createResponseCache } from "../../src/lib/cache";
 import { testDeps } from "../helpers/app";
@@ -177,7 +177,7 @@ test("paused GET cannot repopulate stale data after a committed write with an em
   const read = gate(), resume = gate(); let paused = false;
   const app = createApp(deps, (router, d) => {
     route(router, d, { method: "get", path: "/cache-race", domain: "sponsors", public: true, tag: "test", summary: "Race",
-      handler: async () => { const row = await getSponsor(d.db, 1); if (!paused) { paused = true; read.open(); await resume.wait; } return row; } });
+      handler: async () => { const row = JSON.parse((await getSponsorJson(d.db, 1)) ?? "null") as SponsorResponse | null; if (!paused) { paused = true; read.open(); await resume.wait; } return row; } });
   });
   const pending = request(app).get("/cache-race").then(r => r);
   try {
