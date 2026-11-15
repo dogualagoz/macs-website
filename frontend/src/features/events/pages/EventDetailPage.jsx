@@ -150,7 +150,7 @@ function EventPageView({ event }) {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="relative mx-auto max-w-7xl px-4 sm:px-6 pt-16 pb-12 sm:pt-20 sm:pb-16 lg:pt-28 lg:pb-24 text-white"
+          className="relative mx-auto max-w-container px-5 pt-16 pb-12 sm:pt-20 sm:pb-16 lg:pt-28 lg:pb-24 text-white"
         >
           <div className="mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-white/80">
             <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -271,7 +271,7 @@ function EventPageView({ event }) {
       </section>
 
       {/* Content & Program */}
-      <main className="mx-auto max-w-7xl px-4 sm:px-6 py-8 sm:py-12 lg:py-14">
+      <main className="mx-auto max-w-container px-5 py-8 sm:py-12 lg:py-14">
         <div className="grid gap-6 sm:gap-8 lg:grid-cols-3 lg:gap-12">
           {/* Content */}
           <motion.section
@@ -361,7 +361,7 @@ function EventPageView({ event }) {
         </motion.div>
       </main>
 
-      <footer className="mx-auto max-w-7xl px-4 sm:px-6 pb-12 sm:pb-16 pt-6 sm:pt-8 text-center text-xs sm:text-sm text-slate-500">
+      <footer className="mx-auto max-w-container px-5 pb-12 sm:pb-16 pt-6 sm:pt-8 text-center text-xs sm:text-sm text-slate-500">
         MACS • Matematik ve Bilgisayar Bilimleri Topluluğu
       </footer>
     </div>
