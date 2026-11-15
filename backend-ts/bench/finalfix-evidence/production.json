@@ -1,0 +1,7 @@
+{
+  "/health/ready": 200,
+  "/docs": 404,
+  "/openapi.json": 404,
+  "uid": "10001",
+  "SIGTERM exit": "0"
+}
