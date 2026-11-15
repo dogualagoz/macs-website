@@ -14,6 +14,12 @@
     <!-- Temel Meta Etiketleri -->
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- API sunucusuna baglantiyi (DNS + TLS) JS inmeden baslat. Iki tane:
+         axios istekleri CORS (anonim) havuzunu, <img> istekleri ise
+         kimlikli havuzu kullaniyor; tarayici bunlari ayri baglanti sayar. -->
+    <link rel="preconnect" href="%REACT_APP_API_URL%" crossorigin />
+    <link rel="preconnect" href="%REACT_APP_API_URL%" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 
     <!-- SEO Meta Etiketleri -->
