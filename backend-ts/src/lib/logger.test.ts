@@ -1,4 +1,14 @@
 import { expect, test } from "bun:test";
+
+async function readyMarker(stream: ReadableStream<Uint8Array>): Promise<void> {
+  const decoder = new TextDecoder();
+  let seen = "";
+  for await (const chunk of stream) {
+    seen += decoder.decode(chunk, { stream: true });
+    if (seen.includes("READY")) return;
+  }
+  throw new Error("child exited before READY marker");
+}
 test("buffered logger drains every completion and security record on normal exit", async () => {
   const child = Bun.spawn(["bun", "--no-env-file", "-e", `
     import { createLogger } from "./src/lib/logger";
@@ -71,10 +81,11 @@ test("D5: forced shutdown timeout flushes buffered logs before exit(1) and calls
     void keepAlive;
     process.stdout.write("READY\\n");
   `], { cwd, stdout: "pipe", stderr: "pipe" });
-  const stdoutPromise = new Response(child.stdout).text();
+  const [readyStream, textStream] = child.stdout.tee();
+  const stdoutPromise = new Response(textStream).text();
   const stderrPromise = new Response(child.stderr).text();
   try {
-    await Bun.sleep(100);
+    await readyMarker(readyStream);
     child.kill("SIGTERM");
     expect(await child.exited).toBe(1);
     const out = await stdoutPromise;
