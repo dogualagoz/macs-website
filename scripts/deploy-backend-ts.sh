@@ -10,7 +10,7 @@
 #
 # Exit codes:
 #   0 - deploy succeeded ("deployed <sha>")
-#   1 - pre-deploy validation/lock/snapshot failed or deploy failed and rolled back cleanly ("deploy failed, rolled back to <PREV>")
+#   1 - pre-deploy validation/lock/snapshot/build failed or deploy failed and rolled back cleanly ("deploy failed, rolled back to <PREV>")
 #   2 - deploy failed AND rollback failed ("rollback failed for <PREV>")
 
 set -euo pipefail
@@ -159,7 +159,15 @@ rollback() {
 git merge --ff-only "${REMOTE}/${BRANCH}"
 
 if ! docker compose -f "$COMPOSE_BASE_FILE" -f "$COMPOSE_PROD_FILE" build "$SERVICE_NAME"; then
-  rollback
+  if [[ -n "$PREV_IMAGE_ID" ]]; then
+    docker image tag "$ROLLBACK_IMAGE_TAG" "$IMAGE_NAME" >/dev/null 2>&1 || true
+  fi
+  if ! git reset --hard "$PREV" >/dev/null 2>&1; then
+    echo "rollback failed for $PREV: git reset failed" >&2
+    exit 2
+  fi
+  echo "build failed; running backend-ts left untouched" >&2
+  exit 1
 fi
 
 if ! docker compose -f "$COMPOSE_BASE_FILE" -f "$COMPOSE_PROD_FILE" up -d --no-deps "$SERVICE_NAME"; then
