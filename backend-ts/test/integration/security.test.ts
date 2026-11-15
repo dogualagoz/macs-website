@@ -198,3 +198,17 @@ test("production docs toggle, path/method sanitation and auth before validation"
     expect((await s.send("/events/bad", { method: "PUT", headers: { ...headers, Authorization: `Bearer ${pending}` }, body: "{" })).status).toBe(403);
   } finally { await s.server.stop(true); }
 });
+
+test("global budget covers preflight and invalid heads with CORS", async () => {
+ const s = setup({ now: () => new Date(1_000_000), security: { maxHeaderBytes: 1024, globalRateLimit: { ratePerMin: 1, burst: 1 } } });
+ const origin = s.deps.env.CORS_ORIGINS[0] ?? "";
+ try {
+ expect((await s.send("/health")).status).toBe(200);
+ const preflight = await s.send("/health", { method: "OPTIONS", headers: { Origin: origin } });
+ expect(preflight.status).toBe(429); expect(preflight.headers.get("Access-Control-Allow-Origin")).toBe(origin);
+ const headers = { Origin: origin, "X-Real-IP": "192.0.2.123", "X-Large": "x".repeat(2048) };
+ const invalid = await s.send("/health", { headers });
+ expect(invalid.status).toBe(431); expect(invalid.headers.get("Access-Control-Allow-Origin")).toBe(origin);
+ expect((await s.send("/health", { headers })).status).toBe(429);
+ } finally { await s.server.stop(true); }
+});

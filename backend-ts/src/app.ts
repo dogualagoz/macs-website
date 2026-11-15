@@ -85,7 +85,14 @@ export function createApp(deps: AppDeps, registerRoutes?: (router: AppRouter, de
     deps.logger.info({ reqId: c.get("requestId"), method: c.req.method, path: classifyLogPath(c.req.path), status: c.res.status, ms: performance.now() - start }, "Request completed");
   });
   app.use("*", async (c, next) => {
-    // Fetch parsers also compare media types case sensitively; preserve boundary parameters.
+    await next();
+    applySecurityHeaders(c.res.headers, { forwardedProto: c.req.header("X-Forwarded-Proto"), isDocs: c.req.path === "/docs" || c.req.path.startsWith("/docs/") });
+  });
+  app.use("*", createCors(deps.env, c => {
+    const ip = resolveClientIp(c.req.raw.headers, deps.getClientIp?.(c.req.raw) ?? (c.env as AppEnv["Bindings"] | undefined)?.socketIp);
+    c.set("clientIp", ip);
+    if (deps.env.RATELIMIT_ENABLED) global.consume(ip);
+    // Fetch parsers compare media types case sensitively; preserve boundary parameters.
     const contentType = c.req.header("Content-Type");
     if (contentType) {
       const separator = contentType.indexOf(";");
@@ -95,20 +102,9 @@ export function createApp(deps: AppDeps, registerRoutes?: (router: AppRouter, de
       c.req.raw = new Request(c.req.raw, { headers });
     }
     validateRequestHead(c.req.raw, c.req.raw.url.replace(/^[^:]+:\/\/[^/]+/, ""), security);
-    await next();
-  });
+  }));
   app.use("*", async (c, next) => {
-    await next();
-    applySecurityHeaders(c.res.headers, { forwardedProto: c.req.header("X-Forwarded-Proto"), isDocs: c.req.path === "/docs" || c.req.path.startsWith("/docs/") });
-  });
-  app.use("*", createCors(deps.env));
-  app.use("*", async (c, next) => {
-    const ip = resolveClientIp(c.req.raw.headers, deps.getClientIp?.(c.req.raw) ?? (c.env as AppEnv["Bindings"] | undefined)?.socketIp);
-    c.set("clientIp", ip);
-    if (deps.env.RATELIMIT_ENABLED) {
-      global.consume(ip);
-      if (!["GET", "HEAD", "OPTIONS"].includes(c.req.method)) writes.consume(ip);
-    }
+    if (deps.env.RATELIMIT_ENABLED && !["GET", "HEAD", "OPTIONS"].includes(c.req.method)) writes.consume(c.get("clientIp") ?? "unknown");
     // next() resolves when the response is ready; ZIP streaming itself is unbounded.
     try { await withHandlerTimeout(security.handlerTimeoutMs, next); }
     catch (error) { throw error instanceof Error ? error : new Error("Non-error request failure", { cause: error }); }

@@ -1,9 +1,10 @@
-import type { MiddlewareHandler } from "hono";
+import type { Context, MiddlewareHandler } from "hono";
 import type { Env } from "../config/env";
-export const createCors = (env: Env): MiddlewareHandler => async (c, next) => {
+export const createCors = (env: Env, beforePreflight?: (c: Context) => void): MiddlewareHandler => async (c, next) => {
   const origin = c.req.header("Origin");
   if (origin && env.CORS_ORIGINS.includes(origin)) c.header("Access-Control-Allow-Origin", origin);
   c.header("Access-Control-Allow-Credentials", "true");
+  if (beforePreflight) beforePreflight(c);
   if (c.req.method === "OPTIONS") {
     c.header("Access-Control-Max-Age", "600");
     c.header("Access-Control-Allow-Methods", "GET,HEAD,PUT,PATCH,POST,DELETE");
