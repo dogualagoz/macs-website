@@ -14,6 +14,8 @@ export const knownDeviations: readonly Deviation[] = [
   { id: "j", summary: "Public event creator retained on both targets until Task 19" },
   { id: "k", summary: "Embedded project_role reflects its own project membership; old shared Member instances leak roles across projects" },
   { id: "l", summary: "invalid sponsor update rejected with 422 instead of committing a row that then fails response validation" },
+  { id: "m", summary: "Production docs and OpenAPI are disabled by default; DOCS_ENABLED=true explicitly enables them" },
+  { id: "n", summary: "Raw static traversal (encoded separators, null bytes, backslashes, double encoding) is 400; Bun-normalized dot segments retain normalized-path semantics" },
   { id: "P1", summary: "Slash redirect: old 307, new accepts both forms directly" },
   { id: "P2", summary: "Rate limits count before auth/validation in one process" },
   { id: "P3", summary: "Non-Latin slug letters removed; empty base uses UTC timestamp" },
@@ -60,6 +62,18 @@ function sponsorUpdateValidation(body: unknown): boolean {
     return false;
   });
 }
+function rawStaticTraversal(path: string): boolean {
+  if (/(?:^|\/)(?:\.|%2e){1,2}(?:\/|$)/i.test(path)) return false;
+  if (!/^\/(?:uploads|static)\//.test(path) || !/(?:%2f|%5c|%00|%25|\\)/i.test(path)) return false;
+  for (;;) {
+    if (path.includes("..") || path.includes("\0") || path.includes("\\")) return true;
+    try {
+      const next = decodeURIComponent(path);
+      if (next === path) return false;
+      path = next;
+    } catch { return false; }
+  }
+}
 // Exceptions are deliberately narrow. Only explicitly matched GETs and PUT /sponsors/:id (l)
 // are approved; other write-only deviations never authorize unrelated catalogue differences.
 export function approvedDeviation(r: RequestIdentity, old: ComparableResponse, next: ComparableResponse): string | null {
@@ -67,6 +81,9 @@ export function approvedDeviation(r: RequestIdentity, old: ComparableResponse, n
     && old.status === 500 && old.body === "Internal Server Error" && next.status === 422
     && sponsorUpdateValidation(next.body)) return "l";
   if (r.method !== "GET") return null;
+  if (rawStaticTraversal(r.path) && !r.query.size
+    && old.status === 404 && stableJson(old.body) === stableJson({ detail: "Not Found" })
+    && next.status === 400 && stableJson(next.body) === stableJson({ detail: "Bad Request" })) return "n";
   const projectRead = ["/projects", "/projects/admin", "/projects/featured"].includes(r.path) || /^\/projects\/(?:\d+|by-slug\/[^/]+)$/.test(r.path);
   if (projectRead && old.status === next.status && stableJson(old.body) !== stableJson(next.body)
     && stableJson(maskProjectRoles(old.body)) === stableJson(maskProjectRoles(next.body))) return "k";

@@ -1,4 +1,4 @@
-import type { Router } from "express";
+import type { AppRouter as Router } from "../../app";
 import type { AppDeps } from "../../app";
 import { HttpError } from "../../lib/http-error";
 import { route } from "../../lib/route";

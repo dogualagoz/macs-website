@@ -1,25 +1,11 @@
-import express from "express";
-import type { Request, RequestHandler } from "express";
-import { HttpError } from "../lib/http-error";
-import type { RouteMeta } from "../lib/route";
-
-export function notFound(registry: readonly RouteMeta[]): RequestHandler {
-  const matcher = express.Router();
-  const matchedMethods = new WeakMap<Request, Set<string>>();
-  for (const meta of registry) {
-    matcher.all(meta.path, (req, _res, next) => {
-      const methods = matchedMethods.get(req) ?? new Set<string>();
-      methods.add(meta.method.toUpperCase());
-      matchedMethods.set(req, methods);
-      next();
-    });
-  }
-  matcher.use((req, _res, next) => {
-    const methods = matchedMethods.get(req);
-    matchedMethods.delete(req);
-    next(methods
-      ? new HttpError(405, "Method Not Allowed", { Allow: [...methods].sort().join(", ") })
-      : new HttpError(404, "Not Found"));
-  });
-  return matcher;
+import type { AppRouter, AppEnv } from "../app";
+import type { NotFoundHandler } from "hono";
+import { sendJsonResponse } from "../lib/public-cache";
+export function notFound(app: AppRouter): NotFoundHandler<AppEnv> {
+  return c => {
+    const methods = [...new Set(app.routes.filter(r => r.method !== "ALL" && !r.path.includes("*") && new RegExp(`^${r.path.split("/").map(part => part.startsWith(":") ? "[^/]+" : part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("/")}/?$`).test(c.req.path)).map(r => r.method))].sort();
+    if (methods.includes(c.req.method)) return sendJsonResponse(c, JSON.stringify({ detail: "Not Found" }), { status: 404 });
+    if (methods.length) c.header("Allow", methods.join(", "));
+    return sendJsonResponse(c, JSON.stringify({ detail: methods.length ? "Method Not Allowed" : "Not Found" }), { status: methods.length ? 405 : 404 });
+  };
 }

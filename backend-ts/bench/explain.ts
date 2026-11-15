@@ -1,4 +1,3 @@
-import { once } from "node:events";
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { parseArgs } from "node:util";
@@ -37,11 +36,9 @@ async function main(): Promise<void> {
   const app = createApp({ ...database, env, logger: createLogger("warn"), routeRegistry: [], storage: localDiskStorage(env.UPLOAD_DIR),
     cache: createResponseCache({ max: 500, ttlMs: 60_000, now: Date.now, enabled: false }),
     loadUser: email => findUserByEmail(database.db, email).then(row => row ? serializeUser(row) : null) });
-  const server = app.listen(0, "127.0.0.1");
+  const server = Bun.serve({ port: 0, hostname: "127.0.0.1", fetch: (req, server) => app.fetch(req, { socketIp: server.requestIP(req)?.address }) });
   try {
-    await once(server, "listening");
-    const address = server.address();
-    if (!address || typeof address === "string") throw new Error("Audit server has no TCP address");
+    const address = { port: server.port };
     await database.sql`SELECT 1`;
     const [event] = await database.sql<{ slug: string }[]>`SELECT slug FROM events WHERE is_deleted = false AND is_active = true ORDER BY id LIMIT 1`;
     const [project] = await database.sql<{ slug: string }[]>`SELECT slug FROM projects WHERE is_deleted = false AND is_active = true ORDER BY id LIMIT 1`;
@@ -70,7 +67,7 @@ async function main(): Promise<void> {
     }
     for (const [name, path] of cases) {
       const queries = await captureQueries(database.sql, async () => {
-        const response = await fetch(`http://127.0.0.1:${address.port.toString()}${path}`);
+        const response = await fetch(`http://127.0.0.1:${String(address.port)}${path}`);
         await response.arrayBuffer();
         if (response.status !== 200) throw new Error(`${name}: HTTP ${response.status.toString()}`);
       });
@@ -104,7 +101,7 @@ async function main(): Promise<void> {
     await writeFile(resolve(out, `${prefix}query-counts.json`), `${JSON.stringify(summary, null, 2)}\n`);
     console.log(JSON.stringify(summary, null, 2));
   } finally {
-    await new Promise<void>((resolve, reject) => { server.close(error => { if (error) reject(error); else resolve(); }); });
+    await server.stop(true);
     await database.sql.end({ timeout: 5 });
   }
 }

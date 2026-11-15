@@ -1,3 +1,4 @@
+import { DEFAULT_SECURITY_CONFIG } from "./security/config";
 import { localDiskStorage } from "./lib/storage";
 import { findUserByEmail } from "./modules/users/repo";
 import { serializeUser } from "./modules/users/serializer";
@@ -14,15 +15,10 @@ try {
   const cache = createResponseCache({ max: 500, ttlMs: 60_000, now: Date.now, enabled: env.RESPONSE_CACHE });
   const app = createApp({ cache, storage: localDiskStorage(env.UPLOAD_DIR), env, logger, routeRegistry: [], ...database,
     loadUser: email => findUserByEmail(database.db, email).then(row => row ? serializeUser(row) : null) });
-  const server = app.listen(env.PORT);
-  server.once("listening", () => {
-    logger.info({ port: env.PORT }, "Server listening");
-  });
-  server.on("error", (error: Error) => {
-    logger.error({ err: error }, "Server failed to listen");
-    void database.sql.end({ timeout: 5 }).finally(() => { process.exit(1); });
-  });
-
+  const server = Bun.serve({ port: env.PORT, idleTimeout: DEFAULT_SECURITY_CONFIG.idleTimeoutSec,
+    maxRequestBodySize: Math.max(env.MAX_UPLOAD_SIZE + DEFAULT_SECURITY_CONFIG.uploadOverheadBytes, DEFAULT_SECURITY_CONFIG.maxBodyBytes),
+    fetch: (req, server) => app.fetch(req, { socketIp: server.requestIP(req)?.address }) });
+  logger.info({ port: server.port }, "Server listening");
   let shuttingDown = false;
   const shutdown = (signal: string): void => {
     if (shuttingDown) return;
@@ -33,16 +29,11 @@ try {
       process.exit(1);
     }, 10_000);
     timeout.unref();
-    server.close((error) => {
-      if (error) {
-        logger.error({ err: error }, "Failed to close HTTP server");
-        process.exitCode = 1;
-      }
-      void database.sql.end({ timeout: 5 }).catch((dbError: unknown) => {
-        logger.error({ err: dbError }, "Failed to close database pool");
-        process.exitCode = 1;
-      }).finally(() => { clearTimeout(timeout); });
-    });
+    void (async () => {
+      await server.stop(false);
+      await cache.drain();
+      await database.sql.end({ timeout: 5 });
+    })().catch((error: unknown) => { logger.error({ err: error }, "Shutdown failed"); process.exitCode = 1; }).finally(() => { clearTimeout(timeout); });
   };
   process.once("SIGTERM", () => { shutdown("SIGTERM"); });
   process.once("SIGINT", () => { shutdown("SIGINT"); });

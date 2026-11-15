@@ -8,7 +8,7 @@ export function validateRequestHead(req: Request, rawTarget: string, config: Sec
   if (rawTarget.length > config.maxUrlLength) throw new HttpError(414, "URI Too Long");
   let path = rawTarget.split("?")[0] ?? "";
   for (;;) {
-    if (path.includes("..") || path.includes("\0")) throw new HttpError(400, "Bad Request");
+    if (path.includes("..") || path.includes("\0") || path.includes("\\")) throw new HttpError(400, "Bad Request");
     let decoded: string;
     try { decoded = decodeURIComponent(path); } catch { throw new HttpError(400, "Bad Request"); }
     if (decoded === path) break;

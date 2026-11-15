@@ -1,8 +1,7 @@
-import type { Request } from "express";
 import type { Env } from "../config/env";
 import { HttpError, unauthorized } from "../lib/http-error";
 import { verifyAccessToken } from "../lib/jwt";
-import type { Role } from "../lib/route";
+export type Role = "admin" | "moderator";
 
 export interface AuthUser {
   id: number;
@@ -18,7 +17,7 @@ export interface AuthUser {
 export type LoadUserByEmail = (email: string) => Promise<AuthUser | null>;
 
 export async function authenticate(req: Request, env: Env, loadUser: LoadUserByEmail, now: Date): Promise<AuthUser> {
-  const authorization = req.get("Authorization");
+  const authorization = req.headers.get("Authorization");
   if (!authorization?.startsWith("Bearer ")) throw unauthorized("Not authenticated");
   const claims = await verifyAccessToken(authorization, env.JWT_SECRET_KEY, now);
   const user = await loadUser(claims.sub);

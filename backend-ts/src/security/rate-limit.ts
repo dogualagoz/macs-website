@@ -1,3 +1,5 @@
+import type { Logger } from "pino";
+import { logSecurityEvent } from "./security-log";
 import type { MiddlewareHandler } from "hono";
 import { HttpError } from "../lib/http-error";
 import { DEFAULT_SECURITY_CONFIG } from "./config";
@@ -45,14 +47,16 @@ export function createFixedWindowLimiter(opts: RateLimitSpec & { maxIps: number;
   };
 }
 // Task 5 sets clientIp once using resolveClientIp + server.requestIP before route middleware.
-export function routeRateLimit(deps: { env: { RATELIMIT_ENABLED: boolean }; now?: () => Date }, spec: RateLimitSpec): MiddlewareHandler<{ Variables: { clientIp?: string } }> {
+export function routeRateLimit(deps: { env: { RATELIMIT_ENABLED: boolean }; now?: () => Date; logger?: Logger }, spec: RateLimitSpec): MiddlewareHandler<{ Variables: { clientIp?: string } }> {
   const limiter = createFixedWindowLimiter({ ...spec, maxIps: DEFAULT_SECURITY_CONFIG.maxTrackedIps, now: () => deps.now?.().getTime() ?? Date.now() });
   return async (c, next) => {
     if (deps.env.RATELIMIT_ENABLED) {
       try { limiter.consume(c.get("clientIp") ?? "unknown"); }
       catch (error) {
-        if (error instanceof HttpError && error.status === 429) return c.json(error.detail, 429);
-        throw error;
+        if (!(error instanceof HttpError) || error.status !== 429) throw error;
+        if (deps.logger) logSecurityEvent(deps.logger, { kind: "rate_limit", ip: c.get("clientIp") ?? "unknown", path: c.req.path, status: 429 });
+        c.header("Cache-Control", "no-store");
+        return c.json(error.detail, 429);
       }
     }
     await next();

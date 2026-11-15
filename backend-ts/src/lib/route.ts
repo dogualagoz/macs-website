@@ -1,23 +1,23 @@
-import multer from "multer";
-import type { Request, Response, Router } from "express";
+import type { Context } from "hono";
 import type { z } from "zod";
-import type { AppDeps } from "../app";
-import { authenticate, requireRoles } from "../middleware/auth";
+import type { AppDeps, AppEnv, AppRouter } from "../app";
 import type { AuthUser } from "../middleware/auth";
-import { sendJson } from "../middleware/cache-headers";
-import { createLimiter } from "../middleware/rate-limit";
+import { authenticate, requireRoles } from "../middleware/auth";
 import { HttpError } from "./http-error";
-import { cacheKey, weakEtag } from "./cache";
 import type { Domain } from "./cache";
 import type { UploadedFile } from "./storage";
 import { toFastApi422, validationError } from "./validation";
+import { publicCachedJson, sendJsonResponse } from "./public-cache";
+import { routeRateLimit } from "../security/rate-limit";
+import { limitBodySize } from "../security/request-guards";
+import { buildOpenApiDocument, toOpenApiPath } from "./openapi";
 
 export type { Domain } from "./cache";
 export type { UploadedFile } from "./storage";
 
-export type Role = "admin" | "moderator";
+export type { Role } from "../middleware/auth";
+import type { Role } from "../middleware/auth";
 export interface RateLimitSpec { limit: number; windowMs: number; label: string }
-export const STREAMED: unique symbol = Symbol("STREAMED");
 
 export interface RouteCtx<P, Q, B> {
   params: P;
@@ -25,8 +25,7 @@ export interface RouteCtx<P, Q, B> {
   body: B;
   user: AuthUser | null;
   file: UploadedFile | null;
-  req: Request;
-  res: Response;
+  c: Context<AppEnv>;
 }
 export interface RouteMeta {
   method: "get" | "post" | "put" | "patch" | "delete";
@@ -51,7 +50,7 @@ export interface RouteDef<P, Q, B, R> extends RouteMeta {
   body?: z.ZodType<B>;
   rateLimit?: RateLimitSpec;
   bodyInvalid?: HttpError;
-  handler: (ctx: RouteCtx<P, Q, B>) => Promise<R | typeof STREAMED>;
+  handler: (ctx: RouteCtx<P, Q, B>) => Promise<R | Response>;
 }
 
 function parse<T>(schema: z.ZodType<T> | undefined, source: "body" | "query" | "path", raw: unknown, override?: HttpError, form = false): T {
@@ -65,64 +64,57 @@ function parse<T>(schema: z.ZodType<T> | undefined, source: "body" | "query" | "
   return result.data;
 }
 
-export function route<P, Q, B, R>(router: Router, deps: AppDeps, def: RouteDef<P, Q, B, R>): void {
+
+export function registerRouteMetadata(router: AppRouter, deps: AppDeps, meta: RouteMeta): void {
+  deps.routeRegistry.push(meta);
+  // Use the same schema conversion for both registries during the migration.
+  const document = buildOpenApiDocument([meta]);
+  const operation = document.paths?.[toOpenApiPath(meta.path)]?.[meta.method];
+  if (!operation) throw new Error("Missing OpenAPI operation");
+  router.openAPIRegistry.registerPath({ ...operation, method: meta.method, path: toOpenApiPath(meta.path), responses: operation.responses ?? {} });
+}
+export function legacyRoute<P, Q, B, R>(router: AppRouter, deps: AppDeps, def: RouteDef<P, Q, B, R>): void {
   if (def.auth !== undefined && (deps as Partial<AppDeps>).loadUser === undefined) throw new Error("Protected routes require loadUser");
   const { handler, rateLimit, bodyInvalid, ...metadata } = def;
-  deps.routeRegistry.push(metadata);
-  const handlers = rateLimit ? [createLimiter(rateLimit, deps.env.RATELIMIT_ENABLED)] : [];
-  router[def.method](def.path, ...handlers, async (req, res, next) => {
-    try {
-      let user: AuthUser | null = null;
-      if (def.auth !== undefined) {
-        user = await authenticate(req, deps.env, deps.loadUser, deps.now?.() ?? new Date());
-        if (def.auth !== "user") requireRoles(user, def.auth);
-      }
-      if (def.upload) {
-        const { field, maxBytes } = def.upload;
-        const missingFile = () => validationError([{ type: "missing", loc: ["body", field], msg: "Field required", input: null }]);
-        await new Promise<void>((resolve, reject) => {
-          multer({ storage: multer.memoryStorage(), limits: { fileSize: maxBytes, files: 1 } }).single(field)(req, res, (error: unknown) => {
-            if (error instanceof multer.MulterError) {
-              if (error.code === "LIMIT_FILE_SIZE") reject(new HttpError(413, `Dosya çok büyük. Sınır: ${String(Math.floor(maxBytes / 1048576))} MB`));
-              else if (error.code === "LIMIT_UNEXPECTED_FILE" && !req.file) reject(missingFile());
-              else reject(new HttpError(400, error.message));
-            } else if (error) reject(new HttpError(400, "There was an error parsing the body"));
-            else resolve();
-          });
-        });
-        if (!req.file) throw missingFile();
-      }
-      if (req.bodyParseError !== undefined) throw bodyInvalid ?? validationError([
-        { type: "json_invalid", loc: ["body"], msg: "JSON decode error", input: {} },
-      ]);
-      const params = parse(def.params, "path", req.params);
-      const query = parse(def.query, "query", req.query);
-      const body = parse(def.body, "body", def.bodyKind === "form" && !req.is("application/x-www-form-urlencoded") ? {} : req.body ?? {}, bodyInvalid, def.bodyKind === "form");
-      const status = def.status ?? 200;
-      const eligible = def.public === true && req.method === "GET" && def.auth === undefined && req.headers.authorization === undefined && status === 200
-        && def.domain !== "users" && def.domain !== "auth" && !/\/admin(?:\/|$)/.test(req.path);
-      const key = eligible ? cacheKey(req.path, req.query) : undefined;
-      if (key !== undefined) {
-        const cached = deps.cache.get(key);
-        if (cached) {
-          res.set("X-Cache", "HIT");
-          sendJson(req, res, cached.status, Buffer.from(cached.raw).toString("utf8"), { public: true, etag: cached.etag }); return;
-        }
-      }
-      const generation = deps.cache.generation(def.domain);
-      res.set("Cache-Control", "no-store");
-      const result = await handler({ params, query, body, user, file: req.file ?? null, req, res });
-      if (result === STREAMED) return;
-      if (req.method !== "GET" && req.method !== "HEAD" && status >= 200 && status < 300) deps.cache.invalidate(def.domain);
-      if (status === 204) { sendJson(req, res, status, "", { public: false }); return; }
-      const serialized = JSON.stringify(result);
-      if (key !== undefined) {
-        const raw = Buffer.from(serialized, "utf8");
-        const etag = weakEtag(raw);
-        if (generation === deps.cache.generation(def.domain)) deps.cache.set(key, def.domain, { status, raw, br: null, gzip: null, etag });
-        res.set("X-Cache", "MISS");
-        sendJson(req, res, status, serialized, { public: true, etag });
-      } else sendJson(req, res, status, serialized, { public: false });
-    } catch (error: unknown) { next(error); }
+  registerRouteMetadata(router, deps, metadata);
+  const path = def.path.replace(/\/$/, "") || "/";
+  if (rateLimit) router.on(def.method.toUpperCase(), path, routeRateLimit(deps, rateLimit));
+  router.on(def.method.toUpperCase(), path, async (c, next) => {
+    let user: AuthUser | null = null;
+    if (def.auth !== undefined) {
+      user = await authenticate(c.req.raw, deps.env, deps.loadUser, deps.now?.() ?? new Date());
+      if (def.auth !== "user") requireRoles(user, def.auth);
+    }
+    c.set("user", user);
+    await next();
+  });
+  if (def.method !== "get") router.on(def.method.toUpperCase(), path, limitBodySize(deps.security?.maxBodyBytes));
+  router.on(def.method.toUpperCase(), path, async c => {
+    const user = c.get("user");
+    const params = parse(def.params, "path", c.req.param());
+    const rawQuery = Object.fromEntries(Object.entries(c.req.queries()).map(([key, values]) => [key, values.length === 1 ? values[0] : values]));
+    const query = parse(def.query, "query", rawQuery);
+    let raw: unknown = {};
+    if (!["GET", "HEAD"].includes(c.req.method)) {
+      const text = await c.req.raw.text();
+      const type = c.req.header("Content-Type") ?? "";
+      if (def.bodyKind === "form") {
+        if (type.startsWith("application/x-www-form-urlencoded")) raw = Object.fromEntries(new URLSearchParams(text));
+      } else if (type.startsWith("application/json") && text) {
+        try { raw = JSON.parse(text) as unknown; }
+        catch { throw bodyInvalid ?? validationError([{ type: "json_invalid", loc: ["body"], msg: "JSON decode error", input: {} }]); }
+      } else if (text) raw = text;
+    }
+    const body = parse(def.body, "body", raw, bodyInvalid, def.bodyKind === "form");
+    const invoke = () => handler({ params, query, body, user, file: null, c });
+    const status = def.status ?? 200;
+    if (def.public && !def.auth && status === 200 && def.domain !== "users" && def.domain !== "auth" && !/\/admin(?:\/|$)/.test(c.req.path)) {
+      return publicCachedJson(c, deps, { domain: def.domain, canonicalPath: c.req.path.replace(/\/$/, ""), query: (query ?? {}), load: async () => JSON.stringify(await invoke()) });
+    }
+    const result = await invoke();
+    if (result instanceof Response) return result;
+    if (!["GET", "HEAD"].includes(c.req.method)) deps.cache.invalidate(def.domain);
+    return sendJsonResponse(c, status === 204 ? "" : JSON.stringify(result), { status });
   });
 }
+export const route = legacyRoute;
