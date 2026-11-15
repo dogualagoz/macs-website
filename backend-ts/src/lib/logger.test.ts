@@ -52,3 +52,67 @@ test("actual server SIGTERM flushes a sub-4096-byte security record and exits ze
     expect(await stderr).toBe("");
   } finally { if (child.exitCode === null) { child.kill("SIGKILL"); await child.exited; } }
 }, 15000);
+
+test("D5: forced shutdown timeout flushes buffered logs before exit(1) and calls cache.stop before cache.drain", async () => {
+  const cwd = new URL("../../", import.meta.url).pathname;
+  const child = Bun.spawn([process.execPath, "--no-env-file", "-e", `
+    import { createLogger } from "./src/lib/logger";
+    import { createShutdownHandler } from "./src/shutdown";
+    const logger = createLogger("info");
+    const shutdown = createShutdownHandler({
+      logger,
+      server: { stop: () => new Promise<void>(() => undefined) },
+      cache: { stop() {}, drain: () => Promise.resolve() },
+      sql: { end: () => Promise.resolve() },
+      timeoutMs: 30,
+    });
+    process.once("SIGTERM", () => { shutdown("SIGTERM"); });
+    const keepAlive = setInterval(() => undefined, 1000);
+    void keepAlive;
+    process.stdout.write("READY\\n");
+  `], { cwd, stdout: "pipe", stderr: "pipe" });
+  const stdoutPromise = new Response(child.stdout).text();
+  const stderrPromise = new Response(child.stderr).text();
+  try {
+    await Bun.sleep(100);
+    child.kill("SIGTERM");
+    expect(await child.exited).toBe(1);
+    const out = await stdoutPromise;
+    expect(out).toContain('"signal":"SIGTERM"');
+    expect(out).toContain("Graceful shutdown timed out");
+    expect(await stderrPromise).toBe("");
+  } finally { if (child.exitCode === null) { child.kill("SIGKILL"); await child.exited; } }
+
+  // Verify cache.stop() runs strictly before cache.drain() in a spawned shutdown sequence
+  const orderChild = Bun.spawn([process.execPath, "--no-env-file", "-e", `
+    import { createResponseCache } from "./src/lib/cache";
+    import { createShutdownHandler } from "./src/shutdown";
+    const events: string[] = [];
+    const baseCache = createResponseCache({ max: 10, ttlMs: 1000, now: Date.now, enabled: true });
+    let resolveQueued!: () => void;
+    const activeStarted = new Promise<void>(r => { resolveQueued = r; });
+    baseCache.registerWarmup("k1", "projects", async () => { resolveQueued(); await Bun.sleep(25); return { status: 200, body: "a", headers: {}, cacheable: true }; });
+    baseCache.registerWarmup("k2", "projects", async () => { await Bun.sleep(25); return { status: 200, body: "b", headers: {}, cacheable: true }; });
+    baseCache.registerWarmup("k3", "projects", async () => { events.push("k3-ran"); return { status: 200, body: "c", headers: {}, cacheable: true }; });
+    const warmupPromise = baseCache.warmupStartup();
+    await activeStarted;
+    const shutdown = createShutdownHandler({
+      logger: { info() {}, error() {}, flush() {} },
+      server: { stop: async () => { events.push("server.stop"); } },
+      cache: {
+        stop: () => { events.push("cache.stop"); baseCache.stop(); },
+        drain: async () => { events.push("cache.drain:start"); await baseCache.drain(); events.push("cache.drain:end"); },
+      },
+      sql: { end: async () => { events.push("sql.end"); } },
+      timeoutMs: 2000,
+    });
+    shutdown("SIGTERM");
+    await Promise.all([warmupPromise, Bun.sleep(60)]);
+    console.log(JSON.stringify(events));
+  `], { cwd, stdout: "pipe", stderr: "pipe" });
+  expect(await orderChild.exited).toBe(0);
+  const events = JSON.parse(await new Response(orderChild.stdout).text()) as string[];
+  expect(events.indexOf("cache.stop")).toBeGreaterThan(-1);
+  expect(events.indexOf("cache.stop")).toBeLessThan(events.indexOf("cache.drain:start"));
+  expect(events).not.toContain("k3-ran");
+}, 15000);
