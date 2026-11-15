@@ -1,7 +1,5 @@
-export { default as EventCard } from './EventCard';
 export { default as FeaturedEventCard } from './FeaturedEventCard';
 export { default as EventSlider } from './EventSlider';
-export { default as ProjectCard } from './ProjectCard';
 export { default as FeaturedProjectCard } from './FeaturedProjectCard';
 export { default as ProjectSlider } from './ProjectSlider';
 export { default as GradientBackground } from './GradientBackground';

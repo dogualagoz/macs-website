@@ -112,7 +112,6 @@ function App() {
             <Route path="/etkinlikler/:slug" element={<EventDetailPage />} />
             <Route path="/projeler" element={<ProjectsPage />} />
             <Route path="/projeler/:id" element={<ProjectDetailPage />} />
-            {/* Sponsorluklar geçici olarak ComingSoon sayfasına yönlendirildi. Sadece bu satırı değiştirerek eski haline dönebilir. */}
             <Route path="/sponsorluk" element={<SponsorsPage />} />
             <Route path="/qr" element={<Navigate to="/sponsorluk" replace />} />
             <Route path="/hakkimizda" element={<AboutPage />} />
