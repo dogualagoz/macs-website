@@ -1,0 +1,16 @@
+Phase: after; EXPLAIN (ANALYZE, BUFFERS); enable_seqscan=on
+
+SQL: SELECT coalesce(json_agg(c.category ORDER BY c.category ASC), '[]'::json)::text AS body
+    FROM (SELECT DISTINCT "sponsors"."category" AS category FROM "sponsors" WHERE "sponsors"."category" <> '') c
+Bindings: []
+Aggregate  (cost=2.03..2.04 rows=1 width=32) (actual time=0.012..0.012 rows=1 loops=1)
+  Buffers: shared hit=1
+  ->  HashAggregate  (cost=1.42..1.69 rows=27 width=218) (actual time=0.008..0.008 rows=5 loops=1)
+        Group Key: sponsors.category
+        Batches: 1  Memory Usage: 24kB
+        Buffers: shared hit=1
+        ->  Seq Scan on sponsors  (cost=0.00..1.35 rows=27 width=218) (actual time=0.002..0.004 rows=28 loops=1)
+              Filter: ((category)::text <> ''::text)
+              Buffers: shared hit=1
+Planning Time: 0.020 ms
+Execution Time: 0.019 ms

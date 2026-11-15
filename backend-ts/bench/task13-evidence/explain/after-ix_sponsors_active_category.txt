@@ -1,0 +1,10 @@
+Phase: after; EXPLAIN (ANALYZE, BUFFERS); enable_seqscan=off (index eligibility only; not a production plan)
+
+SQL: SELECT is_active, category FROM sponsors WHERE is_active = true ORDER BY category
+Bindings: []
+Index Only Scan using ix_sponsors_active_category on sponsors  (cost=0.14..8.38 rows=14 width=219) (actual time=0.023..0.026 rows=28 loops=1)
+  Index Cond: (is_active = true)
+  Heap Fetches: 28
+  Buffers: shared hit=2
+Planning Time: 0.017 ms
+Execution Time: 0.029 ms

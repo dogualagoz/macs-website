@@ -1,0 +1,16 @@
+Endpoint	p50 (ms)	p95 (ms)	p99 (ms)	RPS	successRate
+Warming /events?limit=100 for 5s; measuring for 20s
+/events?limit=100	1.536	2.306	3.204	30189.12	1.000
+Warming /events/featured for 5s; measuring for 20s
+/events/featured	1.184	1.953	2.490	39064.68	1.000
+Warming /projects?limit=100 for 5s; measuring for 20s
+/projects?limit=100	2.212	2.975	4.528	21217.05	1.000
+Warming /projects/featured for 5s; measuring for 20s
+/projects/featured	1.271	2.037	2.680	36330.55	1.000
+Warming /members/leaderboard for 5s; measuring for 20s
+/members/leaderboard	1.258	2.001	2.630	36772.49	1.000
+Warming /members for 5s; measuring for 20s
+/members	1.250	1.998	2.630	36987.67	1.000
+Warming /sponsors/ for 5s; measuring for 20s
+/sponsors/	1.432	2.217	2.991	32328.30	1.000
+Saved benchmark to /Users/yusufefetasdelen/Documents/GitHub/macs-website/backend-ts/bench/result-express-cached.json

@@ -1,0 +1,80 @@
+Phase: after; EXPLAIN (ANALYZE, BUFFERS); enable_seqscan=on
+
+SQL: SELECT json_build_object('id', p.id, 'title', p.title, 'slug', p.slug, 'description', p.description,
+    'content', p.content, 'image_url', p.image_url, 'technologies', p.technologies, 'github_url', p.github_url,
+    'live_url', p.live_url, 'status', p.status::text, 'project_type', p.project_type::text,
+    'category_id', p.category_id, 'team_members', p.team_members,
+    'started_at', CASE
+    WHEN p.started_at IS NULL THEN NULL
+    WHEN date_trunc('second', (p.started_at::timestamp)) = (p.started_at::timestamp)
+      THEN to_char((p.started_at::timestamp), 'YYYY-MM-DD"T"HH24:MI:SS')
+    ELSE to_char((p.started_at::timestamp), 'YYYY-MM-DD"T"HH24:MI:SS.US')
+  END, 'completed_at', CASE
+    WHEN p.completed_at IS NULL THEN NULL
+    WHEN date_trunc('second', (p.completed_at::timestamp)) = (p.completed_at::timestamp)
+      THEN to_char((p.completed_at::timestamp), 'YYYY-MM-DD"T"HH24:MI:SS')
+    ELSE to_char((p.completed_at::timestamp), 'YYYY-MM-DD"T"HH24:MI:SS.US')
+  END,
+    'is_active', coalesce(p.is_active, false), 'is_featured', coalesce(p.is_featured, false),
+    'is_deleted', coalesce(p.is_deleted, false), 'created_by', p.created_by,
+    'created_at', CASE
+    WHEN p.created_at IS NULL THEN NULL
+    WHEN date_trunc('second', (p.created_at::timestamptz AT TIME ZONE 'UTC')) = (p.created_at::timestamptz AT TIME ZONE 'UTC')
+      THEN to_char((p.created_at::timestamptz AT TIME ZONE 'UTC'), 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+    ELSE to_char((p.created_at::timestamptz AT TIME ZONE 'UTC'), 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')
+  END, 'updated_at', CASE
+    WHEN p.updated_at IS NULL THEN NULL
+    WHEN date_trunc('second', (p.updated_at::timestamptz AT TIME ZONE 'UTC')) = (p.updated_at::timestamptz AT TIME ZONE 'UTC')
+      THEN to_char((p.updated_at::timestamptz AT TIME ZONE 'UTC'), 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+    ELSE to_char((p.updated_at::timestamptz AT TIME ZONE 'UTC'), 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')
+  END,
+    'members', coalesce((SELECT json_agg(json_build_object('id', m.id, 'full_name', m.full_name,
+    'profile_image', m.profile_image, 'is_active', coalesce(m.is_active, false),
+    'created_at', CASE
+    WHEN m.created_at IS NULL THEN NULL
+    WHEN date_trunc('second', (m.created_at::timestamptz AT TIME ZONE 'UTC')) = (m.created_at::timestamptz AT TIME ZONE 'UTC')
+      THEN to_char((m.created_at::timestamptz AT TIME ZONE 'UTC'), 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+    ELSE to_char((m.created_at::timestamptz AT TIME ZONE 'UTC'), 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')
+  END, 'project_role', pm.role) ORDER BY pm.id ASC)
+    FROM project_members pm JOIN members m ON m.id = pm.member_id WHERE pm.project_id = p.id), '[]'::json),
+    'category', CASE WHEN c.id IS NULL THEN NULL ELSE json_build_object('id', c.id, 'name', c.name, 'description', c.description, 'icon', c.icon,
+    'created_at', CASE
+    WHEN c.created_at IS NULL THEN NULL
+    WHEN date_trunc('second', (c.created_at::timestamptz AT TIME ZONE 'UTC')) = (c.created_at::timestamptz AT TIME ZONE 'UTC')
+      THEN to_char((c.created_at::timestamptz AT TIME ZONE 'UTC'), 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+    ELSE to_char((c.created_at::timestamptz AT TIME ZONE 'UTC'), 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')
+  END, 'updated_at', CASE
+    WHEN c.updated_at IS NULL THEN NULL
+    WHEN date_trunc('second', (c.updated_at::timestamptz AT TIME ZONE 'UTC')) = (c.updated_at::timestamptz AT TIME ZONE 'UTC')
+      THEN to_char((c.updated_at::timestamptz AT TIME ZONE 'UTC'), 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+    ELSE to_char((c.updated_at::timestamptz AT TIME ZONE 'UTC'), 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')
+  END) END)::text AS body FROM projects p LEFT JOIN project_categories c ON c.id = p.category_id
+    WHERE p.slug = $1 AND p.is_deleted = false AND p.is_active = true
+Bindings: ["endless-zombie"]
+Nested Loop Left Join  (cost=0.00..8.23 rows=1 width=32) (actual time=0.023..0.026 rows=1 loops=1)
+  Join Filter: (c.id = p.category_id)
+  Rows Removed by Join Filter: 3
+  Buffers: shared hit=7
+  ->  Seq Scan on projects p  (cost=0.00..4.39 rows=1 width=343) (actual time=0.004..0.007 rows=1 loops=1)
+        Filter: ((NOT is_deleted) AND is_active AND ((slug)::text = 'endless-zombie'::text))
+        Rows Removed by Filter: 30
+        Buffers: shared hit=4
+  ->  Seq Scan on project_categories c  (cost=0.00..1.05 rows=5 width=116) (actual time=0.001..0.001 rows=4 loops=1)
+        Buffers: shared hit=1
+  SubPlan 1
+    ->  Aggregate  (cost=2.60..2.61 rows=1 width=32) (actual time=0.005..0.005 rows=1 loops=1)
+          Buffers: shared hit=2
+          ->  Hash Join  (cost=1.38..2.58 rows=1 width=113) (actual time=0.003..0.004 rows=0 loops=1)
+                Hash Cond: (m.id = pm.member_id)
+                Buffers: shared hit=2
+                ->  Seq Scan on members m  (cost=0.00..1.14 rows=14 width=77) (actual time=0.001..0.001 rows=1 loops=1)
+                      Buffers: shared hit=1
+                ->  Hash  (cost=1.36..1.36 rows=1 width=40) (actual time=0.002..0.002 rows=0 loops=1)
+                      Buckets: 1024  Batches: 1  Memory Usage: 8kB
+                      Buffers: shared hit=1
+                      ->  Seq Scan on project_members pm  (cost=0.00..1.36 rows=1 width=40) (actual time=0.002..0.002 rows=0 loops=1)
+                            Filter: (project_id = p.id)
+                            Rows Removed by Filter: 29
+                            Buffers: shared hit=1
+Planning Time: 0.088 ms
+Execution Time: 0.044 ms

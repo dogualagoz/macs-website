@@ -1,0 +1,22 @@
+{
+  "phase": "after",
+  "tableRows": {
+    "events": 31,
+    "projects": 31,
+    "members": 14,
+    "sponsors": 28
+  },
+  "queryCounts": {
+    "/events?limit=100": 1,
+    "/events?limit=100&status=upcoming&sort_by=start_time": 1,
+    "/events/featured": 1,
+    "/events/by-slug/macs-log-26-20251021-133805": 1,
+    "/projects?limit=100": 1,
+    "/projects/featured": 1,
+    "/projects/by-slug/endless-zombie": 1,
+    "/members": 1,
+    "/members/leaderboard": 1,
+    "/sponsors/": 1,
+    "/sponsors/categories": 1
+  }
+}

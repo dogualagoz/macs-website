@@ -1,0 +1,27 @@
+Phase: after; EXPLAIN (ANALYZE, BUFFERS); enable_seqscan=on
+
+SQL: SELECT coalesce(json_agg(q.row_json ORDER BY q.created_at DESC, q.id DESC), '[]'::json)::text AS body
+    FROM (SELECT m.id, m.created_at, json_build_object('full_name', m.full_name, 'profile_image', m.profile_image,
+    'id', m.id, 'is_active', coalesce(m.is_active, false), 'created_at', CASE
+    WHEN m.created_at IS NULL THEN NULL
+    WHEN date_trunc('second', (m.created_at::timestamptz AT TIME ZONE 'UTC')) = (m.created_at::timestamptz AT TIME ZONE 'UTC')
+      THEN to_char((m.created_at::timestamptz AT TIME ZONE 'UTC'), 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+    ELSE to_char((m.created_at::timestamptz AT TIME ZONE 'UTC'), 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')
+  END
+    ) AS row_json FROM members m
+      WHERE true
+
+      ORDER BY m.created_at DESC, m.id DESC LIMIT $1 OFFSET $2) q
+Bindings: ["50","0"]
+Aggregate  (cost=1.93..1.95 rows=1 width=32) (actual time=0.051..0.051 rows=1 loops=1)
+  Buffers: shared hit=1
+  ->  Limit  (cost=1.72..1.76 rows=14 width=44) (actual time=0.028..0.029 rows=14 loops=1)
+        Buffers: shared hit=1
+        ->  Sort  (cost=1.72..1.76 rows=14 width=44) (actual time=0.028..0.028 rows=14 loops=1)
+              Sort Key: m.created_at DESC, m.id DESC
+              Sort Method: quicksort  Memory: 28kB
+              Buffers: shared hit=1
+              ->  Seq Scan on members m  (cost=0.00..1.46 rows=14 width=44) (actual time=0.006..0.025 rows=14 loops=1)
+                    Buffers: shared hit=1
+Planning Time: 0.023 ms
+Execution Time: 0.058 ms

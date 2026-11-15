@@ -1,0 +1,76 @@
+Phase: after; EXPLAIN (ANALYZE, BUFFERS); enable_seqscan=on
+
+SQL: SELECT json_build_object('id', e.id, 'title', e.title, 'slug', e.slug,
+    'description', e.description, 'content', e.content, 'image_url', e.image_url,
+    'location', e.location, 'registration_link', e.registration_link, 'directions_link', e.directions_link,
+    'start_time', CASE
+    WHEN e.start_time IS NULL THEN NULL
+    WHEN date_trunc('second', (e.start_time::timestamp)) = (e.start_time::timestamp)
+      THEN to_char((e.start_time::timestamp), 'YYYY-MM-DD"T"HH24:MI:SS')
+    ELSE to_char((e.start_time::timestamp), 'YYYY-MM-DD"T"HH24:MI:SS.US')
+  END, 'end_time', CASE
+    WHEN e.end_time IS NULL THEN NULL
+    WHEN date_trunc('second', (e.end_time::timestamp)) = (e.end_time::timestamp)
+      THEN to_char((e.end_time::timestamp), 'YYYY-MM-DD"T"HH24:MI:SS')
+    ELSE to_char((e.end_time::timestamp), 'YYYY-MM-DD"T"HH24:MI:SS.US')
+  END,
+    'category_id', e.category_id, 'created_by', e.created_by,
+    'is_active', coalesce(e.is_active, false), 'is_featured', coalesce(e.is_featured, false),
+    'is_deleted', coalesce(e.is_deleted, false),
+    'created_at', CASE
+    WHEN e.created_at IS NULL THEN NULL
+    WHEN date_trunc('second', (e.created_at::timestamptz AT TIME ZONE 'UTC')) = (e.created_at::timestamptz AT TIME ZONE 'UTC')
+      THEN to_char((e.created_at::timestamptz AT TIME ZONE 'UTC'), 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+    ELSE to_char((e.created_at::timestamptz AT TIME ZONE 'UTC'), 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')
+  END, 'updated_at', CASE
+    WHEN e.updated_at IS NULL THEN NULL
+    WHEN date_trunc('second', (e.updated_at::timestamptz AT TIME ZONE 'UTC')) = (e.updated_at::timestamptz AT TIME ZONE 'UTC')
+      THEN to_char((e.updated_at::timestamptz AT TIME ZONE 'UTC'), 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+    ELSE to_char((e.updated_at::timestamptz AT TIME ZONE 'UTC'), 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')
+  END,
+    'creator', CASE WHEN "users"."id" IS NULL THEN NULL ELSE json_build_object(
+      'id', "users"."id", 'email', "users"."email", 'full_name', "users"."full_name", 'role', "users"."role", 'status', "users"."status",
+      'is_active', coalesce("users"."is_active", false), 'last_login', CASE
+    WHEN "users"."last_login" IS NULL THEN NULL
+    WHEN date_trunc('second', ("users"."last_login"::timestamptz AT TIME ZONE 'UTC')) = ("users"."last_login"::timestamptz AT TIME ZONE 'UTC')
+      THEN to_char(("users"."last_login"::timestamptz AT TIME ZONE 'UTC'), 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+    ELSE to_char(("users"."last_login"::timestamptz AT TIME ZONE 'UTC'), 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')
+  END,
+      'failed_login_attempts', coalesce("users"."failed_login_attempts", 0)::int,
+      'password_changed_at', CASE
+    WHEN "users"."password_changed_at" IS NULL THEN NULL
+    WHEN date_trunc('second', ("users"."password_changed_at"::timestamptz AT TIME ZONE 'UTC')) = ("users"."password_changed_at"::timestamptz AT TIME ZONE 'UTC')
+      THEN to_char(("users"."password_changed_at"::timestamptz AT TIME ZONE 'UTC'), 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+    ELSE to_char(("users"."password_changed_at"::timestamptz AT TIME ZONE 'UTC'), 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')
+  END) END,
+    'category', CASE WHEN c.id IS NULL THEN NULL ELSE json_build_object('id', c.id, 'name', c.name, 'description', c.description,
+    'created_at', CASE
+    WHEN c.created_at IS NULL THEN NULL
+    WHEN date_trunc('second', (c.created_at::timestamptz AT TIME ZONE 'UTC')) = (c.created_at::timestamptz AT TIME ZONE 'UTC')
+      THEN to_char((c.created_at::timestamptz AT TIME ZONE 'UTC'), 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+    ELSE to_char((c.created_at::timestamptz AT TIME ZONE 'UTC'), 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')
+  END, 'updated_at', CASE
+    WHEN c.updated_at IS NULL THEN NULL
+    WHEN date_trunc('second', (c.updated_at::timestamptz AT TIME ZONE 'UTC')) = (c.updated_at::timestamptz AT TIME ZONE 'UTC')
+      THEN to_char((c.updated_at::timestamptz AT TIME ZONE 'UTC'), 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+    ELSE to_char((c.updated_at::timestamptz AT TIME ZONE 'UTC'), 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')
+  END) END)::text AS body FROM events e left join "users" ON e.created_by = "users".id
+  left join "event_categories" c ON e.category_id = c.id WHERE e.slug = $1 AND e.is_deleted = false AND e.is_active = true
+Bindings: ["macs-log-26-20251021-133805"]
+Nested Loop Left Join  (cost=0.00..6.72 rows=1 width=32) (actual time=0.028..0.030 rows=1 loops=1)
+  Join Filter: (e.category_id = c.id)
+  Buffers: shared hit=6
+  ->  Nested Loop Left Join  (cost=0.00..5.48 rows=1 width=456) (actual time=0.009..0.010 rows=1 loops=1)
+        Join Filter: (e.created_by = users.id)
+        Rows Removed by Join Filter: 2
+        Buffers: shared hit=5
+        ->  Seq Scan on events e  (cost=0.00..4.39 rows=1 width=303) (actual time=0.007..0.008 rows=1 loops=1)
+              Filter: ((NOT is_deleted) AND is_active AND ((slug)::text = 'macs-log-26-20251021-133805'::text))
+              Rows Removed by Filter: 30
+              Buffers: shared hit=4
+        ->  Seq Scan on users  (cost=0.00..1.04 rows=4 width=153) (actual time=0.001..0.001 rows=3 loops=1)
+              Buffers: shared hit=1
+  ->  Seq Scan on event_categories c  (cost=0.00..1.04 rows=4 width=84) (actual time=0.001..0.001 rows=1 loops=1)
+        Buffers: shared hit=1
+Planning Time: 0.086 ms
+Execution Time: 0.046 ms
