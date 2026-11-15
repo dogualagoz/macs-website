@@ -7,7 +7,7 @@ import { useAuth } from '../../auth/context/AuthContext';
  * Tüm admin sayfalarında ortak olarak kullanılır
  */
 const Sidebar = () => {
-  const { logout } = useAuth();
+  const { logout, hasRole } = useAuth();
   const navigate = useNavigate();
 
   const handleExit = () => {
@@ -34,12 +34,14 @@ const Sidebar = () => {
           İçerik Ekle
         </NavLink>
         
-        <NavLink 
-          to="/admin/users" 
-          className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`}
-        >
-          Kullanıcılar
-        </NavLink>
+        {hasRole('admin') && (
+          <NavLink 
+            to="/admin/users" 
+            className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`}
+          >
+            Kullanıcılar
+          </NavLink>
+        )}
         
         <NavLink 
           to="/admin/members" 
@@ -47,13 +49,7 @@ const Sidebar = () => {
         >
           Üyeler
         </NavLink>
-        
-        <NavLink 
-          to="/admin/logs" 
-          className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`}
-        >
-          Loglar
-        </NavLink>
+
       </nav>
       
       <div style={{ marginTop: 'auto', marginBottom: '2rem' }}>

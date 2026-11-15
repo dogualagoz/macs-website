@@ -1,41 +1,39 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { useAuth } from '../../auth/context/AuthContext';
 
 // Admin sayfaları
 import Dashboard from './Dashboard';
 import Content from './Content';
 import Users from './Users';
 import Members from './Members';
-import Logs from './Logs';
 
 // CSS stilleri
 import '../../../styles/admin.css';
 import '../../../styles/admin-reset.css';
 
 /**
- * Admin Panel Ana Bileşeni
- * 
- * Bu bileşen, admin paneli için bir router görevi görür ve
- * kullanıcının yetkilendirmesini kontrol eder.
+ * Admin Panel router'ı.
+ *
+ * Kimlik doğrulamayı ProtectedRoute yapıyor; burada rol bazlı görünürlük var.
+ * İçerik ve üye yönetimi admin + moderator'a açık, kullanıcı yönetimi yalnızca
+ * admin'e (backend'deki requireRoles matrisiyle aynı). Asıl yetki kontrolü
+ * backend'de; bu katman moderator'ın 403 dönen sayfalara düşmesini engelliyor.
  */
 const AdminPanel = () => {
-  // Geliştirme amaçlı olarak her zaman admin olarak kabul et
-  // Gerçek uygulamada bu kontrol aktif edilmelidir
-  const isAdmin = true; // user?.role?.toLowerCase() === 'admin';
-  
-  // Kullanıcı admin değilse ana sayfaya yönlendir
-  if (!isAdmin) {
-    return <Navigate to="/" replace />;
-  }
-  
+  const { hasRole } = useAuth();
+  const isAdmin = hasRole('admin');
+
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/content" element={<Content />} />
-      <Route path="/users" element={<Users />} />
+      <Route
+        path="/users"
+        element={isAdmin ? <Users /> : <Navigate to="/admin/dashboard" replace />}
+      />
       <Route path="/members" element={<Members />} />
-      <Route path="/logs" element={<Logs />} />
       <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
     </Routes>
   );
