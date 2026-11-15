@@ -1,10 +1,20 @@
 import { z } from "zod";
 import { pathInt, qInt, qStr } from "../../lib/validation";
+import { normalizeLegacyCompatibleEmail } from "./email";
 
-// Match legacy EmailStr registration: preserve the local part and lowercase only the domain.
-export const emailSchema = z.email().transform(value => {
-  const at = value.lastIndexOf("@");
-  return value.slice(0, at + 1) + value.slice(at + 1).toLowerCase();
+// Match legacy Pydantic EmailStr / email-validator 2.2.0 syntax rules so
+// accounts created in backend-ts remain serializable after a rollback.
+export const emailSchema = z.string().meta({ format: "email" }).transform((value, ctx) => {
+  const normalized = normalizeLegacyCompatibleEmail(value);
+  if (normalized === null) {
+    ctx.addIssue({
+      code: "custom",
+      message: "value is not a valid email address",
+      params: { py: { type: "value_error", msg: "value is not a valid email address" } },
+    });
+    return z.NEVER;
+  }
+  return normalized;
 });
 export const passwordSchema = z.string().refine(value => Array.from(value).length >= 6, "Şifre en az 6 karakter olmalıdır");
 export const userResponseSchema = z.object({

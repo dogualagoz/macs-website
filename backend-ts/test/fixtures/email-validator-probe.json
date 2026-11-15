@@ -1,0 +1,371 @@
+{
+  "source": {
+    "pydantic": "2.11.7",
+    "email_validator": "2.2.0",
+    "special_use_domain_names": [
+      "arpa",
+      "invalid",
+      "local",
+      "localhost",
+      "onion",
+      "test"
+    ]
+  },
+  "cases": [
+    {
+      "input": "admin@example.com",
+      "accepted": true,
+      "normalized": "admin@example.com"
+    },
+    {
+      "input": "user@example.org",
+      "accepted": true,
+      "normalized": "user@example.org"
+    },
+    {
+      "input": "user@example.net",
+      "accepted": true,
+      "normalized": "user@example.net"
+    },
+    {
+      "input": "user@foo.example",
+      "accepted": true,
+      "normalized": "user@foo.example"
+    },
+    {
+      "input": "a@b.co",
+      "accepted": true,
+      "normalized": "a@b.co"
+    },
+    {
+      "input": "a@b.c",
+      "accepted": true,
+      "normalized": "a@b.c"
+    },
+    {
+      "input": "user@a.1b",
+      "accepted": true,
+      "normalized": "user@a.1b"
+    },
+    {
+      "input": "user@sub.domain.com",
+      "accepted": true,
+      "normalized": "user@sub.domain.com"
+    },
+    {
+      "input": "User+Tag@Example.COM",
+      "accepted": true,
+      "normalized": "User+Tag@example.com"
+    },
+    {
+      "input": "user_name.test-1+tag@gmail.com",
+      "accepted": true,
+      "normalized": "user_name.test-1+tag@gmail.com"
+    },
+    {
+      "input": "user@foo.internal",
+      "accepted": true,
+      "normalized": "user@foo.internal"
+    },
+    {
+      "input": "user@foo.localdomain",
+      "accepted": true,
+      "normalized": "user@foo.localdomain"
+    },
+    {
+      "input": "user@foo.test",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "user@FOO.TEST",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "user@sub.foo.test",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "user@test",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "user@foo.local",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "user@Foo.Local",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "user@local",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "user@foo.localhost",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "user@localhost",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "user@foo.invalid",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "user@invalid",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "user@foo.arpa",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "user@arpa",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "user@foo.onion",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "user@onion",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "user@example",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "user@singlelabel",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "user@com",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "user@123.123",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "user@example.123",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "user@-bad.com",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "user@bad-.com",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "user@.bad.com",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "user@bad..com",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "user@gmail.com.",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "user@ab--cd.com",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "user@xn--invalid-99999.com",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "user@xn--bcher-kva.ch",
+      "accepted": true,
+      "normalized": "user@bücher.ch"
+    },
+    {
+      "input": "user@xn--mnchen-3ya.de",
+      "accepted": true,
+      "normalized": "user@münchen.de"
+    },
+    {
+      "input": "user@127.0.0.1",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "user@[127.0.0.1]",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "user@[::1]",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "user@[IPv6:::1]",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "\"quoted\"@gmail.com",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "\"quoted space\"@gmail.com",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "\"a@b\"@gmail.com",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": ".dotstart@gmail.com",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "dotend.@gmail.com",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "two..dots@gmail.com",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "space in@gmail.com",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "@gmail.com",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "user@",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "x",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "John Doe <user@example.com>",
+      "accepted": true,
+      "normalized": "user@example.com"
+    },
+    {
+      "input": "John Doe <user@foo.test>",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "  user@example.com  ",
+      "accepted": true,
+      "normalized": "user@example.com"
+    },
+    {
+      "input": "üser@gmail.com",
+      "accepted": true,
+      "normalized": "üser@gmail.com"
+    },
+    {
+      "input": "üser@Example.COM",
+      "accepted": true,
+      "normalized": "üser@example.com"
+    },
+    {
+      "input": "user@münchen.de",
+      "accepted": true,
+      "normalized": "user@münchen.de"
+    },
+    {
+      "input": "user@MÜNCHEN.DE",
+      "accepted": true,
+      "normalized": "user@münchen.de"
+    },
+    {
+      "input": "kullanıcı@örnek.com",
+      "accepted": true,
+      "normalized": "kullanıcı@örnek.com"
+    },
+    {
+      "input": "user@münchen.local",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "user@xn--ls8h.com",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@example.com",
+      "accepted": true,
+      "normalized": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@example.com"
+    },
+    {
+      "input": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@example.com",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "a@bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.com",
+      "accepted": true,
+      "normalized": "a@bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.com"
+    },
+    {
+      "input": "a@bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.com",
+      "accepted": false,
+      "normalized": null
+    },
+    {
+      "input": "a@b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.b.com",
+      "accepted": false,
+      "normalized": null
+    }
+  ]
+}
