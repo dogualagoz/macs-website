@@ -9,8 +9,11 @@ const publicSegments = new Set([
   // App-level documentation and static mounts, outside modules/*/routes.ts.
   "docs", "openapi.json", "uploads", "static",
 ]);
+export function classifyLogPath(path: string): string {
+  return (path.split(/[?#]/)[0] ?? "").split("/").map(segment => segment === "" || publicSegments.has(segment) ? segment : ":redacted").join("/");
+}
 export function logSecurityEvent(logger: Logger, event: { kind: SecurityEventKind; ip: string; path: string; method?: string | undefined; status?: number | undefined }): void {
-  const path = (event.path.split(/[?#]/)[0] ?? "").split("/").map((segment) => segment === "" || publicSegments.has(segment) ? segment : ":redacted").join("/");
+  const path = classifyLogPath(event.path);
   logger.warn({ event: "security", kind: event.kind, ip: event.ip, path,
     ...(event.method === undefined ? {} : { method: event.method }),
     ...(event.status === undefined ? {} : { status: event.status }),

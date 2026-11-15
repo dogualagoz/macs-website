@@ -155,7 +155,7 @@ test("non-object, cyclic and excessive cause chains fall back to 500", async () 
     expect(r.body).toEqual({ detail: "Internal Server Error" });
   }
 });
-test("unexpected error includes CORS headers and logs a stack", async () => {
+test("unexpected error includes CORS headers and logs only a safe classification", async () => {
   const { app, logs } = setup();
   const r = await request(app).get("/boom").set("Origin", "https://macsclub.com.tr");
   expect(r.status).toBe(500);
@@ -163,9 +163,10 @@ test("unexpected error includes CORS headers and logs a stack", async () => {
   expect(r.headers["access-control-allow-origin"]).toBe("https://macsclub.com.tr");
   expect(r.headers["access-control-allow-credentials"]).toBe("true");
   const error = logs.find((entry) => entry.level === 50);
-  const err = error?.err as { message: string; stack: string } | undefined;
-  expect(err?.message).toBe("boom");
-  expect(err?.stack).toContain("Error: boom");
+  expect(error).toMatchObject({ errorName: "Error", path: "/:redacted" });
+  expect(error).not.toHaveProperty("err");
+  expect(JSON.stringify(error)).not.toContain("boom");
+  expect(JSON.stringify(error)).not.toContain("stack");
 });
 test("HttpError headers are emitted with a single detail envelope", async () => {
   const r = await request(setup().app).get("/teapot");

@@ -2,7 +2,7 @@ import type { ErrorHandler } from "hono";
 import { HTTPException } from "hono/http-exception";
 import type { AppEnv } from "../app";
 import { validationError } from "../lib/validation";
-import { logSecurityEvent } from "../security/security-log";
+import { logSecurityEvent, classifyLogPath } from "../security/security-log";
 import { resolveClientIp } from "../security/ip";
 import { applySecurityHeaders } from "../security/headers";
 import type { Logger } from "pino";
@@ -17,7 +17,7 @@ const PG_ERRORS: Readonly<Record<string, readonly [number, string]>> = {
 export function readErrorCode(error: unknown): string | undefined {
   let current = error;
   for (let depth = 0; depth < 8 && typeof current === "object" && current !== null; depth++) {
-    if ("code" in current && typeof current.code === "string" && current.code.length > 0) return current.code;
+    if ("code" in current && typeof current.code === "string" && /^[0-9A-Z]{5}$/.test(current.code)) return current.code;
     current = "cause" in current ? current.cause : undefined;
   }
   return undefined;
@@ -39,7 +39,7 @@ export function errorHandler(logger: Logger): ErrorHandler<AppEnv> {
       : mapped.status === 413 ? "body_too_large" : mapped.status === 414 ? "url_too_long" : mapped.status === 503 && mapped.detail === "Service Unavailable" ? "handler_timeout"
       : mapped.status === 401 && typeof mapped.detail === "string" && mapped.detail.includes("dakika kilitlendi") ? "lockout" : null;
     if (kind) logSecurityEvent(logger, { kind, ip: c.get("clientIp") ?? resolveClientIp(c.req.raw.headers, (c.env as AppEnv["Bindings"] | undefined)?.socketIp), path: c.req.path, status: mapped.status });
-    if (mapped.status === 500 && !(error instanceof HttpError)) logger.error({ err: error, reqId: c.get("requestId") }, "Unhandled request error");
+    if (mapped.status === 500 && !(error instanceof HttpError)) logger.error({ reqId: c.get("requestId"), errorName: /^[A-Za-z][A-Za-z0-9]*Error$/.test(error.constructor.name) ? error.constructor.name : "Error", code, path: classifyLogPath(c.req.path) }, "Unhandled request error");
     if (mapped.status === 413) c.header("Connection", "close");
     for (const [key, value] of Object.entries(mapped.headers ?? {})) c.header(key, value);
     const response = sendJsonResponse(c, JSON.stringify(mapped.status === 429 ? mapped.detail : { detail: mapped.detail }), { status: mapped.status });
