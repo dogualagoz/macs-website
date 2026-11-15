@@ -18,20 +18,21 @@ describe("events database integration", () => {
     expect(r.status).toBe(200); expect((r.body as { id: number }[]).map(row => row.id)).toEqual([2, 6, 5, 1]);
     expect(deps.counter.count()).toBe(1);
     const queries = deps.counter.queries(); expect(queries).toHaveLength(1);
+    expect(queries[0]).toContain('json_agg');
     expect(queries[0]).toContain('left join "users"'); expect(queries[0]).toContain('left join "event_categories"');
     expect(queries.every(query => !query.includes("hashed_password"))).toBe(true);
   });
-  test("featured flagged and fallback reads each use at most two SQL", async () => {
+  test("featured flagged and fallback reads each use one SQL", async () => {
     const app = createApp(deps); deps.counter.reset();
     const flagged = await request(app).get("/events/featured"); expect(flagged.status).toBe(200); expect(flagged.body).toMatchObject({ id: 1 });
-    expect(deps.counter.count()).toBeLessThanOrEqual(2);
+    expect(deps.counter.count()).toBe(1);
     await deps.sql`UPDATE events SET is_featured = false`;
     deps.counter.reset(); const fallback = await request(app).get("/events/featured");
-    expect(fallback.status).toBe(200); expect(fallback.body).toMatchObject({ id: 6 }); expect(deps.counter.count()).toBeLessThanOrEqual(2);
+    expect(fallback.status).toBe(200); expect(fallback.body).toMatchObject({ id: 6 }); expect(deps.counter.count()).toBe(1);
     expect(deps.counter.queries().every(query => !query.includes("hashed_password"))).toBe(true);
   });
   test("category delete rollback leaves event references intact when repo DELETE fails", async () => {
-    const repo = await import("../../src/modules/events/repo");
+    const repo = await import("../../src/modules/events/queries");
     const service = await import("../../src/modules/events/service");
     const remove = spyOn(repo, "deleteCategoryRow").mockImplementation(() => { throw new Error("injected category delete failure"); });
     try {
@@ -44,18 +45,43 @@ describe("events database integration", () => {
     expect(rows.map(row => row.category_id)).toEqual([1, 1, 1, 1]);
     expect(await deps.sql`SELECT id FROM event_categories WHERE id = 1`).toHaveLength(1);
   });
-  test("serializer coerces NULL flags without losing datetime microseconds", async () => {
-    const { findEventRow } = await import("../../src/modules/events/repo");
-    const { serializeEvent } = await import("../../src/modules/events/serializer");
+  test("PG JSON coerces NULL flags without losing datetime microseconds", async () => {
+    const { getEventJson } = await import("../../src/modules/events/queries");
     await deps.sql`UPDATE events SET is_active = NULL, is_featured = NULL, is_deleted = NULL, start_time = '2099-05-01 11:00:00.123456' WHERE id = 1`;
-    const row = await findEventRow(deps.db, 1, "all"); expect(row).not.toBeNull(); if (!row) throw new Error("Missing seed event");
-    const result = serializeEvent(row); expect(result).toMatchObject({ is_active: false, is_featured: false, is_deleted: false,
-      start_time: "2099-05-01T11:00:00.123456", created_at: "2026-01-01T12:00:00.123456Z", creator: { id: 2 } });
-    expect(result.creator).not.toHaveProperty("hashed_password");
-    expect(serializeEvent({ ...row, creator: null, category: null })).toMatchObject({ creator: null, category: null });
+    await deps.sql`UPDATE users SET is_active = NULL, failed_login_attempts = NULL WHERE id = 2`;
+    const body = await getEventJson(deps.db, 1, "all");
+    expect(body).not.toBeNull();
+    const result = JSON.parse(body ?? "null") as Record<string, unknown>;
+    expect(result).toMatchObject({ is_active: false, is_featured: false, is_deleted: false,
+      start_time: "2099-05-01T11:00:00.123456", created_at: "2026-01-01T12:00:00.123456Z",
+      creator: { id: 2, is_active: false, failed_login_attempts: 0 } });
+    expect(Object.keys(result.creator as object).sort()).toEqual(["email", "failed_login_attempts", "full_name", "id", "is_active", "last_login", "password_changed_at", "role", "status"]);
+    await deps.sql`UPDATE events SET category_id = NULL WHERE id = 1`;
+    expect(JSON.parse(await getEventJson(deps.db, 1, "all") ?? "null")).toMatchObject({ category: null });
+  });
+  test("invalid create bodies retain custom 400 after auth", async () => {
+    const app = createApp(deps); const token = await tokenFor("mod@example.com", "moderator");
+    for (const body of ["{", JSON.stringify({ title: "x" })]) {
+      const r = await request(app).post("/events").auth(token, { type: "bearer" }).set("Content-Type", "application/json").send(body);
+      expect(r.status).toBe(400); expect(r.body).toEqual({ detail: "Geçersiz istek gövdesi" });
+    }
+    expect((await request(app).post("/events").set("Content-Type", "application/json").send("{")).status).toBe(401);
+  });
+  test("empty featured is 200 null while missing detail is 404", async () => {
+    await deps.sql`UPDATE events SET is_active = false`;
+    const app = createApp(deps);
+    const r = await request(app).get("/events/featured"); expect(r.status).toBe(200); expect(r.body).toBeNull();
+    expect((await request(app).get("/events/1")).status).toBe(404);
+  });
+  test("create accepts datetime-local, Z and explicit offsets", async () => {
+    const app = createApp(deps); const token = await tokenFor("mod@example.com", "moderator");
+    for (const start_time of ["2099-05-01T10:00", "2099-05-01T10:00:00Z", "2099-05-01T10:00:00+03:00"]) {
+      const r = await request(app).post("/events").auth(token, { type: "bearer" }).send({ title: start_time, start_time });
+      expect(r.status).toBe(201); expect(r.body).toMatchObject({ start_time: start_time.endsWith("+03:00") ? "2099-05-01T07:00:00" : "2099-05-01T10:00:00" });
+    }
   });
   test("slug race maps real unique violation to 409 and preserves one row", async () => {
-    const repo = await import("../../src/modules/events/repo");
+    const repo = await import("../../src/modules/events/queries");
     const original = repo.slugExists;
     let arrived = 0; let release: () => void = () => { throw new Error("Barrier uninitialized"); };
     const barrier = new Promise<void>(resolve => { release = resolve; });
@@ -71,7 +97,7 @@ describe("events database integration", () => {
     } finally { check.mockRestore(); }
   });
   test("concurrent featured writes and failed featured updates preserve exactly one featured event", async () => {
-    const repo = await import("../../src/modules/events/repo");
+    const repo = await import("../../src/modules/events/queries");
     const service = await import("../../src/modules/events/service");
     const update = spyOn(repo, "updateEventRow").mockImplementation(() => { throw new Error("injected featured update failure"); });
     try {
@@ -96,6 +122,6 @@ describe("events database integration", () => {
   test("past first flagged event triggers fallback even if a later flagged event is upcoming", async () => {
     await deps.sql`UPDATE events SET start_time = '2020-01-01' WHERE id = 1`;
     await deps.sql`UPDATE events SET is_featured = true WHERE id = 5`;
-    deps.counter.reset(); const r = await request(createApp(deps)).get("/events/featured"); expect(r.status).toBe(200); expect(r.body).toMatchObject({ id: 6 }); expect(deps.counter.count()).toBeLessThanOrEqual(2);
+    deps.counter.reset(); const r = await request(createApp(deps)).get("/events/featured"); expect(r.status).toBe(200); expect(r.body).toMatchObject({ id: 6 }); expect(deps.counter.count()).toBe(1);
   });
 });
