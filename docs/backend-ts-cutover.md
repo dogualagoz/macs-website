@@ -11,7 +11,7 @@ Bu doküman, mevcut Python/FastAPI (`backend`, konteyner `macs-backend`, port `8
 Geçişten önce VPS üzerinde aşağıdakileri tespit edip yedekle (dizin/port tahmin etme):
 
 1. **Repo çalışma dizini ve Compose**: `deploy-backend-ts.sh` varsayılan olarak `REPO_DIR=/opt/macs-website` bekler. Mevcut kurulum `/opt/macs` altında ise script env ile (`REPO_DIR=/opt/macs`) veya dizin hizalaması ile doğrulanmalıdır.
-2. **Docker / Compose sürümleri**: `docker compose version` ve çalışan `macs-db`, `macs-backend`, `macs-frontend` konteynerlerinin ağ/volume yapısı.
+2. **Docker / Compose sürümleri**: `docker compose version` ve çalışan `macs-db` ile `macs-backend` konteynerlerinin ağ/volume yapısı. Frontend VPS'te çalışmaz; Vercel üzerinde yayınlanır (VPS'te `macs-frontend` konteyneri beklenmez).
 3. **nginx ve Plesk durumu**:
    - `sudo nginx -v` ve `sudo nginx -V 2>&1` (`--with-http_v2_module`; `http2 on;` için nginx `>= 1.25.1` gerekir).
    - `sudo nginx -t` temiz geçmeli; `sudo nginx -T` ile etkin `api.macsclub.com.tr` vhost bloğu yedeklenmeli.
@@ -55,6 +55,8 @@ Geçişten önce VPS üzerinde aşağıdakileri tespit edip yedekle (dizin/port 
 ## 3. `backend-ts` Deploy (Port `127.0.0.1:8010`)
 
 `backend-ts`, mevcut `backend` (`8000`) servisine dokunmadan paralel olarak ayağa kalkar ([`docker-compose.yml`](../docker-compose.yml), [`scripts/deploy-backend-ts.sh`](../scripts/deploy-backend-ts.sh)).
+
+> **Uyarı — `main`'e push otomatik deploy tetikler:** `backend-ts/**`, `docker-compose*.yml`, `scripts/deploy-backend-ts.sh` veya `.github/workflows/deploy-backend.yml` değişikliği içeren her `main` push'u [`.github/workflows/deploy-backend.yml`](../.github/workflows/deploy-backend.yml) workflow'unu çalıştırır. Bugün bu workflow yalnızca CI'yı (`verify`) çalıştırır ve manuel deploy bildirimini yazdırır; çünkü `vars.VPS_SSH_REACHABLE` tanımlı değildir (GitHub → VPS SSH engelli). Bu repo değişkeni ileride `true` yapılırsa, `main`'e yapılan bir push `backend-ts`'i canlı sunucuya deploy eder ve **canlı veritabanında migration çalıştırır** (aşağıdaki `deploy-backend-ts.sh`, `RUN_MIGRATIONS=1`). Cutover planı hazır olmadan bu değişkeni `true` yapma ve `main`'e merge etmeden önce bu etkiyi göz önünde bulundur.
 
 1. İlk kurulum ve güncellemelerde deploy script'i çalıştır (repo yolu farklıysa `REPO_DIR` ver):
    ```bash
@@ -152,6 +154,7 @@ docker compose logs --since=15m backend-ts | grep -E '"status":5[0-9]{2}|"kind":
 sudo grep -E 'limiting (requests|connections)|HTTP/[0-9.]+" (429|5[0-9]{2})' /var/www/vhosts/system/api.macsclub.com.tr/logs/proxy_error_log /var/www/vhosts/system/api.macsclub.com.tr/logs/proxy_access_ssl_log | tail -n 50
 ```
 
+- **Upload zaman aşımı**: Uygulama `POST /api/upload/` için ayrı `120 sn` handler zaman aşımı uygular; ancak nginx arkasında `location /` içindeki `proxy_read_timeout 15s` (ve `proxy_send_timeout 15s`) yanıt/upload akışı süresini de sınırlar. `120 sn` değeri uçtan uca garanti değildir; çok yavaş yüklemeler nginx tarafında kesilebilir.
 - **Beklenen limit davranışları**: Kampüs NAT tek IP'sinden gelen sayfa yüklemelerinde `/uploads/`, `/static/` ve tam `/health` / `/health/ready` yolları uygulama global limitinden muaftır; nginx `/uploads/` için ayrı yüksek tavanlı `macs_upload_limit` (`200r/s`, burst `400`) ve `limit_conn 100` uygular. Beklenmedik `429` görülürse hangi `kind` / nginx zone tetiklendiğini logdan kontrol et.
 - **5xx**: Sıfır beklenir; 5xx görülürse `reqId`, `errorName`, `code` ve sanitized `path` alanlarını incele.
 
