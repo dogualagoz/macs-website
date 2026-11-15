@@ -65,6 +65,10 @@ const NewProjectDetailPage = () => {
       if (preview) {
         // Listeden gelen veri zaten gösteriliyor; yenileme hatası sayfayı düşürmez.
         setError(null);
+      } else if (err.response?.status === 404) {
+        // Slug yok: hata değil, "Proje Bulunamadı" ekranı.
+        setProject(null);
+        setError(null);
       } else if (USE_MOCK_FALLBACK) {
         const mock = MOCK_PROJECTS.find(p => p.id === id || p.slug === id);
         setProject(mock ? projectService._mapProject(mock) : null);
