@@ -491,8 +491,9 @@ test("warmupRegistry is bounded by maxEntries/LRU and prunes expired/evicted reg
   expect(freshCalls).toBe(2);
 });
 
-test("warmup failures are reported via onWarmupError/logger, return summary counts, keep peers warming, and retry on next trigger", async () => {
-  const errors: Array<{ key: string; domain: string; errorKind: string; message: string }> = [];
+test("warmup failures report only safe classifications (no PII/message/stack), walk error cause codes, fall back to logger.error, keep peers warming, and retry on next trigger", async () => {
+  const errors: Array<{ key: string; domain: string; errorName: string; errorKind: string; code?: string }> = [];
+  const onErrorEvents: Array<{ key: string; domain: string; errorName: string; errorKind: string; code?: string }> = [];
   const logWarnings: Array<{ obj: Record<string, unknown>; msg?: string }> = [];
 
   const c = createResponseCache({
@@ -502,6 +503,9 @@ test("warmup failures are reported via onWarmupError/logger, return summary coun
     enabled: true,
     onWarmupError: (event) => {
       errors.push(event);
+    },
+    onError: (event) => {
+      onErrorEvents.push(event);
     },
     logger: {
       warn: (obj, msg) => {
@@ -517,7 +521,10 @@ test("warmup failures are reported via onWarmupError/logger, return summary coun
   c.registerWarmup("/events?k=flaky", "events", () => {
     flakyAttempts += 1;
     if (flakyAttempts === 1) {
-      const dbErr = new TypeError("connection refused");
+      const pgCause = Object.assign(new Error("canceling statement due to statement timeout for secret.user@example.com"), {
+        code: "57014",
+      });
+      const dbErr = new TypeError("Failed query for secret.user@example.com", { cause: pgCause });
       return Promise.reject(dbErr);
     }
     return Promise.resolve({ status: 200, bodyText: '{"k":"recovered"}', cacheable: true });
@@ -535,21 +542,30 @@ test("warmup failures are reported via onWarmupError/logger, return summary coun
     {
       key: "/events?k=flaky",
       domain: "events",
-      errorKind: "TypeError",
-      message: "connection refused",
+      errorName: "TypeError",
+      errorKind: "57014",
+      code: "57014",
     },
   ]);
+  expect(onErrorEvents).toEqual(errors);
   expect(logWarnings).toEqual([
     {
       obj: {
         event: "cache_warmup_failed",
         key: "/events?k=flaky",
         domain: "events",
-        errorKind: "TypeError",
+        errorName: "TypeError",
+        errorKind: "57014",
+        code: "57014",
       },
       msg: "Cache warmup failed",
     },
   ]);
+  // Verify PII in Error.message never reaches callbacks or logger
+  expect(JSON.stringify(errors)).not.toContain("secret.user@example.com");
+  expect(JSON.stringify(onErrorEvents)).not.toContain("secret.user@example.com");
+  expect(JSON.stringify(logWarnings)).not.toContain("secret.user@example.com");
+
   expect(c.get("/events?k=1")).toBeDefined();
   expect(c.get("/events?k=3")).toBeDefined();
   expect(c.get("/events?k=flaky")).toBeUndefined();
@@ -560,6 +576,38 @@ test("warmup failures are reported via onWarmupError/logger, return summary coun
   expect(retrySummary).toEqual({ warmed: 3, failed: 0 });
   expect(flakyAttempts).toBe(2);
   expect(Buffer.from(c.get("/events?k=flaky")?.raw ?? []).toString("utf8")).toBe('{"k":"recovered"}');
+
+  // Verify error-only logger fallback when logger.warn is absent
+  const errorOnlyLogs: Array<{ obj: Record<string, unknown>; msg?: string }> = [];
+  const cErrorLogger = createResponseCache({
+    maxEntries: 500,
+    ttlMs: 60_000,
+    now: () => 0,
+    enabled: true,
+    logger: {
+      error: (obj, msg) => {
+        errorOnlyLogs.push(msg !== undefined ? { obj, msg } : { obj });
+      },
+    },
+  });
+  cErrorLogger.registerWarmup("/events?k=err-only", "events", () =>
+    Promise.reject(new RangeError("sensitive user2@example.com failure")),
+  );
+  const errOnlySummary = await cErrorLogger.warmupStartup();
+  expect(errOnlySummary).toEqual({ warmed: 0, failed: 1 });
+  expect(errorOnlyLogs).toEqual([
+    {
+      obj: {
+        event: "cache_warmup_failed",
+        key: "/events?k=err-only",
+        domain: "events",
+        errorName: "RangeError",
+        errorKind: "RangeError",
+      },
+      msg: "Cache warmup failed",
+    },
+  ]);
+  expect(JSON.stringify(errorOnlyLogs)).not.toContain("user2@example.com");
 });
 
 

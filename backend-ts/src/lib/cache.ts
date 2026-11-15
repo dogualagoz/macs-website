@@ -1,4 +1,5 @@
 import { brotliCompressSync, constants } from "node:zlib";
+import { readErrorCode } from "../middleware/error-handler";
 
 export type Domain = "auth" | "users" | "events" | "projects" | "members" | "sponsors" | "uploads" | "system";
 
@@ -42,8 +43,9 @@ export interface WarmupRegistration {
 export interface WarmupErrorEvent {
   key: string;
   domain: Domain;
+  errorName: string;
   errorKind: string;
-  message: string;
+  code?: string;
 }
 
 export interface WarmupSummary {
@@ -246,26 +248,24 @@ export function createResponseCache(o: ResponseCacheOptions = {}): ResponseCache
   const drainWaiters: Array<(summary: WarmupSummary) => void> = [];
 
   function reportWarmupError(key: string, domain: Domain, err: unknown): void {
-    let errorKind = "Error";
-    if (
-      typeof err === "object" &&
-      err !== null &&
-      "code" in err &&
-      typeof err.code === "string" &&
-      err.code.length > 0
-    ) {
-      errorKind = err.code;
-    } else if (err instanceof Error && err.name) {
-      errorKind = err.name;
-    }
-    const message = err instanceof Error ? err.message : "Warmup loader failed";
-    const event: WarmupErrorEvent = { key, domain, errorKind, message };
+    const errorName = err instanceof Error && err.name ? err.name : "UnknownError";
+    const code = readErrorCode(err);
+    const errorKind = code ?? errorName;
+    const event: WarmupErrorEvent =
+      code !== undefined
+        ? { key, domain, errorName, errorKind, code }
+        : { key, domain, errorName, errorKind };
     o.onWarmupError?.(event);
     o.onError?.(event);
-    o.logger?.warn?.(
-      { event: "cache_warmup_failed", key, domain, errorKind },
-      "Cache warmup failed",
-    );
+    const logPayload: Record<string, unknown> =
+      code !== undefined
+        ? { event: "cache_warmup_failed", key, domain, errorName, errorKind, code }
+        : { event: "cache_warmup_failed", key, domain, errorName, errorKind };
+    if (o.logger?.warn) {
+      o.logger.warn(logPayload, "Cache warmup failed");
+    } else if (o.logger?.error) {
+      o.logger.error(logPayload, "Cache warmup failed");
+    }
   }
 
   function removeEntry(key: string): void {
