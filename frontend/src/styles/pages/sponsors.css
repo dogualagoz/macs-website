@@ -638,20 +638,25 @@
   color: #ffffff;
   font-weight: 700;
   cursor: pointer;
+  touch-action: none;
   transition: all 0.3s;
   background: #07132b;
   overflow: hidden;
 }
 
+.sponsors-map__marker,
 .sponsors-map__marker-image {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.sponsors-map__marker-image {
+  -webkit-touch-callout: none;
   width: 100%;
   height: 100%;
   object-fit: cover;
   border-radius: 50%;
-}
-
-.sponsors-map__marker:hover {
-  transform: scale(1.1);
 }
 
 .sponsors-map__marker--active {

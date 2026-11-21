@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { m } from 'framer-motion';
 import Map, { Marker, Popup, NavigationControl } from 'react-map-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -11,35 +11,126 @@ import { MapIcon, LocationIcon, GoogleMapsIcon } from './SponsorIcons';
 // (~270 KB gzip). SponsorsPage bu dosyayi yalnizca harita gorunumu ekrana
 // yaklastiginda lazy yukler.
 const MAPBOX_TOKEN = env.mapboxToken;
+const MARKER_TAP_DISTANCE = 8;
 
 export default function SponsorsMap({ sponsors }) {
   const [popupInfo, setPopupInfo] = useState(null);
   const [isClosing, setIsClosing] = useState(false);
   const [mapError, setMapError] = useState(false);
+  const markerPress = useRef(null);
+  const markerClickPointer = useRef(null);
+  const markerClickTimeout = useRef(null);
+  const mapClickTimeout = useRef(null);
+  const popupCloseTimeout = useRef(null);
   const [viewState, setViewState] = useState({
     longitude: eskisehirCenter.lng,
     latitude: eskisehirCenter.lat,
     zoom: 12
   });
 
-  const handleClosePopup = () => {
+  useEffect(() => {
+    const finishMarkerPointer = (e) => {
+      if (markerClickPointer.current !== e.pointerId) return;
+
+      clearTimeout(markerClickTimeout.current);
+      markerClickTimeout.current = setTimeout(() => {
+        markerClickPointer.current = null;
+        if (markerPress.current?.pointerId === e.pointerId) markerPress.current = null;
+      }, 0);
+    };
+
+    window.addEventListener('pointerup', finishMarkerPointer, true);
+    window.addEventListener('pointercancel', finishMarkerPointer, true);
+    return () => {
+      window.removeEventListener('pointerup', finishMarkerPointer, true);
+      window.removeEventListener('pointercancel', finishMarkerPointer, true);
+      clearTimeout(popupCloseTimeout.current);
+      clearTimeout(markerClickTimeout.current);
+      clearTimeout(mapClickTimeout.current);
+    };
+  }, []);
+
+  const handleClosePopup = (e) => {
+    if (e?.originalEvent && mapClickTimeout.current !== null) return;
+    if (e?.originalEvent?.target?.closest?.('.sponsors-map__marker')) return;
+
     if (popupInfo && !isClosing) {
+      clearTimeout(popupCloseTimeout.current);
       setIsClosing(true);
-      setTimeout(() => {
+      popupCloseTimeout.current = setTimeout(() => {
         setPopupInfo(null);
         setIsClosing(false);
       }, 200); // Animasyon süresiyle eşleşmeli
     }
   };
 
-  const handleMarkerClick = (sponsor, e) => {
-    e.originalEvent.stopPropagation();
-    if (popupInfo?.id === sponsor.id) {
+  const showPopup = (sponsor) => {
+    clearTimeout(popupCloseTimeout.current);
+    setIsClosing(false);
+    setPopupInfo(sponsor);
+  };
+
+  const toggleMarkerPopup = (sponsor) => {
+    if (popupInfo?.id === sponsor.id && !isClosing) {
       handleClosePopup();
     } else {
-      setIsClosing(false);
-      setPopupInfo(sponsor);
+      showPopup(sponsor);
     }
+  };
+
+  const handleMarkerPointerDown = (sponsor, e) => {
+    if (!e.isPrimary || e.button !== 0) return;
+
+    clearTimeout(markerClickTimeout.current);
+    markerClickPointer.current = e.pointerId;
+    markerPress.current = {
+      pointerId: e.pointerId,
+      sponsorId: sponsor.id,
+      x: e.clientX,
+      y: e.clientY
+    };
+
+    try {
+      e.currentTarget.setPointerCapture?.(e.pointerId);
+    } catch {
+      // Synthetic events can have a pointer ID that the browser cannot capture.
+    }
+  };
+
+  const clearMarkerPress = (e) => {
+    if (markerPress.current?.pointerId === e.pointerId) markerPress.current = null;
+  };
+
+  const movedPastTapDistance = (press, e) =>
+    Math.hypot(e.clientX - press.x, e.clientY - press.y) >= MARKER_TAP_DISTANCE;
+
+  const handleMarkerPointerMove = (e) => {
+    const press = markerPress.current;
+    if (press?.pointerId === e.pointerId && movedPastTapDistance(press, e)) {
+      clearMarkerPress(e);
+    }
+  };
+
+  const handleMarkerPointerUp = (sponsor, e) => {
+    const press = markerPress.current;
+    if (!press || press.pointerId !== e.pointerId || press.sponsorId !== sponsor.id) return;
+
+    clearMarkerPress(e);
+    if (movedPastTapDistance(press, e)) return;
+
+    // A click following capture can target the map instead of the marker.
+    clearTimeout(mapClickTimeout.current);
+    mapClickTimeout.current = setTimeout(() => {
+      mapClickTimeout.current = null;
+    }, 0);
+    toggleMarkerPopup(sponsor);
+  };
+
+  const handleMarkerKeyDown = (sponsor, e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+
+    e.preventDefault();
+    if (!e.repeat) toggleMarkerPopup(sponsor);
   };
 
   const handleSidebarClick = (sponsor) => {
@@ -47,8 +138,7 @@ export default function SponsorsMap({ sponsors }) {
     // tiklamayi cevapsiz birakirdi. Bu yuzden hic secilmiyor.
     if (!sponsor.location?.lat || !sponsor.location?.lng) return;
 
-    setIsClosing(false);
-    setPopupInfo(sponsor);
+    showPopup(sponsor);
     setViewState(prev => ({
       ...prev,
       longitude: sponsor.location.lng,
@@ -99,7 +189,12 @@ export default function SponsorsMap({ sponsors }) {
       exit={{ opacity: 0 }}
       className="sponsors-map"
     >
-      <div className="sponsors-map__container">
+      <div
+        className="sponsors-map__container"
+        onPointerDownCapture={(e) => {
+          if (!e.isPrimary) markerPress.current = null;
+        }}
+      >
         <Map
           {...viewState}
           onMove={evt => setViewState(evt.viewState)}
@@ -118,20 +213,29 @@ export default function SponsorsMap({ sponsors }) {
               longitude={sponsor.location.lng}
               latitude={sponsor.location.lat}
               anchor="bottom"
-              onClick={(e) => handleMarkerClick(sponsor, e)}
             >
               <div
                 className={`sponsors-map__marker ${popupInfo?.id === sponsor.id ? 'sponsors-map__marker--active' : ''}`}
                 role="button"
                 aria-label={`${sponsor.name} konumunu göster`}
+                aria-expanded={popupInfo?.id === sponsor.id && !isClosing}
                 tabIndex={0}
-                onKeyDown={(e) => e.key === 'Enter' && handleMarkerClick(sponsor, e)}
+                onClick={() => {
+                  if (markerClickPointer.current === null) toggleMarkerPopup(sponsor);
+                }}
+                onPointerDown={(e) => handleMarkerPointerDown(sponsor, e)}
+                onPointerMove={handleMarkerPointerMove}
+                onPointerUp={(e) => handleMarkerPointerUp(sponsor, e)}
+                onPointerCancel={clearMarkerPress}
+                onLostPointerCapture={clearMarkerPress}
+                onKeyDown={(e) => handleMarkerKeyDown(sponsor, e)}
               >
                 {sponsor.imageUrl ? (
                   <img loading="lazy" decoding="async"
                     src={sponsor.imageUrl}
                     alt={sponsor.name}
                     className="sponsors-map__marker-image"
+                    draggable={false}
                     onError={(e) => handleAvatarError(e, sponsor.name)}
                   />
                 ) : (
