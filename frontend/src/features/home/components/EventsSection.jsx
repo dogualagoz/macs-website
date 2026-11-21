@@ -6,18 +6,22 @@
  * - Category filter buttons
  * - Event slider with navigation
  */
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { EventSlider, FeaturedEventCard } from '../../../shared/components/ui';
+import { sortEventsByProximity } from '../../../shared/utils/eventOrder';
 import '../../../styles/components/events.css';
 
 const EventsSection = ({ events, categories, featuredEvent }) => {
   const [activeFilter, setActiveFilter] = useState(null);
 
+  // Bugüne en yakın etkinlik önce: yaklaşanlar, ardından geçmişler.
+  const orderedEvents = useMemo(() => sortEventsByProximity(events), [events]);
+
   // Kategoriye göre filtre
   const filteredEvents = activeFilter
-    ? events.filter(event => event.category_id === activeFilter)
-    : events;
+    ? orderedEvents.filter(event => event.category_id === activeFilter)
+    : orderedEvents;
 
   const showFeatured = !activeFilter && featuredEvent;
   const sliderEvents = showFeatured
