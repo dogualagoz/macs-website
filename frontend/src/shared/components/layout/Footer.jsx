@@ -1,4 +1,5 @@
 import React from "react";
+import { openCookiePreferences } from '../../analytics';
 import '../../../styles/components/footer.css';
 
 const Footer = ({ variant = 'default' }) => {
@@ -62,8 +63,13 @@ const Footer = ({ variant = 'default' }) => {
         <div className="footer-divider"></div>
 
         <div className="footer-bottom">
-          <img src="/assets/images/img_copyright.png" alt="Copyright" width="13" height="15" loading="lazy" />
-          <span>2026 MACS. Tüm hakları saklıdır.</span>
+          <div className="footer-copyright">
+            <img src="/assets/images/img_copyright.png" alt="Copyright" width="13" height="15" loading="lazy" />
+            <span>2026 MACS. Tüm hakları saklıdır.</span>
+          </div>
+          <button type="button" className="footer-cookie-button" onClick={openCookiePreferences}>
+            Çerez tercihleri
+          </button>
         </div>
       </div>
     </footer>

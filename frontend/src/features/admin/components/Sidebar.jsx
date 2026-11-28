@@ -50,6 +50,15 @@ const Sidebar = () => {
           Üyeler
         </NavLink>
 
+        {/* Ziyaretçi sayıları GA4 panelinde; panel içinde grafik yok. */}
+        <a
+          href="https://analytics.google.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="sidebar-item"
+        >
+          İstatistikler
+        </a>
       </nav>
       
       <div style={{ marginTop: 'auto', marginBottom: '2rem' }}>

@@ -93,8 +93,15 @@
 
 .footer-bottom {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
+  gap: 6px 12px;
+}
+
+.footer-copyright {
+  display: flex;
+  align-items: center;
   gap: 6px;
 }
 
@@ -108,6 +115,28 @@
   font-weight: 500;
   line-height: 15px;
   color: #9ca3af;
+}
+
+/* Çerez bandını yeniden açar; footer bağlantılarıyla aynı görünüm.
+   Yatay boşluk .footer-bottom'un gap'inden gelir (satır kırılınca da
+   doğru hizalanır). */
+.footer-cookie-button {
+  padding: 0;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 15px;
+  color: #c9cdd3;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.footer-cookie-button:hover {
+  color: #ffffff;
 }
 
 /* Pointer cursor for social icons */
@@ -182,7 +211,14 @@
     line-height: 24px;
   }
 
-  .footer-bottom span {
+  .footer-bottom span,
+  .footer-cookie-button {
     font-size: 10px;
+  }
+
+  /* Dokunmatik ekranda en az 32px dokunma alanı. */
+  .footer-cookie-button {
+    min-height: 32px;
+    padding: 8px 4px;
   }
 }
