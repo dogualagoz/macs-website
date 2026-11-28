@@ -28,8 +28,11 @@ const SEO = ({
   const siteTitle = title.includes('MACS') ? title : `${title} | MACS`;
   const imageUrl = toAbsoluteUrl(image);
   
+  // defer={false}: varsayılan rAF ertelemesi yerine başlık render sırasında
+  // yazılır; GA4'ün otomatik page_view'i (geçmiş değişimi) eski sayfanın
+  // başlığını göndermesin.
   return (
-    <Helmet>
+    <Helmet defer={false}>
       {/* Temel Meta */}
       <title>{siteTitle}</title>
       <meta name="description" content={description} />

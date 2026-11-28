@@ -115,9 +115,23 @@ export default function SponsorsPage() {
     fetchSponsors();
   }, []);
 
+  // SEO yükleme sırasında da basılır: başlık sayfa açılır açılmaz doğru olsun
+  // (GA4 page_view veriyi beklemeden doğru başlıkla gider).
+  const seo = (
+    <SEO
+      title="Sponsorlarımız"
+      description="MACS topluluğunu destekleyen değerli sponsorlar ve iş ortakları. Eskişehir'deki teknoloji ekosisteminin güçlü paydaşları."
+      keywords="MACS sponsorları, sponsor, iş ortağı, Eskişehir teknoloji, destek"
+      url="https://macsclub.com.tr/sponsorluk"
+    />
+  );
+
   if (loading) {
     return (
-      <div className="sponsors-page sponsors-page--split">
+      <>
+      {seo}
+      {/* key: yüklemeden içeriğe geçişte kap, önceki gibi yeniden mount olsun. */}
+      <div key="loading" className="sponsors-page sponsors-page--split">
         <section
           className="sponsors-split"
           aria-busy="true"
@@ -136,6 +150,7 @@ export default function SponsorsPage() {
           </div>
         </section>
       </div>
+      </>
     );
   }
 
@@ -147,12 +162,7 @@ export default function SponsorsPage() {
 
   return (
     <>
-      <SEO
-        title="Sponsorlarımız"
-        description="MACS topluluğunu destekleyen değerli sponsorlar ve iş ortakları. Eskişehir'deki teknoloji ekosisteminin güçlü paydaşları."
-        keywords="MACS sponsorları, sponsor, iş ortağı, Eskişehir teknoloji, destek"
-        url="https://macsclub.com.tr/sponsorluk"
-      />
+      {seo}
       <div className={`sponsors-page ${hasSplit ? 'sponsors-page--split' : ''}`}>
       {hasSplit ? (
         <FeaturedSplit sponsors={featuredSponsors} />

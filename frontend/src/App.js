@@ -2,7 +2,7 @@
  * Main App component that serves as the root of the application.
  * Handles the overall layout and navigation state.
  */
-import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { Header, Footer } from './shared/components/layout';
 import { HomePage } from './features/home';
 import ProtectedRoute from './features/auth/components/ProtectedRoute';
@@ -20,6 +20,8 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { LazyMotion, domAnimation } from 'framer-motion';
 import './styles/App.css';
 import ScrollToTop from './shared/components/navigation/ScrollToTop';
+import CookieConsent from './shared/components/CookieConsent';
+import { useAnalyticsRouteSync } from './shared/analytics';
 
 // Ana sayfa dışındaki sayfalar ayrı chunk: ziyaretçi yalnızca açtığı sayfanın
 // kodunu indirir. Özellikle Sponsorluk: react-map-gl modül yüklenirken
@@ -50,8 +52,7 @@ function App() {
   // State to track whether the page has been scrolled
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
-  const { pathname, search } = location; 
-  const firstRender = useRef(true);
+  const { pathname } = location;
 
   // Header stilini kaydırma durumuna göre güncelle (scroll'da "dynamic island").
   //
@@ -99,15 +100,11 @@ function App() {
     };
   }, []);
 
-  useEffect(() => {
-    if (firstRender.current) {
-      firstRender.current = false; // ilk render'ı atla (script zaten saydı)
-      return;
-    }
-    if (typeof window !== "undefined" && typeof window.va === "function") {
-      window.va("pageview", { path: pathname + search });
-    }
-  }, [pathname, search]);
+  // GA4: Consent Mode varsayılanı (denied) ilk render'da kurulur; sayfa
+  // görüntülemelerini GA4 kendisi sayar (ilk açılış + tarayıcı geçmişi).
+  // Onay yoksa veya /admin, /login ise hiçbir şey gitmez. Production dışında
+  // no-op.
+  useAnalyticsRouteSync();
 
   return (
     <LazyMotion features={domAnimation} strict>
@@ -165,6 +162,8 @@ function App() {
           <Route path="/projeler/*" element={<Footer variant="projects" />} />
           <Route path="*" element={<Footer />} />
         </Routes>
+
+        <CookieConsent />
       </div>
     </AuthProvider>
     </LazyMotion>

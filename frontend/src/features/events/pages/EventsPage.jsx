@@ -15,28 +15,44 @@ export default function Events() {
   const { events, categories, loading, error, retry } = useEventsData();
   const { activeFilter, setActiveFilter, filteredAndSorted, featuredEvent } = useEventFilters(events);
 
+  // SEO yükleme ve hata durumunda da basılır: başlık sayfa açılır açılmaz
+  // doğru olsun (GA4 page_view veriyi beklemeden doğru başlıkla gider).
+  const seo = (
+    <SEO
+      title="Etkinlikler"
+      description="MACS topluluğunun düzenlediği yazılım atölyeleri, seminerler, hackathonlar ve networking etkinlikleri. Öğrenmeye ve gelişmeye hazır mısın?"
+      keywords="MACS etkinlikleri, yazılım atölyesi, hackathon, seminer, ESOGÜ etkinlik"
+      url="https://macsclub.com.tr/etkinlikler"
+    />
+  );
+
   // Loading and error states
   if (loading) {
     return (
-      <div className="min-h-screen bg-white pt-20">
-        <PageHeaderSkeleton />
-        <div className="mx-auto max-w-container px-5 py-12">
-          <EventGridSkeleton count={6} />
+      <>
+        {seo}
+        {/* key: yüklemeden içeriğe geçişte kap, önceki gibi yeniden mount olsun. */}
+        <div key="loading" className="min-h-screen bg-white pt-20">
+          <PageHeaderSkeleton />
+          <div className="mx-auto max-w-container px-5 py-12">
+            <EventGridSkeleton count={6} />
+          </div>
         </div>
-      </div>
+      </>
     );
   }
-  if (error) return <ErrorMessage message={error} onRetry={retry} />;
-
+  if (error) {
+    return (
+      <>
+        {seo}
+        <ErrorMessage message={error} onRetry={retry} />
+      </>
+    );
+  }
 
   return (
     <>
-      <SEO 
-        title="Etkinlikler"
-        description="MACS topluluğunun düzenlediği yazılım atölyeleri, seminerler, hackathonlar ve networking etkinlikleri. Öğrenmeye ve gelişmeye hazır mısın?"
-        keywords="MACS etkinlikleri, yazılım atölyesi, hackathon, seminer, ESOGÜ etkinlik"
-        url="https://macsclub.com.tr/etkinlikler"
-      />
+      {seo}
       <div className="min-h-screen bg-white">
       <PageHero
         title="Etkinlikler"

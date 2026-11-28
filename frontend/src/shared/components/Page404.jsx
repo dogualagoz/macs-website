@@ -6,7 +6,8 @@ import '../../styles/pages/Page404.css';
 const Page404 = () => {
   return (
     <div className="notfound">
-      <Helmet>
+      {/* defer={false}: başlık render'da yazılsın; GA page_view doğru başlıkla gitsin. */}
+      <Helmet defer={false}>
         <title>Sayfa bulunamadı | MACS</title>
         <meta name="robots" content="noindex" />
       </Helmet>

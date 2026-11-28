@@ -1,0 +1,98 @@
+/* KVKK çerez onay bandı: altta sabit şerit, footer ile aynı lacivert zemin. */
+.cookie-consent {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  /* Mobil menü (z-nav) açıkken onun altında kalsın. */
+  z-index: calc(var(--z-nav) - 1);
+  background-color: var(--navy-900);
+  color: var(--text-on-dark);
+  border-top: 1px solid var(--navy-700);
+  box-shadow: 0 -8px 24px rgba(7, 19, 43, 0.25);
+  padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+}
+
+.cookie-consent:focus {
+  outline: none;
+}
+
+.cookie-consent:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.cookie-consent__inner {
+  max-width: var(--container);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px 24px;
+}
+
+.cookie-consent__text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 21px;
+  color: var(--text-on-dark);
+  min-width: 0;
+}
+
+.cookie-consent__current {
+  color: var(--text-on-dark-muted);
+}
+
+.cookie-consent__actions {
+  display: flex;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+/* İki buton birebir aynı: reddetmek kabul etmek kadar belirgin. */
+.cookie-consent__button {
+  min-width: 112px;
+  min-height: 44px;
+  padding: 10px 20px;
+  border: 1px solid var(--text-on-dark);
+  border-radius: var(--radius-control);
+  background-color: transparent;
+  color: var(--text-on-dark);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.cookie-consent__button:hover {
+  background-color: var(--text-on-dark);
+  color: var(--navy-900);
+}
+
+.cookie-consent__button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 768px) {
+  .cookie-consent__inner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .cookie-consent__text {
+    font-size: 13px;
+    line-height: 19px;
+  }
+
+  .cookie-consent__actions {
+    width: 100%;
+  }
+
+  .cookie-consent__button {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+}
